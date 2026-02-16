@@ -1,40 +1,63 @@
-/* ===== Helpers ===== */
+/* ========= Helpers (safe + compatible) ========= */
 function qs(sel, el){ return (el || document).querySelector(sel); }
 function qsa(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
 function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+function pad2(n){ return (n < 10 ? "0" : "") + String(n); }
+
+// Math.imul fallback
+var _imul = Math.imul || function(a, b) {
+  var ah = (a >>> 16) & 0xffff, al = a & 0xffff;
+  var bh = (b >>> 16) & 0xffff, bl = b & 0xffff;
+  return ((al * bl) + (((ah * bl + al * bh) << 16) >>> 0)) | 0;
+};
+
+function safe(name, fn){
+  try { fn(); }
+  catch (e) {
+    // do NOT kill whole script
+    if (window && window.console && console.warn) console.warn("[studio] " + name + " failed:", e);
+  }
+}
 
 function hexToRgba(hex, a) {
   var h = String(hex).replace("#", "");
   if (h.length !== 6) return "rgba(245,245,245," + a + ")";
-  var r = parseInt(h.slice(0, 2), 16);
-  var g = parseInt(h.slice(2, 4), 16);
-  var b = parseInt(h.slice(4, 6), 16);
+  var r = parseInt(h.slice(0,2), 16);
+  var g = parseInt(h.slice(2,4), 16);
+  var b = parseInt(h.slice(4,6), 16);
   return "rgba(" + r + "," + g + "," + b + "," + a + ")";
 }
 
-/* ===== Boot (DOM ready, not window.load) ===== */
+/* ========= Boot ========= */
 document.addEventListener("DOMContentLoaded", function(){
   document.documentElement.classList.add("js");
 
-  // Prevent “friend starts at bottom” via scroll restoration
-  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-  if (!location.hash) window.scrollTo(0, 0);
+  safe("scrollRestoration", function(){
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    if (!location.hash) window.scrollTo(0, 0);
+  });
 
-  var y = qs("#year");
-  if (y) y.textContent = String(new Date().getFullYear());
+  safe("year", function(){
+    var y = qs("#year");
+    if (y) y.textContent = String(new Date().getFullYear());
+  });
 
-  initSmoothScroll();
-  initDockSpyStable();     // fixed: non-jumpy
-  initCardLight();
-  initBlobBackground();
-  initJellyfishRoam();     // hardened + no “silent disable”
-  initToolboardWires();
-  var drawerApi = initDrawerAutoPin(); // hardened: no vertical scroll
-  initExhibitSheet(drawerApi);
-  initGenerativeThumbs();
+  safe("smoothScroll", initSmoothScroll);
+  safe("dockSpy", initDockSpyStable);
+  safe("cardLight", initCardLight);
+  safe("blobBg", initBlobBackground);
+  safe("jellyfish", initJellyfishSlowPath);
+  safe("toolboardWires", initToolboardWires);
+
+  // drawer must be before sheet/thumb listeners (it clones)
+  var drawerApi = null;
+  safe("drawerInfinite", function(){ drawerApi = initDrawerInfiniteLoop(); });
+
+  safe("sheet", function(){ initExhibitSheet(drawerApi); });
+  safe("thumbs", initGenerativeThumbs);
 });
 
-/* ===== Smooth scroll ===== */
+/* ========= Smooth scroll ========= */
 function initSmoothScroll() {
   qsa("[data-scrollto]").forEach(function(btn){
     btn.addEventListener("click", function(){
@@ -57,20 +80,14 @@ function initSmoothScroll() {
   });
 }
 
-/* ===== Dock Spy: stable, no jitter =====
-   Logic: active = last section whose top has passed a fixed offset below header
-*/
+/* ========= Dock Spy (no jump) ========= */
 function initDockSpyStable() {
   var navItems = qsa(".dock__item");
   var sections = qsa("[data-section]");
   var header = qs(".top-strip");
   if (!navItems.length || !sections.length) return;
 
-  var map = {};
-  navItems.forEach(function(a){ map[a.getAttribute("data-nav")] = a; });
-
   var tops = [];
-
   function recalc() {
     tops = sections.map(function(s){
       var r = s.getBoundingClientRect();
@@ -90,7 +107,6 @@ function initDockSpyStable() {
     ticking = true;
     requestAnimationFrame(function(){
       ticking = false;
-
       var headerH = header ? header.getBoundingClientRect().height : 0;
       var marker = window.scrollY + headerH + 40;
 
@@ -110,7 +126,7 @@ function initDockSpyStable() {
   onScroll();
 }
 
-/* ===== Card light ===== */
+/* ========= Card light ========= */
 function initCardLight() {
   qsa(".card").forEach(function(card){
     card.addEventListener("pointermove", function(e){
@@ -123,23 +139,21 @@ function initCardLight() {
   });
 }
 
-/* ===== Ambient blobs ===== */
+/* ========= Blob background ========= */
 function initBlobBackground() {
   var canvas = qs("#bg-canvas");
   if (!canvas) return;
-
   var ctx = canvas.getContext("2d", { alpha:true });
   if (!ctx) return;
 
-  var rootStyle = getComputedStyle(document.documentElement);
-  var cCoral = rootStyle.getPropertyValue("--coral").trim() || "#FF6B6B";
-  var cBlue  = rootStyle.getPropertyValue("--blue").trim()  || "#4D96FF";
-  var cGreen = rootStyle.getPropertyValue("--green").trim() || "#6BCB77";
+  var rs = getComputedStyle(document.documentElement);
+  var cCoral = rs.getPropertyValue("--coral").trim() || "#FF6B6B";
+  var cBlue  = rs.getPropertyValue("--blue").trim()  || "#4D96FF";
+  var cGreen = rs.getPropertyValue("--green").trim() || "#6BCB77";
 
   var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var w=0,h=0,dpr=1;
-
   function resize(){
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     w = Math.floor(window.innerWidth);
@@ -167,8 +181,8 @@ function initBlobBackground() {
       x: Math.random()*w,
       y: Math.random()*h,
       r: (Math.min(w,h) * (0.18 + Math.random()*0.18)),
-      vx: (Math.random()-0.5)*0.18,
-      vy: (Math.random()-0.5)*0.18,
+      vx: (Math.random()-0.5)*0.15,
+      vy: (Math.random()-0.5)*0.15,
       c: p.hex,
       a: p.a
     });
@@ -182,8 +196,8 @@ function initBlobBackground() {
     ctx.fillStyle = "rgba(10,10,10,0.22)";
     ctx.fillRect(0,0,w,h);
 
-    for (var i=0; i<blobs.length; i++){
-      var b = blobs[i];
+    for (var j=0; j<blobs.length; j++){
+      var b = blobs[j];
       b.x += b.vx * dt;
       b.y += b.vy * dt;
 
@@ -210,26 +224,21 @@ function initBlobBackground() {
   requestAnimationFrame(tick);
 }
 
-/* ===== Jellyfish roam (hardened) =====
-   Desktop: fixed in viewport
-   Mobile: absolute inside hero (CSS), JS confines to hero box
-   Also: never fully disables (reduced motion just slows)
+/* ========= Jellyfish: VERY SLOW, SMOOTH, NOT RANDOM =========
+   Uses a gentle Lissajous-ish path; speed is constant across machines.
 */
-function initJellyfishRoam() {
+function initJellyfishSlowPath(){
   var jf = qs("#jellyfish");
   var hero = qs("#home");
   if (!jf || !hero) return;
 
-  var mqMobile = window.matchMedia ? window.matchMedia("(max-width: 768px)") : { matches:false };
+  var mqMobile = window.matchMedia ? window.matchMedia("(max-width: 1000px)") : { matches:false };
 
-  var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var motionScale = prefersReduced ? 0.35 : 1;
-
-  var s = { w: 160, h: 160 };
+  var size = { w: 160, h: 160 };
   function measure(){
     var r = jf.getBoundingClientRect();
-    s.w = r.width || 160;
-    s.h = r.height || 160;
+    size.w = r.width || 160;
+    size.h = r.height || 160;
   }
 
   function area(){
@@ -237,78 +246,35 @@ function initJellyfishRoam() {
       return {
         w: Math.min(hero.clientWidth || window.innerWidth, window.innerWidth),
         h: Math.min(hero.clientHeight || window.innerHeight, window.innerHeight),
-        pad: 10
+        pad: 12
       };
     }
-    return { w: window.innerWidth, h: window.innerHeight, pad: 10 };
+    return { w: window.innerWidth, h: window.innerHeight, pad: 12 };
   }
 
-  function rand(min,max){ return min + Math.random()*(max-min); }
-
-  var x=0,y=0,vx=0,vy=0,tx=0,ty=0,nextAt=0;
-  function pickTarget(now){
-    var a = area();
-    tx = rand(a.pad, Math.max(a.pad, a.w - s.w - a.pad));
-    ty = rand(a.pad, Math.max(a.pad, a.h - s.h - a.pad));
-    nextAt = now + (2600 + Math.random()*3200) / motionScale;
-  }
-
-  function clampX(nx, a){
-    return clamp(nx, a.pad, Math.max(a.pad, a.w - s.w - a.pad));
-  }
-  function clampY(ny, a){
-    return clamp(ny, a.pad, Math.max(a.pad, a.h - s.h - a.pad));
-  }
-
-  function reset(){
-    measure();
-    var a = area();
-    x = clampX(rand(a.pad, a.w - s.w - a.pad), a);
-    y = clampY(rand(a.pad, a.h - s.h - a.pad), a);
-    vx = 0; vy = 0;
-    pickTarget(performance.now());
-  }
-
-  reset();
-
-  function onMQChange(){ reset(); }
-  if (mqMobile.addEventListener) mqMobile.addEventListener("change", onMQChange);
-  else if (mqMobile.addListener) mqMobile.addListener(onMQChange);
-
+  measure();
   window.addEventListener("resize", function(){ measure(); }, { passive:true });
 
-  var last = performance.now();
+  var start = performance.now();
   function tick(now){
-    var dt = Math.min(34, now-last);
-    last = now;
-
-    if (now >= nextAt) pickTarget(now);
+    var t = (now - start) * 0.00004; 
+    // period ~ 2π / 0.04 ≈ 157s (very slow)
 
     var a = area();
+    var aw = Math.max(0, a.w - size.w - 2*a.pad);
+    var ah = Math.max(0, a.h - size.h - 2*a.pad);
 
-    var ax = (tx - x) * 0.00035 * motionScale;
-    var ay = (ty - y) * 0.00035 * motionScale;
+    var cx = a.pad + aw/2;
+    var cy = a.pad + ah/2;
 
-    vx = (vx + ax * dt) * (1 - 0.015 * motionScale);
-    vy = (vy + ay * dt) * (1 - 0.015 * motionScale);
+    var x = cx + (aw/2) * Math.sin(t);
+    var y = cy + (ah/2) * Math.sin(t * 0.72 + 1.4);
 
-    vx += (Math.random()-0.5) * 0.0020 * dt * motionScale;
-    vy += (Math.random()-0.5) * 0.0020 * dt * motionScale;
-
-    x += vx * dt;
-    y += vy * dt;
-
-    var x2 = clampX(x, a);
-    var y2 = clampY(y, a);
-    if (x2 !== x) vx *= -0.55;
-    if (y2 !== y) vy *= -0.55;
-    x = x2; y = y2;
-
-    var angle = Math.atan2(vy, vx) * 180 / Math.PI;
-    var breathe = 1 + Math.sin(now * 0.0011) * 0.03 * motionScale;
+    var rot = Math.sin(t * 1.1) * 1.6;
+    var scl = 1 + Math.sin(t * 0.9) * 0.015;
 
     jf.style.transform =
-      "translate3d(" + x + "px," + y + "px,0) rotate(" + (angle*0.10) + "deg) scale(" + breathe + ")";
+      "translate3d(" + x + "px," + y + "px,0) rotate(" + rot + "deg) scale(" + scl + ")";
 
     requestAnimationFrame(tick);
   }
@@ -316,8 +282,8 @@ function initJellyfishRoam() {
   requestAnimationFrame(tick);
 }
 
-/* ===== Toolboard wires ===== */
-function initToolboardWires() {
+/* ========= Toolboard wires ========= */
+function initToolboardWires(){
   var box = qs("#toolboardBox");
   var svg = qs("#toolboardWires");
   if (!box || !svg) return;
@@ -388,135 +354,151 @@ function initToolboardWires() {
     }
   }
 
-  var ro = new ResizeObserver(draw);
-  ro.observe(box);
   window.addEventListener("resize", draw, { passive:true });
   draw();
 }
 
-/* ===== Drawer: auto only when visible, horizontal-only scrolling ===== */
-function initDrawerAutoPin() {
+/* ========= Drawer: TRUE infinite loop =========
+   - clones before + after
+   - auto next every 5s
+   - wraps seamlessly (never “stops”)
+*/
+function initDrawerInfiniteLoop(){
   var drawer = qs("#drawer");
   var meta = qs("#drawerMeta");
-  var gallery = qs("#gallery");
-  if (!drawer || !meta || !gallery) return null;
+  if (!drawer || !meta) return null;
+
+  var originals = qsa(".frame", drawer);
+  var n = originals.length;
+  if (!n) return null;
+
+  // mark original indices
+  originals.forEach(function(f, i){
+    f.setAttribute("data-original-index", String(i));
+    f.removeAttribute("data-clone");
+  });
+
+  // clone before + after
+  var fragBefore = document.createDocumentFragment();
+  var fragAfter = document.createDocumentFragment();
+  var before = [];
+  var after = [];
+
+  originals.forEach(function(f, i){
+    var cb = f.cloneNode(true);
+    cb.setAttribute("data-clone", "before");
+    cb.setAttribute("data-original-index", String(i));
+    fragBefore.appendChild(cb);
+    before.push(cb);
+
+    var ca = f.cloneNode(true);
+    ca.setAttribute("data-clone", "after");
+    ca.setAttribute("data-original-index", String(i));
+    fragAfter.appendChild(ca);
+    after.push(ca);
+  });
+
+  drawer.insertBefore(fragBefore, drawer.firstChild);
+  drawer.appendChild(fragAfter);
 
   var frames = qsa(".frame", drawer);
-  var n = frames.length || 1;
 
-  var pinned = false;
-  var pinnedIndex = 0;
-  var timer = null;
-  var clickTimer = null;
+  // geometry for wrap
+  var geom = { start: 0, setWidth: 0 };
 
-  function frameCenter(i){
-    var el = frames[i];
-    return el.offsetLeft + el.clientWidth/2;
+  function recalcGeom(){
+    // setWidth = distance between first original and its after-clone
+    var start = originals[0].offsetLeft;
+    var setWidth = after[0].offsetLeft - start;
+    geom.start = start;
+    geom.setWidth = setWidth;
   }
 
-  function currentIndex(){
-    var c = drawer.scrollLeft + drawer.clientWidth/2;
-    var best = 0;
-    var bestDist = Infinity;
-    for (var i=0; i<frames.length; i++){
-      var d = Math.abs(frameCenter(i) - c);
-      if (d < bestDist){ bestDist = d; best = i; }
-    }
-    return best;
-  }
-
-  function scrollToIndex(i, behavior){
-    var el = frames[i];
+  function centerTo(el, behavior){
     if (!el) return;
     var left = el.offsetLeft - (drawer.clientWidth - el.clientWidth)/2;
     drawer.scrollTo({ left: left, behavior: behavior || "smooth" });
   }
 
-  function updateMeta(){
+  function getCenteredFrame(){
+    var center = drawer.scrollLeft + drawer.clientWidth/2;
+    var best = frames[0];
+    var bestDist = Infinity;
+    for (var i=0; i<frames.length; i++){
+      var f = frames[i];
+      var fc = f.offsetLeft + f.clientWidth/2;
+      var d = Math.abs(fc - center);
+      if (d < bestDist){ bestDist = d; best = f; }
+    }
+    return best;
+  }
+
+  function normalize(){
+    recalcGeom();
+    if (!geom.setWidth) return;
+
+    var min = geom.start;
+    var max = geom.start + geom.setWidth;
+
+    // keep scrollLeft in the "middle set"
+    while (drawer.scrollLeft < min) drawer.scrollLeft += geom.setWidth;
+    while (drawer.scrollLeft >= max) drawer.scrollLeft -= geom.setWidth;
+  }
+
+  // start centered on first original
+  recalcGeom();
+  centerTo(originals[0], "auto");
+  normalize();
+
+  // pinned behavior (optional)
+  var pinned = false;
+  var pinnedIndex = 0;
+  var clickTimer = null;
+
+  function setPinnedUI(el){
+    frames.forEach(function(f){ f.classList.remove("is-pinned"); });
+    if (el) el.classList.add("is-pinned");
+  }
+
+  function setMeta(){
+    var cur = getCenteredFrame();
+    var idx = parseInt(cur.getAttribute("data-original-index") || "0", 10) || 0;
     if (pinned) {
       meta.textContent =
-        "PINNED • PIECE " + String(pinnedIndex + 1).padStart(2,"0") +
-        " OF " + String(n).padStart(2,"0") +
+        "PINNED • PIECE " + pad2(pinnedIndex + 1) + " OF " + pad2(n) +
         " • CLICK AGAIN TO UNPIN • DOUBLE‑CLICK FOR REPO";
     } else {
-      var i = currentIndex();
       meta.textContent =
-        "AUTO (WHEN VISIBLE) • PIECE " + String(i + 1).padStart(2,"0") +
-        " OF " + String(n).padStart(2,"0") +
+        "INFINITE LOOP • PIECE " + pad2(idx + 1) + " OF " + pad2(n) +
         " • 5s • CLICK TO PIN • DOUBLE‑CLICK FOR REPO";
     }
   }
 
-  function startAuto(){
-    if (timer || pinned) return;
-    timer = window.setInterval(function(){
-      if (pinned) return;
-      var i = currentIndex();
-      var next = (i + 1) % n;
-      scrollToIndex(next, "smooth");
-      updateMeta();
-    }, 5000);
-  }
-
-  function stopAuto(){
-    if (!timer) return;
-    window.clearInterval(timer);
-    timer = null;
-  }
-
-  function pinTo(i){
+  function pinTo(idx){
     pinned = true;
-    pinnedIndex = i;
+    pinnedIndex = idx;
     stopAuto();
-    frames.forEach(function(f, idx){ f.classList.toggle("is-pinned", idx === i); });
-    scrollToIndex(i, "smooth");
-    updateMeta();
+    setPinnedUI(originals[idx]);
+    centerTo(originals[idx], "smooth");
+    setMeta();
   }
 
   function unpin(){
     pinned = false;
-    frames.forEach(function(f){ f.classList.remove("is-pinned"); });
-    updateMeta();
-    // auto resumes only if visible
-    if (isGalleryVisible()) startAuto();
+    setPinnedUI(null);
+    setMeta();
+    startAuto();
   }
 
-  function isGalleryVisible(){
-    var r = gallery.getBoundingClientRect();
-    var vh = window.innerHeight || document.documentElement.clientHeight;
-    var visible = Math.min(r.bottom, vh) - Math.max(r.top, 0);
-    if (visible <= 0) return false;
-    var need = Math.min(vh, r.height) * 0.35;
-    return visible >= need;
-  }
-
-  // Auto-run only when gallery is in view (prevents “scrolling me to projects” behavior)
-  var visTick = false;
-  function visLoop(){
-    if (visTick) return;
-    visTick = true;
-    requestAnimationFrame(function(){
-      visTick = false;
-      if (pinned) return;
-
-      if (isGalleryVisible()) startAuto();
-      else stopAuto();
-    });
-  }
-  window.addEventListener("scroll", visLoop, { passive:true });
-  window.addEventListener("resize", visLoop, { passive:true });
-
-  // Click logic:
-  // - single click (not on buttons): pin (or unpin if already pinned on same card)
-  // - double click: open repo (and does NOT pin)
-  frames.forEach(function(frame, idx){
+  // click to pin, dblclick repo (works on clones too)
+  frames.forEach(function(frame){
     frame.addEventListener("click", function(e){
-      if (e.target.closest("button,a")) return;
+      if (e.target && e.target.closest && e.target.closest("button,a")) return;
 
-      // delay to differentiate from dblclick
       if (clickTimer) return;
       clickTimer = window.setTimeout(function(){
         clickTimer = null;
+        var idx = parseInt(frame.getAttribute("data-original-index") || "0", 10) || 0;
         if (pinned && pinnedIndex === idx) unpin();
         else pinTo(idx);
       }, 220);
@@ -529,35 +511,71 @@ function initDrawerAutoPin() {
     });
   });
 
-  // Controls
+  // controls
   qsa("[data-drawer]").forEach(function(btn){
     btn.addEventListener("click", function(){
+      var cur = getCenteredFrame();
+      var i = frames.indexOf(cur);
       var dir = btn.getAttribute("data-drawer");
-      var i = pinned ? pinnedIndex : currentIndex();
-      var next = dir === "next" ? (i + 1) % n : (i - 1 + n) % n;
-      scrollToIndex(next, "smooth");
+      var next = dir === "next" ? frames[i + 1] : frames[i - 1];
+      if (!next) next = dir === "next" ? frames[0] : frames[frames.length - 1];
+      centerTo(next, "smooth");
+
       if (pinned){
-        pinnedIndex = next;
-        frames.forEach(function(f, j){ f.classList.toggle("is-pinned", j === next); });
+        pinnedIndex = parseInt(next.getAttribute("data-original-index") || "0", 10) || 0;
+        setPinnedUI(originals[pinnedIndex]);
       }
-      updateMeta();
+      setMeta();
     });
   });
 
-  // Meta update on horizontal scroll
-  var raf = null;
+  // scroll end: normalize to keep infinite feel
+  var scrollEnd = null;
   drawer.addEventListener("scroll", function(){
-    if (pinned) return;
-    if (raf) cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(updateMeta);
+    if (scrollEnd) window.clearTimeout(scrollEnd);
+    scrollEnd = window.setTimeout(function(){
+      normalize();
+      setMeta();
+    }, 120);
   }, { passive:true });
 
-  updateMeta();
-  visLoop(); // start/stop based on visibility
-  return { pause: stopAuto, resume: visLoop, unpin: unpin, isPinned: function(){ return pinned; } };
+  window.addEventListener("resize", function(){
+    normalize();
+    setMeta();
+  }, { passive:true });
+
+  // autoplay (true loop)
+  var timer = null;
+  function startAuto(){
+    if (timer || pinned) return;
+    timer = window.setInterval(function(){
+      if (pinned) return;
+      var cur = getCenteredFrame();
+      var i = frames.indexOf(cur);
+      var next = frames[i + 1];
+      if (!next) next = frames[0];
+      centerTo(next, "smooth");
+      // normalization happens on scrollEnd timer
+    }, 5000);
+  }
+  function stopAuto(){
+    if (!timer) return;
+    window.clearInterval(timer);
+    timer = null;
+  }
+
+  setMeta();
+  startAuto();
+
+  return {
+    pause: stopAuto,
+    resume: startAuto,
+    unpin: unpin,
+    isPinned: function(){ return pinned; }
+  };
 }
 
-/* ===== Exhibit sheet ===== */
+/* ========= Exhibit sheet ========= */
 function initExhibitSheet(drawerApi) {
   var sheet = qs("#sheet");
   if (!sheet) return;
@@ -611,10 +629,11 @@ function initExhibitSheet(drawerApi) {
     if (drawerApi && drawerApi.resume) drawerApi.resume();
   }
 
+  // bind for ALL frames (including clones)
   qsa(".frame").forEach(function(frame){
-    var openBtn = qs("[data-open]", frame);
-    if (openBtn){
-      openBtn.addEventListener("click", function(e){
+    var btn = qs("[data-open]", frame);
+    if (btn){
+      btn.addEventListener("click", function(e){
         e.stopPropagation();
         openFromFrame(frame);
       });
@@ -627,54 +646,44 @@ function initExhibitSheet(drawerApi) {
   window.addEventListener("keydown", function(e){
     if (e.key === "Escape" && sheet.classList.contains("is-open")) close();
   });
-
-  closeBtns.forEach(function(el){
-    if (el.tagName && el.tagName.toLowerCase() === "a") el.addEventListener("click", close);
-  });
 }
 
-/* ===== Generative thumbnails ===== */
-function initGenerativeThumbs() {
-  var thumbs = qsa("canvas.thumb");
-  if (!thumbs.length) return;
-
-  var ro = new ResizeObserver(function(){
-    thumbs.forEach(function(c){
+/* ========= Thumbnails (no ResizeObserver) ========= */
+function initGenerativeThumbs(){
+  function drawAll(){
+    qsa("canvas.thumb").forEach(function(c){
       var seed = c.getAttribute("data-seed") || "thumb";
-      var frame = c.closest(".frame");
+      var frame = c.closest ? c.closest(".frame") : null;
       var accent = frame ? (frame.getAttribute("data-accent") || "blue") : "blue";
       drawGenerativeArt(c, seed, accent);
     });
-  });
+  }
 
-  thumbs.forEach(function(c){ ro.observe(c); });
-
-  thumbs.forEach(function(c){
-    var seed = c.getAttribute("data-seed") || "thumb";
-    var frame = c.closest(".frame");
-    var accent = frame ? (frame.getAttribute("data-accent") || "blue") : "blue";
-    drawGenerativeArt(c, seed, accent);
-  });
+  drawAll();
+  window.addEventListener("resize", function(){
+    // small debounce
+    clearTimeout(initGenerativeThumbs._t);
+    initGenerativeThumbs._t = setTimeout(drawAll, 120);
+  }, { passive:true });
 }
 
-/* ===== Seeded PRNG ===== */
+/* ========= Seeded PRNG ========= */
 function hashString(str) {
   var h = 2166136261;
   for (var i = 0; i < str.length; i++) {
     h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
+    h = _imul(h, 16777619);
   }
   return h >>> 0;
 }
 function mulberry32(a) {
   return function() {
     var t = a += 0x6D2B79F5;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    t = _imul(t ^ (t >>> 15), t | 1);
+    t ^= t + _imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-
 function getAccentColor(accent) {
   var cs = getComputedStyle(document.documentElement);
   if (accent === "coral") return cs.getPropertyValue("--coral").trim() || "#FF6B6B";
@@ -682,7 +691,7 @@ function getAccentColor(accent) {
   return cs.getPropertyValue("--blue").trim() || "#4D96FF";
 }
 
-/* ===== Generative art drawing ===== */
+/* ========= Generative art drawing ========= */
 function drawGenerativeArt(canvas, seed, accentName) {
   var ctx = canvas.getContext("2d");
   if (!ctx) return;

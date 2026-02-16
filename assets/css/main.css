@@ -35,28 +35,16 @@ body{
   line-height:1.5;
   overflow-x:hidden;
 }
-
 main{ padding-left: var(--dock-space); }
 
 a{ color:inherit; text-decoration:none; }
 a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:3px; }
-
-::selection{ background: rgba(77,150,255,.35); color: var(--fg); }
 
 .mono{
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   letter-spacing:.06em;
 }
 .muted{ color: var(--muted); }
-.sep{ opacity:.55; padding:0 .45rem; }
-
-.sr-only{
-  position:absolute;
-  width:1px;height:1px;
-  padding:0;margin:-1px;
-  overflow:hidden;clip: rect(0,0,0,0);
-  white-space:nowrap;border:0;
-}
 
 .container{
   width: min(var(--container), calc(100% - 2*var(--pad)));
@@ -88,7 +76,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   max-width: 72ch;
 }
 
-/* ===== Ambient background ===== */
+/* Ambient background */
 #bg-canvas{
   position:fixed;
   inset:0;
@@ -111,76 +99,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   mask-image: radial-gradient(circle at 55% 15%, black 0%, black 45%, transparent 70%);
 }
 
-/* ===== Jellyfish ===== */
-.hero{ position:relative; overflow:hidden; padding-top: 70px; }
-.hero{ min-height: calc(100vh - var(--header-h)); display:flex; align-items:center; }
-
-.jellyfish{
-  position:fixed; /* desktop */
-  left: 8vw;
-  top: 12vh;
-
-  width: 170px;
-  height: 170px;
-
-  z-index: 1;
-  pointer-events:none;
-  opacity:.52;
-  filter: drop-shadow(0 22px 40px rgba(0,0,0,.55));
-  mix-blend-mode: screen;
-  will-change: transform;
-
-  /* CSS fallback roam (only if JS fails to set .js class) */
-  animation: jf-fallback 22s ease-in-out infinite;
-}
-@keyframes jf-fallback{
-  0%   { left: 8vw;  top: 12vh; }
-  25%  { left: 72vw; top: 10vh; }
-  50%  { left: 58vw; top: 70vh; }
-  75%  { left: 10vw; top: 62vh; }
-  100% { left: 42vw; top: 22vh; }
-}
-/* When JS is active, disable fallback and let JS drive it */
-.js .jellyfish{ animation: none; left: 0; top: 0; }
-
-.jellyfish svg{
-  width:100%;
-  height:100%;
-  display:block;
-  transform-origin: 50% 45%;
-  animation: jf-pulse 3.8s ease-in-out infinite;
-}
-.jf-tentacles{
-  transform-origin: 50% 50%;
-  animation: jf-tent 2.6s ease-in-out infinite;
-}
-@keyframes jf-pulse{
-  0%,100%{ transform: scale(1) rotate(-1deg); }
-  50%{ transform: scale(1.05) rotate(1deg); }
-}
-@keyframes jf-tent{
-  0%,100%{ transform: translateY(0); opacity:.92; }
-  50%{ transform: translateY(3px); opacity:.78; }
-}
-
-/* Mobile: jellyfish stays only in hero */
-@media (max-width: 768px){
-  .jellyfish{
-    position:absolute;
-    left: 6%;
-    top: 10%;
-    animation: jf-fallback-mobile 16s ease-in-out infinite;
-  }
-  @keyframes jf-fallback-mobile{
-    0%   { left: 6%;  top: 10%; }
-    33%  { left: 72%; top: 18%; }
-    66%  { left: 50%; top: 58%; }
-    100% { left: 10%; top: 22%; }
-  }
-  .js .jellyfish{ animation:none; left:0; top:0; }
-}
-
-/* ===== Top strip ===== */
+/* Top strip */
 .top-strip{
   position:sticky;
   top:0;
@@ -212,7 +131,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   text-transform: uppercase;
 }
 
-/* ===== Dock ===== */
+/* Dock */
 .studio-dock{
   position:fixed;
   left: 18px;
@@ -284,7 +203,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   transform: translateY(-50%) translateX(0);
 }
 
-/* ===== Buttons ===== */
+/* Buttons */
 .btn{
   display:inline-flex;
   align-items:center;
@@ -309,8 +228,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 .btn:hover{ text-decoration:none; background: rgba(245,245,245,.07); }
 .btn--primary{
   border-color: rgba(77,150,255,.55);
-  background:
-    linear-gradient(180deg, rgba(77,150,255,.20), rgba(245,245,245,.03));
+  background: linear-gradient(180deg, rgba(77,150,255,.20), rgba(245,245,245,.03));
 }
 .btn--ghost{ background: transparent; }
 .btn--tiny{ padding: 9px 12px; font-size:.85rem; }
@@ -324,20 +242,13 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 .icon-btn:hover{ background: rgba(245,245,245,.07); }
 
-/* ===== Accents ===== */
+/* Accents */
 .accent{ font-weight:700; }
 .accent--coral{ color: var(--coral); }
 .accent--blue{ color: var(--blue); }
 .accent--green{ color: var(--green); }
 
-.kicker{
-  margin:0 0 14px 0;
-  color: rgba(245,245,245,.70);
-  text-transform: uppercase;
-  font-size: .80rem;
-}
-
-/* ===== Cards (cut) ===== */
+/* Card cut */
 .cut{
   border-radius: var(--radius);
   clip-path: polygon(
@@ -370,11 +281,6 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 .card:hover::before{ opacity:.95; }
 
-.card[data-accent="coral"]{ border-color: rgba(255,107,107,.22); }
-.card[data-accent="blue"]{ border-color: rgba(77,150,255,.22); }
-.card[data-accent="green"]{ border-color: rgba(107,203,119,.22); }
-
-/* ===== Chips ===== */
 .chips{ display:flex; flex-wrap:wrap; gap:10px; }
 .chip{
   display:inline-flex;
@@ -387,10 +293,18 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   color: rgba(245,245,245,.82);
 }
 
-/* ===== Hero minimal ===== */
+/* HERO */
+.hero{
+  position:relative;
+  overflow:hidden;
+  padding-top: 70px;
+  min-height: calc(100vh - var(--header-h));
+  display:flex;
+  align-items:center;
+}
 .hero__wrap{
   width: 100%;
-  max-width: 860px;
+  max-width: 900px;
 }
 .hero__name{
   margin:0 0 12px 0;
@@ -411,48 +325,43 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   margin-top: 18px;
 }
 
-/* notes hidden by default */
-.hero-notes{
-  margin-top: 18px;
-  width: min(620px, 100%);
+/* Jellyfish (JS drives transform) */
+.jellyfish{
+  position:fixed; /* desktop */
+  left: 0;
+  top: 0;
+
+  width: 170px;
+  height: 170px;
+
+  z-index: 1;
+  pointer-events:none;
+  opacity:.50;
+  filter: drop-shadow(0 22px 40px rgba(0,0,0,.55));
+  mix-blend-mode: screen;
+  will-change: transform;
 }
-.hero-notes__summary{
-  list-style:none;
-  cursor:pointer;
-  user-select:none;
-  display:inline-flex;
-  align-items:center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(245,245,245,.14);
-  background: rgba(10,10,10,.35);
-  backdrop-filter: blur(12px);
-  color: rgba(245,245,245,.76);
-  text-transform: uppercase;
-  font-size: .74rem;
+.jellyfish svg{
+  width:100%;
+  height:100%;
+  display:block;
+  transform-origin: 50% 45%;
+  animation: jf-pulse 5.8s ease-in-out infinite;
 }
-.hero-notes__summary::-webkit-details-marker{ display:none; }
-.hero-notes__panel{
-  margin-top: 12px;
-  padding: 16px;
-  background: rgba(10,10,10,.38);
-  backdrop-filter: blur(14px);
+.jf-tentacles{
+  transform-origin: 50% 50%;
+  animation: jf-tent 4.8s ease-in-out infinite;
 }
-.hero-notes__rows{ display:grid; gap: 10px; }
-.hero-notes__row{
-  display:flex;
-  justify-content:space-between;
-  gap: 12px;
-  color: rgba(245,245,245,.80);
+@keyframes jf-pulse{
+  0%,100%{ transform: scale(1) rotate(-0.6deg); }
+  50%{ transform: scale(1.04) rotate(0.6deg); }
 }
-.hero-notes__divider{
-  height:1px;
-  background: rgba(245,245,245,.10);
-  margin: 14px 0;
+@keyframes jf-tent{
+  0%,100%{ transform: translateY(0); opacity:.90; }
+  50%{ transform: translateY(2px); opacity:.78; }
 }
 
-/* ===== Impact ===== */
+/* Impact */
 .impact-ledger{
   display:grid;
   grid-template-columns: repeat(12, 1fr);
@@ -481,7 +390,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 .stamp__desc{ margin:0; color: rgba(245,245,245,.70); }
 
-/* ===== Toolboard ===== */
+/* Toolboard */
 .toolboard{
   position:relative;
   border: 1px solid rgba(245,245,245,.10);
@@ -517,7 +426,6 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   z-index: 0;
   opacity: .70;
 }
-
 .toolnode{
   position:relative;
   z-index: 1;
@@ -528,7 +436,6 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   backdrop-filter: blur(16px);
   box-shadow: 0 20px 55px rgba(0,0,0,.55);
 }
-
 .toolnode[data-node="backend"]{ grid-column:1; grid-row:1; }
 .toolnode[data-node="genai"]{ grid-column:2; grid-row:1; }
 .toolnode[data-node="core"]{ grid-column:3; grid-row:1 / span 2; }
@@ -567,7 +474,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 .mini__t{ font-weight: 700; margin-bottom: 8px; }
 .mini__s{ font-size:.78rem; }
 
-/* ===== Studies ===== */
+/* Studies */
 .studies{ display:grid; grid-template-columns: 1fr; gap: 16px; }
 .degree{
   padding: 18px;
@@ -597,7 +504,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 .degree__when{ margin-top: 10px; }
 
-/* ===== Logbook ===== */
+/* Logbook */
 .logbook{ display:grid; gap: 14px; }
 .entry{ padding: 0; background: rgba(10,10,10,.35); backdrop-filter: blur(12px); }
 .entry__summary{
@@ -625,7 +532,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 .entry__bullets li{ margin: 8px 0; }
 
-/* ===== Drawer ===== */
+/* Drawer */
 .drawer{
   display:flex;
   gap: 18px;
@@ -692,9 +599,10 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 .frame__text{ margin: 0 0 12px 0; color: rgba(245,245,245,.76); }
 .frame__actions{ margin-top: 14px; display:flex; gap: 10px; flex-wrap:wrap; }
+
 .drawer-controls{ display:flex; gap: 10px; align-items:center; }
 
-/* ===== Sheet ===== */
+/* Sheet */
 .sheet{ position:fixed; inset:0; z-index: 50; display:none; }
 .sheet.is-open{ display:block; }
 .sheet__overlay{
@@ -753,7 +661,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 .sheet__actions{ margin-top: 14px; display:flex; gap: 10px; flex-wrap:wrap; }
 .sheet__hint{ margin-top: 14px; }
 
-/* ===== Contact icons ===== */
+/* Contact icons */
 .contact-icons{ display:flex; gap: 16px; flex-wrap:wrap; align-items:center; }
 .icon-tile{
   width: 92px;
@@ -773,7 +681,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 .icon-tile:hover svg{ transform: translateY(-1px); opacity: 1; }
 
-/* ===== Footer ===== */
+/* Footer */
 .footer{
   padding: 28px 0 40px 0;
   border-top: 1px solid rgba(245,245,245,.08);
@@ -786,7 +694,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   flex-wrap:wrap;
 }
 
-/* ===== Responsive ===== */
+/* Responsive */
 @media (max-width: 1000px){
   main{ padding-left: 0; }
 
@@ -810,8 +718,10 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
     overflow:auto;
   }
   .dock__label{ display:none; }
-}
 
+  /* mobile jellyfish: only inside hero */
+  .jellyfish{ position:absolute; }
+}
 @media (max-width: 640px){
   .section{ padding: 78px 0; }
   .jellyfish{ width: 140px; height: 140px; opacity:.46; }
