@@ -10,7 +10,6 @@
 
 <body>
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
-  <div class="grid-overlay" aria-hidden="true"></div>
   <div class="grain-overlay" aria-hidden="true"></div>
 
   <header class="top-strip">
@@ -20,6 +19,16 @@
       <span class="brand__tag mono">Generative Art Studio</span>
     </a>
 
+    <nav class="top-nav" aria-label="Primary navigation">
+      <a class="top-nav__link is-active" href="#home" data-nav="home">Home</a>
+      <a class="top-nav__link" href="#impact" data-nav="impact">Impact</a>
+      <a class="top-nav__link" href="#techstack" data-nav="techstack">Tech Stack</a>
+      <a class="top-nav__link" href="#education" data-nav="education">Education</a>
+      <a class="top-nav__link" href="#experience" data-nav="experience">Experience</a>
+      <a class="top-nav__link" href="#projects" data-nav="projects">Projects</a>
+      <a class="top-nav__link" href="#contact" data-nav="contact">Contact Me</a>
+    </nav>
+
     <div class="top-strip__actions">
       <a class="btn btn--ghost" href="resume/resume.pdf" target="_blank" rel="noopener">
         Resume PDF
@@ -27,65 +36,35 @@
     </div>
   </header>
 
-  <nav class="studio-dock" aria-label="Studio navigation">
-    <a class="dock__item is-active" href="#home" data-nav="home" aria-label="Home">
-      <span class="dock__dot" aria-hidden="true"></span>
-      <span class="dock__label">Home</span>
-    </a>
-    <a class="dock__item" href="#impact" data-nav="impact" aria-label="Impact">
-      <span class="dock__dot" aria-hidden="true"></span>
-      <span class="dock__label">Impact</span>
-    </a>
-    <a class="dock__item" href="#toolboard" data-nav="toolboard" aria-label="Toolboard">
-      <span class="dock__dot" aria-hidden="true"></span>
-      <span class="dock__label">Toolboard</span>
-    </a>
-    <a class="dock__item" href="#studies" data-nav="studies" aria-label="Studies">
-      <span class="dock__dot" aria-hidden="true"></span>
-      <span class="dock__label">Studies</span>
-    </a>
-    <a class="dock__item" href="#logbook" data-nav="logbook" aria-label="Logbook">
-      <span class="dock__dot" aria-hidden="true"></span>
-      <span class="dock__label">Logbook</span>
-    </a>
-    <a class="dock__item" href="#gallery" data-nav="gallery" aria-label="Gallery">
-      <span class="dock__dot" aria-hidden="true"></span>
-      <span class="dock__label">Gallery</span>
-    </a>
-    <a class="dock__item" href="#contact" data-nav="contact" aria-label="Contact">
-      <span class="dock__dot" aria-hidden="true"></span>
-      <span class="dock__label">Contact</span>
-    </a>
-  </nav>
-
   <main>
-    <!-- HERO (minimal, but more "finished" presentation) -->
+    <!-- HERO -->
     <section id="home" class="section hero" data-section>
+      <!-- Rover-sized jellyfish -->
       <div id="jellyfish" class="jellyfish" aria-hidden="true">
         <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <radialGradient id="cap" cx="50%" cy="45%" r="60%">
-              <stop offset="0%" stop-color="rgba(245,245,245,0.65)"/>
-              <stop offset="55%" stop-color="rgba(77,150,255,0.35)"/>
+              <stop offset="0%" stop-color="rgba(245,245,245,0.72)"/>
+              <stop offset="55%" stop-color="rgba(77,150,255,0.38)"/>
               <stop offset="100%" stop-color="rgba(255,107,107,0.18)"/>
             </radialGradient>
             <linearGradient id="tent" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="rgba(77,150,255,0.55)"/>
-              <stop offset="50%" stop-color="rgba(107,203,119,0.45)"/>
-              <stop offset="100%" stop-color="rgba(255,107,107,0.45)"/>
+              <stop offset="0%" stop-color="rgba(77,150,255,0.58)"/>
+              <stop offset="50%" stop-color="rgba(107,203,119,0.46)"/>
+              <stop offset="100%" stop-color="rgba(255,107,107,0.46)"/>
             </linearGradient>
           </defs>
 
           <path d="M30 110C30 65 66 30 110 30C154 30 190 65 190 110C190 118 184 124 176 124H44C36 124 30 118 30 110Z"
-                fill="url(#cap)" stroke="rgba(245,245,245,0.22)" stroke-width="2"/>
+                fill="url(#cap)" stroke="rgba(245,245,245,0.26)" stroke-width="2"/>
 
           <path d="M55 105C60 70 83 50 110 50C137 50 160 70 165 105"
-                stroke="rgba(245,245,245,0.12)" stroke-width="2" />
+                stroke="rgba(245,245,245,0.14)" stroke-width="2" />
 
           <path d="M52 124C60 140 78 148 110 148C142 148 160 140 168 124"
-                stroke="rgba(245,245,245,0.18)" stroke-width="2" />
+                stroke="rgba(245,245,245,0.22)" stroke-width="2" />
 
-          <g class="jf-tentacles" stroke="url(#tent)" stroke-width="2.6" stroke-linecap="round" opacity="0.9">
+          <g class="jf-tentacles" stroke="url(#tent)" stroke-width="2.6" stroke-linecap="round" opacity="0.95">
             <path d="M70 148C62 170 68 188 56 204" />
             <path d="M88 148C78 170 86 190 76 205" />
             <path d="M106 148C98 172 110 190 100 206" />
@@ -96,7 +75,9 @@
       </div>
 
       <div class="container hero__wrap">
-        <div class="hero-panel card cut" data-accent="blue">
+        <div class="hero-panel cut">
+          <p class="hero__kicker mono">GENERATIVE AI • DATA SCIENCE • BACKEND ENGINEERING</p>
+
           <h1 class="hero__name">
             Aakash <span class="accent accent--blue">Tomar</span>
           </h1>
@@ -111,7 +92,7 @@
             <button class="btn btn--primary" type="button" data-scrollto="#impact">
               Enter studio <span aria-hidden="true">↳</span>
             </button>
-            <a class="btn btn--ghost" href="#gallery">Exhibit drawer</a>
+            <a class="btn btn--ghost" href="#projects">Projects</a>
           </div>
         </div>
       </div>
@@ -121,8 +102,8 @@
     <section id="impact" class="section" data-section>
       <div class="container">
         <header class="section__head">
-          <h2 class="section__title">Impact Ledger</h2>
-          <p class="section__sub">Metrics as artifacts — stamped from production work.</p>
+          <h2 class="section__title">Impact</h2>
+          <p class="section__sub">Measured outcomes, not vibes.</p>
         </header>
 
         <div class="impact-ledger">
@@ -165,18 +146,18 @@
       </div>
     </section>
 
-    <!-- TOOLBOARD -->
-    <section id="toolboard" class="section" data-section>
+    <!-- TECH STACK -->
+    <section id="techstack" class="section" data-section>
       <div class="container">
         <header class="section__head">
-          <h2 class="section__title">Toolboard Constellation</h2>
-          <p class="section__sub">A generative map of the stack — clusters, not columns.</p>
+          <h2 class="section__title">Tech Stack Constellation</h2>
+          <p class="section__sub">Clusters of capabilities — the skills are the foreground.</p>
         </header>
 
         <div class="toolboard" id="toolboardBox">
           <svg class="toolboard__wires" id="toolboardWires" aria-hidden="true"></svg>
 
-          <article class="toolnode card cut" data-node="backend" data-accent="coral">
+          <article class="toolnode cut" data-node="backend" data-accent="coral">
             <h3 class="toolnode__title"><span class="dot dot--coral"></span> Backend</h3>
             <div class="chips">
               <span class="chip">Python</span><span class="chip">SQL</span><span class="chip">Django</span>
@@ -186,7 +167,7 @@
             <p class="toolnode__note mono">patterns: caching • queues • scheduled jobs</p>
           </article>
 
-          <article class="toolnode card cut" data-node="genai" data-accent="blue">
+          <article class="toolnode cut" data-node="genai" data-accent="blue">
             <h3 class="toolnode__title"><span class="dot dot--blue"></span> GenAI / ML</h3>
             <div class="chips">
               <span class="chip">PyTorch</span><span class="chip">TensorFlow</span><span class="chip">Keras</span>
@@ -196,7 +177,7 @@
             <p class="toolnode__note mono">focus: training • evaluation • inference optimization</p>
           </article>
 
-          <article class="toolnode card cut" data-node="core" data-accent="blue">
+          <article class="toolnode cut" data-node="core" data-accent="blue">
             <h3 class="toolnode__title"><span class="dot dot--blue"></span> Core Practices</h3>
             <div class="toolnode__tiles">
               <div class="mini cut">
@@ -218,7 +199,7 @@
             </div>
           </article>
 
-          <article class="toolnode card cut" data-node="data" data-accent="green">
+          <article class="toolnode cut" data-node="data" data-accent="green">
             <h3 class="toolnode__title"><span class="dot dot--green"></span> Data / Analytics</h3>
             <div class="chips">
               <span class="chip">Pandas</span><span class="chip">Power BI</span><span class="chip">Tableau</span>
@@ -227,7 +208,7 @@
             <p class="toolnode__note mono">clean datasets • dashboards • reporting automation</p>
           </article>
 
-          <article class="toolnode card cut" data-node="cloud" data-accent="green">
+          <article class="toolnode cut" data-node="cloud" data-accent="green">
             <h3 class="toolnode__title"><span class="dot dot--green"></span> Cloud / Tools</h3>
             <div class="chips">
               <span class="chip">AWS</span><span class="chip">Databricks</span><span class="chip">Docker</span>
@@ -239,16 +220,16 @@
       </div>
     </section>
 
-    <!-- STUDIES -->
-    <section id="studies" class="section" data-section>
+    <!-- EDUCATION -->
+    <section id="education" class="section" data-section>
       <div class="container">
         <header class="section__head">
-          <h2 class="section__title">Studies</h2>
-          <p class="section__sub">Two degrees — one direction: systems that behave.</p>
+          <h2 class="section__title">Education</h2>
+          <p class="section__sub">Formal training + applied systems work.</p>
         </header>
 
         <div class="studies">
-          <article class="degree card cut" data-accent="blue">
+          <article class="degree cut" data-accent="blue">
             <div class="degree__kicker mono">M.S.</div>
             <h3 class="degree__title">Data Science, Analytics &amp; Engineering</h3>
             <div class="degree__meta">
@@ -258,7 +239,7 @@
             <div class="degree__when mono muted">Graduating May 2026</div>
           </article>
 
-          <article class="degree card cut" data-accent="green">
+          <article class="degree cut" data-accent="green">
             <div class="degree__kicker mono">B.S.</div>
             <h3 class="degree__title">Computer Science &amp; Engineering</h3>
             <div class="degree__meta">
@@ -271,16 +252,16 @@
       </div>
     </section>
 
-    <!-- LOGBOOK -->
-    <section id="logbook" class="section" data-section>
+    <!-- EXPERIENCE -->
+    <section id="experience" class="section" data-section>
       <div class="container">
         <header class="section__head">
-          <h2 class="section__title">Logbook</h2>
-          <p class="section__sub">Production notes — concise, testable, repeatable.</p>
+          <h2 class="section__title">Experience</h2>
+          <p class="section__sub">Reliable backend + realtime systems + automation.</p>
         </header>
 
         <div class="logbook">
-          <details class="entry card cut" data-accent="coral" open>
+          <details class="entry cut" data-accent="coral" open>
             <summary class="entry__summary">
               <div class="entry__left">
                 <div class="entry__role">Senior Associate Consultant</div>
@@ -313,26 +294,26 @@
       </div>
     </section>
 
-    <!-- GALLERY -->
-    <section id="gallery" class="section" data-section>
+    <!-- PROJECTS -->
+    <section id="projects" class="section" data-section>
       <div class="container">
         <header class="section__head section__head--row">
           <div>
-            <h2 class="section__title">Exhibit Drawer</h2>
+            <h2 class="section__title">Projects</h2>
             <p class="section__sub mono" id="drawerMeta">
               INFINITE LOOP • 5s • CLICK TO PIN • DOUBLE‑CLICK FOR REPO
             </p>
           </div>
 
           <div class="drawer-controls" aria-label="Drawer controls">
-            <button class="icon-btn" type="button" data-drawer="prev" aria-label="Previous piece">←</button>
-            <button class="icon-btn" type="button" data-drawer="next" aria-label="Next piece">→</button>
+            <button class="icon-btn" type="button" data-drawer="prev" aria-label="Previous">←</button>
+            <button class="icon-btn" type="button" data-drawer="next" aria-label="Next">→</button>
           </div>
         </header>
 
         <div class="drawer-shell">
           <div class="drawer" id="drawer" aria-label="Projects drawer">
-            <article class="frame card cut"
+            <article class="frame cut"
               data-title="Faster Diffusion"
               data-kind="Class project"
               data-desc="Optimized diffusion models for real-time, scalable image generation. Researched inference bottlenecks and deployment efficiency."
@@ -359,7 +340,7 @@
               </div>
             </article>
 
-            <article class="frame card cut"
+            <article class="frame cut"
               data-title="Text Sentiment Analysis"
               data-kind="Personal project"
               data-desc="Built a robust 3-class sentiment classifier for noisy Twitter datasets. Fine-tuned ALBERT with rigorous preprocessing and noise mitigation."
@@ -386,10 +367,10 @@
               </div>
             </article>
 
-            <article class="frame card cut"
+            <article class="frame cut"
               data-title="Slack Python Q&A Bot"
               data-kind="Personal project"
-              data-desc="Built a conversational Slack agent for faster technical support. Event-driven workflow with Slack Bolt + NLP libraries to streamline retrieval and reduce resolution time."
+              data-desc="Conversational Slack agent for faster technical support. Event-driven Slack Bolt workflow with NLP-based retrieval."
               data-tags="Slack Bolt,NLP,Automation,Event-driven"
               data-repo="https://github.com/AakashKTo"
               data-accent="green"
@@ -421,39 +402,37 @@
     <section id="contact" class="section" data-section>
       <div class="container">
         <header class="section__head">
-          <h2 class="section__title">Contact</h2>
+          <h2 class="section__title">Contact Me</h2>
           <p class="section__sub">If you’re building something weird + useful, let’s talk.</p>
         </header>
 
         <div class="contact-icons" aria-label="Contact links">
-          <a class="icon-tile card cut" data-accent="blue" href="mailto:aktomar@asu.edu" aria-label="Email">
+          <a class="icon-tile cut" data-accent="blue" href="mailto:aktomar@asu.edu" aria-label="Email">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M4 7.5C4 6.67 4.67 6 5.5 6h13c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5h-13C4.67 18 4 17.33 4 16.5v-9Z"
-                    stroke="rgba(245,245,245,.85)" stroke-width="1.6" />
-              <path d="M5.5 7.2 12 12l6.5-4.8" stroke="rgba(245,245,245,.70)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    stroke="rgba(245,245,245,.88)" stroke-width="1.6" />
+              <path d="M5.5 7.2 12 12l6.5-4.8" stroke="rgba(245,245,245,.75)" stroke-width="1.6"
+                    stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span class="sr-only">Email</span>
           </a>
 
-          <a class="icon-tile card cut" data-accent="green" href="https://github.com/AakashKTo" target="_blank" rel="noopener" aria-label="GitHub">
+          <a class="icon-tile cut" data-accent="green" href="https://github.com/AakashKTo" target="_blank" rel="noopener" aria-label="GitHub">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M7.5 8.5 5 12l2.5 3.5M16.5 8.5 19 12l-2.5 3.5"
-                    stroke="rgba(245,245,245,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M10 18 14 6" stroke="rgba(245,245,245,.60)" stroke-width="1.8" stroke-linecap="round"/>
+                    stroke="rgba(245,245,245,.88)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10 18 14 6" stroke="rgba(245,245,245,.62)" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
-            <span class="sr-only">GitHub</span>
           </a>
 
-          <a class="icon-tile card cut" data-accent="coral" href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <a class="icon-tile cut" data-accent="coral" href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener" aria-label="LinkedIn">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M10.5 10.5v7.5M10.5 10.5c0-1.1.9-2 2-2h.8c1.1 0 2 .9 2 2v7.5"
-                    stroke="rgba(245,245,245,.85)" stroke-width="1.6" stroke-linecap="round"/>
-              <path d="M6.5 10.5V18" stroke="rgba(245,245,245,.85)" stroke-width="1.6" stroke-linecap="round"/>
-              <path d="M6.5 7.2h.01" stroke="rgba(245,245,245,.85)" stroke-width="2.4" stroke-linecap="round"/>
+                    stroke="rgba(245,245,245,.88)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M6.5 10.5V18" stroke="rgba(245,245,245,.88)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M6.5 7.2h.01" stroke="rgba(245,245,245,.88)" stroke-width="2.4" stroke-linecap="round"/>
               <path d="M19 6.5H5c-.55 0-1 .45-1 1v9c0 .55.45 1 1 1h14c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1Z"
                     stroke="rgba(245,245,245,.22)" stroke-width="1.2"/>
             </svg>
-            <span class="sr-only">LinkedIn</span>
           </a>
         </div>
       </div>
@@ -470,7 +449,7 @@
   <div class="sheet" id="sheet" aria-hidden="true">
     <div class="sheet__overlay" data-sheet="close" aria-hidden="true"></div>
 
-    <div class="sheet__panel card cut" role="dialog" aria-modal="true" aria-label="Project exhibit">
+    <div class="sheet__panel cut" role="dialog" aria-modal="true" aria-label="Project exhibit">
       <button class="sheet__close icon-btn" type="button" data-sheet="close" aria-label="Close">×</button>
 
       <div class="sheet__content">
@@ -480,10 +459,9 @@
         </div>
 
         <div class="sheet__text">
-          <p class="kicker mono" id="sheetKicker">EXHIBIT</p>
+          <p class="kicker mono">EXHIBIT</p>
           <h3 class="sheet__title" id="sheetTitle">Project Title</h3>
           <p class="sheet__desc" id="sheetDesc">Project description…</p>
-
           <div class="chips" id="sheetTags"></div>
 
           <div class="sheet__actions">
