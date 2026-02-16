@@ -1,12 +1,19 @@
 /* ===== Helpers ===== */
 const qs = (sel, el = document) => el.querySelector(sel);
 const qsa = (sel, el = document) => Array.from(el.querySelectorAll(sel));
+const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+function hexToRgba(hex, a) {
+  const h = String(hex).replace("#", "");
+  if (h.length !== 6) return `rgba(245,245,245,${a})`;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
 
 /* ===== Boot ===== */
 window.addEventListener("load", () => {
-  // Footer year
   const y = qs("#year");
   if (y) y.textContent = String(new Date().getFullYear());
 
@@ -14,8 +21,8 @@ window.addEventListener("load", () => {
   initScrollSpy();
   initCardLight();
   initBlobBackground();
-  initJellyfishRoam();
-  initToolboardWires();
+  initJellyfishRoam();      // improved roaming
+  initToolboardWires();     // still works with new grid layout
   initDrawer();
   initExhibitSheet();
   initGenerativeThumbs();
@@ -23,7 +30,6 @@ window.addEventListener("load", () => {
 
 /* ===== Smooth scroll ===== */
 function initSmoothScroll() {
-  // data-scrollto buttons
   qsa("[data-scrollto]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const target = btn.getAttribute("data-scrollto");
@@ -33,7 +39,6 @@ function initSmoothScroll() {
     });
   });
 
-  // dock anchor links
   qsa(".studio-dock a[href^='#']").forEach((a) => {
     a.addEventListener("click", (e) => {
       const id = a.getAttribute("href");
@@ -50,11 +55,9 @@ function initSmoothScroll() {
 function initScrollSpy() {
   const navItems = qsa(".dock__item");
   const sections = qsa("[data-section]");
-
-  const byId = new Map(navItems.map((a) => [a.getAttribute("data-nav"), a]));
+  if (!navItems.length || !sections.length) return;
 
   const obs = new IntersectionObserver((entries) => {
-    // pick the most visible section
     let best = null;
     for (const entry of entries) {
       if (!entry.isIntersecting) continue;
@@ -64,7 +67,7 @@ function initScrollSpy() {
 
     const id = best.target.id;
     navItems.forEach((a) => a.classList.toggle("is-active", a.getAttribute("data-nav") === id));
-  }, { threshold: [0.18, 0.28, 0.38, 0.48, 0.58, 0.68] });
+  }, { threshold: [0.18, 0.28, 0.38, 0.48, 0.58] });
 
   sections.forEach((s) => obs.observe(s));
 }
@@ -132,11 +135,11 @@ function initBlobBackground() {
   });
 
   let last = performance.now();
+
   function tick(now) {
     const dt = Math.min(32, now - last);
     last = now;
 
-    // Base clear (soft, keeps texture)
     ctx.fillStyle = "rgba(10,10,10,0.22)";
     ctx.fillRect(0, 0, w, h);
 
@@ -144,7 +147,6 @@ function initBlobBackground() {
       b.x += b.vx * dt;
       b.y += b.vy * dt;
 
-      // slow drift back towards center so they don't bunch up
       b.x += (w * 0.5 - b.x) * 0.00002 * dt;
       b.y += (h * 0.5 - b.y) * 0.00002 * dt;
 
@@ -163,23 +165,12 @@ function initBlobBackground() {
     if (!prefersReduced) requestAnimationFrame(tick);
   }
 
-  // First paint
   ctx.fillStyle = "rgba(10,10,10,1)";
   ctx.fillRect(0, 0, w, h);
   requestAnimationFrame(tick);
 }
 
-function hexToRgba(hex, a) {
-  // expects #RRGGBB
-  const h = hex.replace("#", "");
-  if (h.length !== 6) return `rgba(245,245,245,${a})`;
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${a})`;
-}
-
-/* ===== Jellyfish roaming ===== */
+/* ===== Jellyfish roaming (target-seeking drift + avoids UI zones) ===== */
 function initJellyfishRoam() {
   const jf = qs("#jellyfish");
   if (!jf) return;
@@ -187,71 +178,110 @@ function initJellyfishRoam() {
   const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   if (prefersReduced) return;
 
+  const dock = qs(".studio-dock");
+  const header = qs(".top-strip");
+
   let bounds = { w: window.innerWidth, h: window.innerHeight };
-  const size = () => {
+
+  function size() {
     const r = jf.getBoundingClientRect();
     return { w: r.width || 160, h: r.height || 160 };
-  };
+  }
+
+  function safeBox() {
+    const d = dock ? dock.getBoundingClientRect() : { right: 0, left: 0, top: 0, bottom: 0 };
+    const hd = header ? header.getBoundingClientRect() : { bottom: 0 };
+
+    const safeLeft = Math.max(12, Math.ceil(d.right + 18));  // keep away from dock
+    const safeTop  = Math.max(12, Math.ceil(hd.bottom + 12)); // keep away from header
+    const safeRight = 12;
+    const safeBottom = 12;
+
+    return { safeLeft, safeTop, safeRight, safeBottom };
+  }
 
   let s = size();
+  let safe = safeBox();
 
-  let x = Math.random() * (bounds.w - s.w);
-  let y = Math.random() * (bounds.h - s.h);
-  let vx = (Math.random() < 0.5 ? -1 : 1) * (0.20 + Math.random() * 0.25);
-  let vy = (Math.random() < 0.5 ? -1 : 1) * (0.16 + Math.random() * 0.22);
+  function rand(min, max) {
+    return min + Math.random() * (max - min);
+  }
 
-  // gentle heading changes
-  let turn = 0;
+  function clampPosX(x) {
+    const maxX = bounds.w - s.w - safe.safeRight;
+    return clamp(x, safe.safeLeft, Math.max(safe.safeLeft, maxX));
+  }
+  function clampPosY(y) {
+    const maxY = bounds.h - s.h - safe.safeBottom;
+    return clamp(y, safe.safeTop, Math.max(safe.safeTop, maxY));
+  }
+
+  let x = clampPosX(rand(safe.safeLeft, bounds.w - s.w - safe.safeRight));
+  let y = clampPosY(rand(safe.safeTop, bounds.h - s.h - safe.safeBottom));
+
+  let vx = 0, vy = 0;
+  let tx = x, ty = y;
+  let nextTargetAt = 0;
+
+  function pickTarget(now) {
+    safe = safeBox(); // refresh occasionally to follow layout
+    s = size();
+
+    const maxX = bounds.w - s.w - safe.safeRight;
+    const maxY = bounds.h - s.h - safe.safeBottom;
+
+    tx = rand(safe.safeLeft, Math.max(safe.safeLeft, maxX));
+    ty = rand(safe.safeTop, Math.max(safe.safeTop, maxY));
+
+    // next target in 3-6 seconds
+    nextTargetAt = now + 3000 + Math.random() * 3000;
+  }
 
   function onResize() {
     bounds.w = window.innerWidth;
     bounds.h = window.innerHeight;
+    safe = safeBox();
     s = size();
-    x = clamp(x, 10, Math.max(10, bounds.w - s.w - 10));
-    y = clamp(y, 10, Math.max(10, bounds.h - s.h - 10));
+    x = clampPosX(x);
+    y = clampPosY(y);
   }
   window.addEventListener("resize", onResize, { passive: true });
 
   let last = performance.now();
+  pickTarget(last);
 
   function tick(now) {
-    const dt = Math.min(28, now - last);
+    const dt = Math.min(34, now - last);
     last = now;
 
-    // random-ish turn (low frequency)
-    turn += (Math.random() - 0.5) * 0.004 * dt;
-    turn = clamp(turn, -0.035, 0.035);
+    if (now >= nextTargetAt) pickTarget(now);
 
-    // apply turn by slightly rotating velocity vector
-    const cs = Math.cos(turn);
-    const sn = Math.sin(turn);
-    const nvx = vx * cs - vy * sn;
-    const nvy = vx * sn + vy * cs;
-    vx = nvx;
-    vy = nvy;
+    // accel towards target (slow, floaty)
+    const ax = (tx - x) * 0.00035;
+    const ay = (ty - y) * 0.00035;
 
-    // drift
+    // damping
+    vx = (vx + ax * dt) * 0.985;
+    vy = (vy + ay * dt) * 0.985;
+
+    // tiny noise so it feels organic
+    vx += (Math.random() - 0.5) * 0.0022 * dt;
+    vy += (Math.random() - 0.5) * 0.0022 * dt;
+
     x += vx * dt;
     y += vy * dt;
 
-    // soft boundaries + bounce
-    const pad = 12;
-    const maxX = bounds.w - s.w - pad;
-    const maxY = bounds.h - s.h - pad;
+    // clamp softly (bounce a bit)
+    const x2 = clampPosX(x);
+    const y2 = clampPosY(y);
+    if (x2 !== x) vx *= -0.55;
+    if (y2 !== y) vy *= -0.55;
+    x = x2; y = y2;
 
-    if (x < pad) { x = pad; vx *= -1; turn *= -0.6; }
-    if (x > maxX) { x = maxX; vx *= -1; turn *= -0.6; }
-    if (y < pad) { y = pad; vy *= -1; turn *= -0.6; }
-    if (y > maxY) { y = maxY; vy *= -1; turn *= -0.6; }
-
-    // angle based on direction
     const angle = Math.atan2(vy, vx) * 180 / Math.PI;
+    const breathe = 1 + Math.sin(now * 0.0011) * 0.03;
 
-    // slight scale breathing (separate from CSS pulse)
-    const breathe = 1 + Math.sin(now * 0.0012) * 0.03;
-
-    jf.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${angle * 0.12}deg) scale(${breathe})`;
-
+    jf.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${angle * 0.10}deg) scale(${breathe})`;
     requestAnimationFrame(tick);
   }
 
@@ -296,7 +326,6 @@ function initToolboardWires() {
     svg.setAttribute("height", `${br.height}`);
     svg.innerHTML = "";
 
-    // subtle wiring style
     for (const [a, b] of pairs) {
       const na = findNode(a);
       const nb = findNode(b);
@@ -305,10 +334,9 @@ function initToolboardWires() {
       const A = centerOf(na);
       const B = centerOf(nb);
 
-      // slight curve for “generative” feel
       const midX = (A.x + B.x) / 2;
       const midY = (A.y + B.y) / 2;
-      const bend = 28;
+      const bend = 26;
       const cx = midX + (Math.sin((A.x + B.x) * 0.01) * bend);
       const cy = midY + (Math.cos((A.y + B.y) * 0.01) * bend);
 
@@ -330,7 +358,6 @@ function initToolboardWires() {
       svg.appendChild(glow);
     }
 
-    // faint points at node centers
     for (const n of nodes) {
       const c = centerOf(n);
       const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -381,7 +408,6 @@ function initDrawer() {
     raf = requestAnimationFrame(updateMeta);
   }, { passive: true });
 
-  // buttons
   qsa("[data-drawer]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const dir = btn.getAttribute("data-drawer");
@@ -391,7 +417,6 @@ function initDrawer() {
     });
   });
 
-  // keyboard (when drawer focused)
   drawer.addEventListener("keydown", (e) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     e.preventDefault();
@@ -439,7 +464,6 @@ function initExhibitSheet() {
       tagsEl.appendChild(span);
     });
 
-    // draw larger generative art in sheet
     drawGenerativeArt(canvas, `${title}::sheet`, accent);
 
     sheet.classList.add("is-open");
@@ -453,18 +477,12 @@ function initExhibitSheet() {
     document.body.style.overflow = "";
   }
 
-  // open handlers
   qsa(".frame").forEach((frame) => {
-    // open exhibit button
     qs("[data-open]", frame)?.addEventListener("click", () => openFromFrame(frame));
-
-    // repo button
     qs("[data-repo]", frame)?.addEventListener("click", () => {
       const repo = frame.getAttribute("data-repo");
       if (repo) window.open(repo, "_blank", "noopener");
     });
-
-    // click on matte opens
     qs(".frame__matte", frame)?.addEventListener("click", () => openFromFrame(frame));
   });
 
@@ -475,7 +493,6 @@ function initExhibitSheet() {
     if (e.key === "Escape" && sheet.classList.contains("is-open")) close();
   });
 
-  // close from internal links
   qsa("[data-sheet='close']").forEach((el) => {
     if (el.tagName.toLowerCase() === "a") el.addEventListener("click", close);
   });
@@ -489,7 +506,6 @@ function initGenerativeThumbs() {
   const ro = new ResizeObserver(() => {
     thumbs.forEach((c) => {
       const seed = c.getAttribute("data-seed") || "thumb";
-      // accent from parent card
       const accent = c.closest(".frame")?.getAttribute("data-accent") || "blue";
       drawGenerativeArt(c, seed, accent);
     });
@@ -497,7 +513,6 @@ function initGenerativeThumbs() {
 
   thumbs.forEach((c) => ro.observe(c));
 
-  // first draw
   thumbs.forEach((c) => {
     const seed = c.getAttribute("data-seed") || "thumb";
     const accent = c.closest(".frame")?.getAttribute("data-accent") || "blue";
@@ -507,7 +522,6 @@ function initGenerativeThumbs() {
 
 /* ===== Seeded PRNG ===== */
 function hashString(str) {
-  // FNV-1a
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) {
     h ^= str.charCodeAt(i);
@@ -531,7 +545,7 @@ function getAccentColor(accent) {
   return cs.getPropertyValue("--blue").trim() || "#4D96FF";
 }
 
-/* ===== Generative art drawing (for thumbs + sheet) ===== */
+/* ===== Generative art drawing ===== */
 function drawGenerativeArt(canvas, seed, accentName) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -547,19 +561,16 @@ function drawGenerativeArt(canvas, seed, accentName) {
   const r = mulberry32(hashString(seed));
   const accent = getAccentColor(accentName);
 
-  // base
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = "rgba(10,10,10,0.92)";
   ctx.fillRect(0, 0, w, h);
 
-  // faint gradient wash
   const g = ctx.createLinearGradient(0, 0, w, h);
   g.addColorStop(0, "rgba(245,245,245,0.06)");
   g.addColorStop(1, "rgba(245,245,245,0.00)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, w, h);
 
-  // field lines
   ctx.globalAlpha = 0.35;
   ctx.lineWidth = 1;
   for (let i = 0; i < 10; i++) {
@@ -572,7 +583,6 @@ function drawGenerativeArt(canvas, seed, accentName) {
   }
   ctx.globalAlpha = 1;
 
-  // constellation arcs
   const arcs = 10 + Math.floor(r() * 10);
   for (let i = 0; i < arcs; i++) {
     const cx = r() * w;
@@ -591,7 +601,6 @@ function drawGenerativeArt(canvas, seed, accentName) {
     ctx.stroke();
   }
 
-  // orbiting nodes
   const nodes = 24 + Math.floor(r() * 22);
   for (let i = 0; i < nodes; i++) {
     const x = r() * w;
@@ -606,7 +615,6 @@ function drawGenerativeArt(canvas, seed, accentName) {
     ctx.arc(x, y, rr, 0, Math.PI * 2);
     ctx.fill();
 
-    // occasional connecting line
     if (i % 6 === 0) {
       const x2 = clamp(x + (r() - 0.5) * w * 0.35, 0, w);
       const y2 = clamp(y + (r() - 0.5) * h * 0.35, 0, h);
@@ -619,20 +627,9 @@ function drawGenerativeArt(canvas, seed, accentName) {
     }
   }
 
-  // vignette
   const vg = ctx.createRadialGradient(w * 0.5, h * 0.5, 0, w * 0.5, h * 0.5, Math.max(w, h) * 0.65);
   vg.addColorStop(0, "rgba(10,10,10,0)");
   vg.addColorStop(1, "rgba(10,10,10,0.78)");
   ctx.fillStyle = vg;
   ctx.fillRect(0, 0, w, h);
-}
-
-/* (sheet canvas uses same helper; keep hexToRgba from earlier) */
-function hexToRgba(hex, a) {
-  const h = hex.replace("#", "");
-  if (h.length !== 6) return `rgba(245,245,245,${a})`;
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${a})`;
 }

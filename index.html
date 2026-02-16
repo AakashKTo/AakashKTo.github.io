@@ -13,9 +13,8 @@
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
   <div class="grid-overlay" aria-hidden="true"></div>
 
-  <!-- Roaming jellyfish (no longer a placeholder) -->
+  <!-- Roaming jellyfish -->
   <div id="jellyfish" class="jellyfish" aria-hidden="true">
-    <!-- Minimal jellyfish SVG (styled + animated via CSS/JS) -->
     <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <radialGradient id="cap" cx="50%" cy="45%" r="60%">
@@ -30,19 +29,15 @@
         </linearGradient>
       </defs>
 
-      <!-- Cap -->
       <path d="M30 110C30 65 66 30 110 30C154 30 190 65 190 110C190 118 184 124 176 124H44C36 124 30 118 30 110Z"
             fill="url(#cap)" stroke="rgba(245,245,245,0.22)" stroke-width="2"/>
 
-      <!-- Inner arc -->
       <path d="M55 105C60 70 83 50 110 50C137 50 160 70 165 105"
             stroke="rgba(245,245,245,0.12)" stroke-width="2" />
 
-      <!-- Drip fringe -->
       <path d="M52 124C60 140 78 148 110 148C142 148 160 140 168 124"
             stroke="rgba(245,245,245,0.18)" stroke-width="2" />
 
-      <!-- Tentacles -->
       <g class="jf-tentacles" stroke="url(#tent)" stroke-width="2.6" stroke-linecap="round" opacity="0.9">
         <path d="M70 148C62 170 68 188 56 204" />
         <path d="M88 148C78 170 86 190 76 205" />
@@ -51,7 +46,6 @@
         <path d="M142 148C134 170 150 190 146 205" />
       </g>
 
-      <!-- Sparkles -->
       <g opacity="0.35">
         <circle cx="86" cy="84" r="2.2" fill="rgba(245,245,245,0.9)"/>
         <circle cx="132" cy="74" r="1.7" fill="rgba(245,245,245,0.9)"/>
@@ -60,7 +54,7 @@
     </svg>
   </div>
 
-  <!-- Minimal top strip (not the old pill bar) -->
+  <!-- Top strip -->
   <header class="top-strip">
     <a class="brand" href="#home" aria-label="Go to top">
       <span class="brand__dot" aria-hidden="true"></span>
@@ -75,33 +69,33 @@
     </div>
   </header>
 
-  <!-- Studio Dock (new nav UI) -->
+  <!-- Studio Dock (slim) -->
   <nav class="studio-dock" aria-label="Studio navigation">
-    <a class="dock__item is-active" href="#home" data-nav="home">
+    <a class="dock__item is-active" href="#home" data-nav="home" aria-label="Home">
       <span class="dock__dot" aria-hidden="true"></span>
       <span class="dock__label">Home</span>
     </a>
-    <a class="dock__item" href="#impact" data-nav="impact">
+    <a class="dock__item" href="#impact" data-nav="impact" aria-label="Impact">
       <span class="dock__dot" aria-hidden="true"></span>
       <span class="dock__label">Impact</span>
     </a>
-    <a class="dock__item" href="#toolboard" data-nav="toolboard">
+    <a class="dock__item" href="#toolboard" data-nav="toolboard" aria-label="Toolboard">
       <span class="dock__dot" aria-hidden="true"></span>
       <span class="dock__label">Toolboard</span>
     </a>
-    <a class="dock__item" href="#studies" data-nav="studies">
+    <a class="dock__item" href="#studies" data-nav="studies" aria-label="Studies">
       <span class="dock__dot" aria-hidden="true"></span>
       <span class="dock__label">Studies</span>
     </a>
-    <a class="dock__item" href="#logbook" data-nav="logbook">
+    <a class="dock__item" href="#logbook" data-nav="logbook" aria-label="Logbook">
       <span class="dock__dot" aria-hidden="true"></span>
       <span class="dock__label">Logbook</span>
     </a>
-    <a class="dock__item" href="#gallery" data-nav="gallery">
+    <a class="dock__item" href="#gallery" data-nav="gallery" aria-label="Gallery">
       <span class="dock__dot" aria-hidden="true"></span>
       <span class="dock__label">Gallery</span>
     </a>
-    <a class="dock__item" href="#contact" data-nav="contact">
+    <a class="dock__item" href="#contact" data-nav="contact" aria-label="Contact">
       <span class="dock__dot" aria-hidden="true"></span>
       <span class="dock__label">Contact</span>
     </a>
@@ -136,8 +130,6 @@
             <a href="https://github.com/AakashKTo" target="_blank" rel="noopener">GitHub</a>
             <span class="sep" aria-hidden="true">•</span>
             <a href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener">LinkedIn</a>
-            <span class="sep" aria-hidden="true">•</span>
-            <span>(480) 328-4695</span>
           </div>
         </div>
 
@@ -164,7 +156,7 @@
       </div>
     </section>
 
-    <!-- IMPACT (reworked; not the old 4-card row UI) -->
+    <!-- IMPACT -->
     <section id="impact" class="section" data-section>
       <div class="container">
         <header class="section__head">
@@ -212,7 +204,7 @@
       </div>
     </section>
 
-    <!-- TOOLBOARD (completely different layout than old grid cards) -->
+    <!-- TOOLBOARD (de-clustered: grid constellation, no overlap) -->
     <section id="toolboard" class="section" data-section>
       <div class="container">
         <header class="section__head">
@@ -223,7 +215,7 @@
         <div class="toolboard" id="toolboardBox">
           <svg class="toolboard__wires" id="toolboardWires" aria-hidden="true"></svg>
 
-          <article class="toolnode card cut" data-node="backend" data-accent="coral" style="--x:10;--y:8;--w:34;">
+          <article class="toolnode card cut" data-node="backend" data-accent="coral">
             <h3 class="toolnode__title"><span class="dot dot--coral"></span> Backend</h3>
             <div class="chips">
               <span class="chip">Python</span><span class="chip">SQL</span><span class="chip">Django</span>
@@ -233,7 +225,7 @@
             <p class="toolnode__note mono">patterns: caching • queues • scheduled jobs</p>
           </article>
 
-          <article class="toolnode card cut" data-node="genai" data-accent="blue" style="--x:54;--y:10;--w:30;">
+          <article class="toolnode card cut" data-node="genai" data-accent="blue">
             <h3 class="toolnode__title"><span class="dot dot--blue"></span> GenAI / ML</h3>
             <div class="chips">
               <span class="chip">PyTorch</span><span class="chip">TensorFlow</span><span class="chip">Keras</span>
@@ -243,7 +235,7 @@
             <p class="toolnode__note mono">focus: training • evaluation • inference optimization</p>
           </article>
 
-          <article class="toolnode card cut" data-node="core" data-accent="blue" style="--x:74;--y:36;--w:24;">
+          <article class="toolnode card cut" data-node="core" data-accent="blue">
             <h3 class="toolnode__title"><span class="dot dot--blue"></span> Core Practices</h3>
             <div class="toolnode__tiles">
               <div class="mini cut">
@@ -265,7 +257,7 @@
             </div>
           </article>
 
-          <article class="toolnode card cut" data-node="data" data-accent="green" style="--x:18;--y:52;--w:26;">
+          <article class="toolnode card cut" data-node="data" data-accent="green">
             <h3 class="toolnode__title"><span class="dot dot--green"></span> Data / Analytics</h3>
             <div class="chips">
               <span class="chip">Pandas</span><span class="chip">Power BI</span><span class="chip">Tableau</span>
@@ -274,7 +266,7 @@
             <p class="toolnode__note mono">clean datasets • dashboards • reporting automation</p>
           </article>
 
-          <article class="toolnode card cut" data-node="cloud" data-accent="green" style="--x:46;--y:62;--w:28;">
+          <article class="toolnode card cut" data-node="cloud" data-accent="green">
             <h3 class="toolnode__title"><span class="dot dot--green"></span> Cloud / Tools</h3>
             <div class="chips">
               <span class="chip">AWS</span><span class="chip">Databricks</span><span class="chip">Docker</span>
@@ -286,7 +278,7 @@
       </div>
     </section>
 
-    <!-- STUDIES (reworked format) -->
+    <!-- STUDIES (stacked vertically) -->
     <section id="studies" class="section" data-section>
       <div class="container">
         <header class="section__head">
@@ -318,7 +310,7 @@
       </div>
     </section>
 
-    <!-- LOGBOOK (reworked experience format) -->
+    <!-- LOGBOOK -->
     <section id="logbook" class="section" data-section>
       <div class="container">
         <header class="section__head">
@@ -360,7 +352,7 @@
       </div>
     </section>
 
-    <!-- GALLERY DRAWER (still horizontal, but totally different card + modal UI) -->
+    <!-- GALLERY DRAWER -->
     <section id="gallery" class="section" data-section>
       <div class="container">
         <header class="section__head section__head--row">
@@ -376,7 +368,6 @@
         </header>
 
         <div class="drawer" id="drawer" tabindex="0" aria-label="Projects drawer">
-          <!-- Project 1 -->
           <article class="frame card cut"
             data-title="Faster Diffusion"
             data-kind="Class project"
@@ -417,7 +408,6 @@
             </div>
           </article>
 
-          <!-- Project 2 -->
           <article class="frame card cut"
             data-title="Text Sentiment Analysis"
             data-kind="Personal project"
@@ -458,7 +448,6 @@
             </div>
           </article>
 
-          <!-- Project 3 -->
           <article class="frame card cut"
             data-title="Slack Python Q&A Bot"
             data-kind="Personal project"
@@ -502,7 +491,7 @@
       </div>
     </section>
 
-    <!-- CONTACT -->
+    <!-- CONTACT (icons-only, no phone number) -->
     <section id="contact" class="section" data-section>
       <div class="container">
         <header class="section__head">
@@ -510,30 +499,42 @@
           <p class="section__sub">If you’re building something weird + useful, let’s talk.</p>
         </header>
 
-        <div class="contact-grid">
-          <a class="contact-card card cut" data-accent="blue" href="mailto:aktomar@asu.edu">
-            <div class="contact-card__k mono">EMAIL</div>
-            <div class="contact-card__v">aktomar@asu.edu</div>
-            <div class="contact-card__s mono muted">Fastest response</div>
+        <div class="contact-icons" aria-label="Contact links">
+          <a class="icon-tile card cut" data-accent="blue"
+             href="mailto:aktomar@asu.edu"
+             aria-label="Email">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 7.5C4 6.67 4.67 6 5.5 6h13c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5h-13C4.67 18 4 17.33 4 16.5v-9Z"
+                    stroke="rgba(245,245,245,.85)" stroke-width="1.6" />
+              <path d="M5.5 7.2 12 12l6.5-4.8" stroke="rgba(245,245,245,.70)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="sr-only">Email</span>
           </a>
 
-          <a class="contact-card card cut" data-accent="green" href="https://github.com/AakashKTo" target="_blank" rel="noopener">
-            <div class="contact-card__k mono">GITHUB</div>
-            <div class="contact-card__v">@AakashKTo</div>
-            <div class="contact-card__s mono muted">Repos + experiments</div>
+          <a class="icon-tile card cut" data-accent="green"
+             href="https://github.com/AakashKTo" target="_blank" rel="noopener"
+             aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7.5 8.5 5 12l2.5 3.5M16.5 8.5 19 12l-2.5 3.5"
+                    stroke="rgba(245,245,245,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M10 18 14 6" stroke="rgba(245,245,245,.60)" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span class="sr-only">GitHub</span>
           </a>
 
-          <a class="contact-card card cut" data-accent="coral" href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener">
-            <div class="contact-card__k mono">LINKEDIN</div>
-            <div class="contact-card__v">/in/aakashkt</div>
-            <div class="contact-card__s mono muted">Let’s connect</div>
+          <a class="icon-tile card cut" data-accent="coral"
+             href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener"
+             aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M10.5 10.5v7.5M10.5 10.5c0-1.1.9-2 2-2h.8c1.1 0 2 .9 2 2v7.5"
+                    stroke="rgba(245,245,245,.85)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M6.5 10.5V18" stroke="rgba(245,245,245,.85)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M6.5 7.2h.01" stroke="rgba(245,245,245,.85)" stroke-width="2.4" stroke-linecap="round"/>
+              <path d="M19 6.5H5c-.55 0-1 .45-1 1v9c0 .55.45 1 1 1h14c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1Z"
+                    stroke="rgba(245,245,245,.22)" stroke-width="1.2"/>
+            </svg>
+            <span class="sr-only">LinkedIn</span>
           </a>
-
-          <div class="contact-card card cut" data-accent="blue">
-            <div class="contact-card__k mono">PHONE</div>
-            <div class="contact-card__v">(480) 328-4695</div>
-            <div class="contact-card__s mono muted">US number</div>
-          </div>
         </div>
       </div>
     </section>
@@ -546,7 +547,7 @@
     </div>
   </footer>
 
-  <!-- Exhibit sheet (new modal UI) -->
+  <!-- Exhibit sheet -->
   <div class="sheet" id="sheet" aria-hidden="true">
     <div class="sheet__overlay" data-sheet="close" aria-hidden="true"></div>
 
