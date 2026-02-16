@@ -1,498 +1,582 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aakash Tomar | Generative Art Studio</title>
-    <meta
-      name="description"
-      content="Aakash Kumar Tomar — M.S. Data Science @ ASU. Backend systems, analytics pipelines, and generative AI." />
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0A0A0A" />
+  <title>Aakash Tomar — Generative Art Studio</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
 
-    <!-- Tailwind CDN (no build step) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+<body>
+  <!-- Ambient background -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div class="grid-overlay" aria-hidden="true"></div>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
+  <!-- Roaming jellyfish (no longer a placeholder) -->
+  <div id="jellyfish" class="jellyfish" aria-hidden="true">
+    <!-- Minimal jellyfish SVG (styled + animated via CSS/JS) -->
+    <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="cap" cx="50%" cy="45%" r="60%">
+          <stop offset="0%" stop-color="rgba(245,245,245,0.65)"/>
+          <stop offset="55%" stop-color="rgba(77,150,255,0.35)"/>
+          <stop offset="100%" stop-color="rgba(255,107,107,0.18)"/>
+        </radialGradient>
+        <linearGradient id="tent" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="rgba(77,150,255,0.55)"/>
+          <stop offset="50%" stop-color="rgba(107,203,119,0.45)"/>
+          <stop offset="100%" stop-color="rgba(255,107,107,0.45)"/>
+        </linearGradient>
+      </defs>
 
-    <link rel="icon" href="favicon.ico" />
-    <link rel="stylesheet" href="assets/css/main.css?v=14" />
-  </head>
+      <!-- Cap -->
+      <path d="M30 110C30 65 66 30 110 30C154 30 190 65 190 110C190 118 184 124 176 124H44C36 124 30 118 30 110Z"
+            fill="url(#cap)" stroke="rgba(245,245,245,0.22)" stroke-width="2"/>
 
-  <body class="min-h-screen">
-    <!-- Background (subtle generative blobs) -->
-    <canvas
-      id="art-bg"
-      aria-hidden="true"
-      style="position:fixed; inset:0; z-index:-3; width:100vw; height:100vh; pointer-events:none;"
-    ></canvas>
+      <!-- Inner arc -->
+      <path d="M55 105C60 70 83 50 110 50C137 50 160 70 165 105"
+            stroke="rgba(245,245,245,0.12)" stroke-width="2" />
 
-    <!-- geometry + grain overlay -->
-    <div
-      class="bg-overlay"
-      aria-hidden="true"
-      style="position:fixed; inset:0; z-index:-1; pointer-events:none;"
-    ></div>
+      <!-- Drip fringe -->
+      <path d="M52 124C60 140 78 148 110 148C142 148 160 140 168 124"
+            stroke="rgba(245,245,245,0.18)" stroke-width="2" />
 
-    <!-- NAV -->
-    <header class="sticky top-0 z-20 border-b border-white/10 backdrop-blur">
-      <nav class="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-3">
-        <a href="#intro" class="flex items-center gap-3">
-          <span class="h-2.5 w-2.5 rounded-full bg-[#6BCB77] shadow-[0_0_18px_rgba(107,203,119,0.65)]"></span>
-          <span class="font-extrabold tracking-tight">Aakash</span>
-        </a>
+      <!-- Tentacles -->
+      <g class="jf-tentacles" stroke="url(#tent)" stroke-width="2.6" stroke-linecap="round" opacity="0.9">
+        <path d="M70 148C62 170 68 188 56 204" />
+        <path d="M88 148C78 170 86 190 76 205" />
+        <path d="M106 148C98 172 110 190 100 206" />
+        <path d="M124 148C116 172 130 190 122 206" />
+        <path d="M142 148C134 170 150 190 146 205" />
+      </g>
 
-        <button
-          id="menu-btn"
-          class="md:hidden px-3 py-2 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
-          aria-label="Open menu"
-          aria-expanded="false"
-        >
-          <span class="mono text-sm">MENU</span>
-        </button>
+      <!-- Sparkles -->
+      <g opacity="0.35">
+        <circle cx="86" cy="84" r="2.2" fill="rgba(245,245,245,0.9)"/>
+        <circle cx="132" cy="74" r="1.7" fill="rgba(245,245,245,0.9)"/>
+        <circle cx="110" cy="92" r="1.4" fill="rgba(245,245,245,0.9)"/>
+      </g>
+    </svg>
+  </div>
 
-        <div class="hidden md:flex items-center gap-2">
-          <a class="nav-pill" href="#signals">Highlights</a>
-          <a class="nav-pill" href="#skills">Toolkit</a>
-          <a class="nav-pill" href="#education">Education</a>
-          <a class="nav-pill" href="#experience">Experience</a>
-          <a class="nav-pill" href="#projects">Gallery</a>
-          <a class="nav-pill" href="#contact">Contact</a>
+  <!-- Minimal top strip (not the old pill bar) -->
+  <header class="top-strip">
+    <a class="brand" href="#home" aria-label="Go to top">
+      <span class="brand__dot" aria-hidden="true"></span>
+      <span class="brand__name">Aakash</span>
+      <span class="brand__tag mono">Generative Art Studio</span>
+    </a>
 
-          <a class="nav-pill nav-pill-strong" href="resume/resume.pdf" target="_blank" rel="noopener">
-            Resume PDF
-          </a>
-        </div>
-      </nav>
-
-      <!-- Mobile menu -->
-      <div id="mobile-menu" class="md:hidden hidden border-t border-white/10">
-        <div class="mx-auto max-w-6xl px-4 py-3 flex flex-col gap-3 text-white/85">
-          <a class="nav-pill w-fit" href="#signals">Highlights</a>
-          <a class="nav-pill w-fit" href="#skills">Toolkit</a>
-          <a class="nav-pill w-fit" href="#education">Education</a>
-          <a class="nav-pill w-fit" href="#experience">Experience</a>
-          <a class="nav-pill w-fit" href="#projects">Gallery</a>
-          <a class="nav-pill w-fit" href="#contact">Contact</a>
-          <a class="nav-pill nav-pill-strong w-fit" href="resume/resume.pdf" target="_blank" rel="noopener">
-            Resume PDF
-          </a>
-        </div>
-      </div>
-    </header>
-
-    <!-- Scroll progress -->
-    <div id="scroll-progress" aria-hidden="true">
-      <div id="scroll-progress-bar"></div>
+    <div class="top-strip__actions">
+      <a class="btn btn--ghost" href="resume/resume.pdf" target="_blank" rel="noopener">
+        Resume PDF
+      </a>
     </div>
+  </header>
 
-    <main class="mx-auto max-w-6xl px-4">
-      <!-- INTRO -->
-      <section id="intro" class="hero-screen">
-        <!-- Jellyfish (gentle drift) -->
-        <div id="jellyfish" aria-hidden="true">
-          <svg viewBox="0 0 160 210" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="jg" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#4D96FF" stop-opacity="0.85"/>
-                <stop offset="62%" stop-color="#FF6B6B" stop-opacity="0.35"/>
-                <stop offset="100%" stop-color="#6BCB77" stop-opacity="0.18"/>
-              </linearGradient>
-              <radialGradient id="jglow" cx="50%" cy="30%" r="75%">
-                <stop offset="0%" stop-color="#F5F5F5" stop-opacity="0.55"/>
-                <stop offset="45%" stop-color="#4D96FF" stop-opacity="0.14"/>
-                <stop offset="100%" stop-color="#0A0A0A" stop-opacity="0"/>
-              </radialGradient>
-              <filter id="jblur" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="1.2" result="b"/>
-                <feMerge>
-                  <feMergeNode in="b"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-            </defs>
+  <!-- Studio Dock (new nav UI) -->
+  <nav class="studio-dock" aria-label="Studio navigation">
+    <a class="dock__item is-active" href="#home" data-nav="home">
+      <span class="dock__dot" aria-hidden="true"></span>
+      <span class="dock__label">Home</span>
+    </a>
+    <a class="dock__item" href="#impact" data-nav="impact">
+      <span class="dock__dot" aria-hidden="true"></span>
+      <span class="dock__label">Impact</span>
+    </a>
+    <a class="dock__item" href="#toolboard" data-nav="toolboard">
+      <span class="dock__dot" aria-hidden="true"></span>
+      <span class="dock__label">Toolboard</span>
+    </a>
+    <a class="dock__item" href="#studies" data-nav="studies">
+      <span class="dock__dot" aria-hidden="true"></span>
+      <span class="dock__label">Studies</span>
+    </a>
+    <a class="dock__item" href="#logbook" data-nav="logbook">
+      <span class="dock__dot" aria-hidden="true"></span>
+      <span class="dock__label">Logbook</span>
+    </a>
+    <a class="dock__item" href="#gallery" data-nav="gallery">
+      <span class="dock__dot" aria-hidden="true"></span>
+      <span class="dock__label">Gallery</span>
+    </a>
+    <a class="dock__item" href="#contact" data-nav="contact">
+      <span class="dock__dot" aria-hidden="true"></span>
+      <span class="dock__label">Contact</span>
+    </a>
+  </nav>
 
-            <g filter="url(#jblur)" class="jelly">
-              <!-- bell -->
-              <path
-                class="bell"
-                d="M20 92 C26 34, 62 16, 80 16 C98 16, 134 34, 140 92 C112 74, 48 74, 20 92 Z"
-                fill="url(#jg)"
-                stroke="#F5F5F5"
-                stroke-opacity="0.38"
-                stroke-width="2"
-              />
-              <ellipse class="bellGlow" cx="80" cy="64" rx="56" ry="42" fill="url(#jglow)" opacity="0.78" />
-              <path
-                class="inner"
-                d="M44 84 C56 52, 70 46, 80 46 C90 46, 104 52, 116 84"
-                fill="none"
-                stroke="#F5F5F5"
-                stroke-opacity="0.26"
-                stroke-width="2"
-                stroke-linecap="round"
-              />
+  <main>
+    <!-- HERO -->
+    <section id="home" class="section hero" data-section>
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <p class="kicker mono">GENERATIVE AI • DATA SCIENCE • BACKEND ENGINEERING</p>
+          <h1 class="hero__title">
+            Aakash <span class="accent accent--blue">Tomar</span>
+          </h1>
 
-              <!-- tentacles -->
-              <g class="tentacles" fill="none" stroke-linecap="round">
-                <path class="tentacle t1" d="M50 98 C38 126, 58 142, 42 164 C28 184, 46 194, 36 206" stroke="#4D96FF" stroke-opacity="0.46" stroke-width="2.2"/>
-                <path class="tentacle t2" d="M66 100 C58 130, 72 146, 60 170 C48 190, 74 196, 58 208" stroke="#F5F5F5" stroke-opacity="0.25" stroke-width="2"/>
-                <path class="tentacle t3" d="M80 102 C76 132, 88 150, 76 174 C64 194, 94 198, 78 209" stroke="#FF6B6B" stroke-opacity="0.44" stroke-width="2.1"/>
-                <path class="tentacle t4" d="M94 100 C104 130, 90 148, 104 172 C118 196, 98 198, 112 208" stroke="#F5F5F5" stroke-opacity="0.22" stroke-width="1.8"/>
-                <path class="tentacle t5" d="M110 98 C124 126, 104 144, 120 166 C136 188, 116 196, 128 206" stroke="#6BCB77" stroke-opacity="0.42" stroke-width="2.0"/>
-              </g>
-
-              <circle class="node n1" cx="66" cy="72" r="2.4" fill="#F5F5F5" opacity="0.40" />
-              <circle class="node n2" cx="96" cy="72" r="2.4" fill="#F5F5F5" opacity="0.40" />
-            </g>
-          </svg>
-        </div>
-
-        <div class="w-full">
-          <div class="mono os-kicker">Generative AI · Data Science · Backend Engineering</div>
-
-          <h1 id="name-title" class="name-display name-neo">Aakash Tomar</h1>
-
-          <p class="headline">
-            Building reliable <span class="gradient-text">data systems</span> and <span class="gradient-text">GenAI pipelines</span> —
+          <p class="hero__lede">
+            Building reliable <span class="accent accent--coral">data systems</span> and
+            <span class="accent accent--blue">GenAI pipelines</span> —
             performance, observability, clean automation.
           </p>
 
-          <a class="mono scroll-indicator" href="#signals"><span>enter</span><span>↓</span></a>
-        </div>
-      </section>
-
-      <!-- HIGHLIGHTS -->
-      <section id="signals" class="pt-2 md:pt-4">
-        <div class="os-header">
-          <h2 class="section-title">Highlights</h2>
-          <div class="os-rule"></div>
-        </div>
-
-        <div class="mt-4 stat-grid">
-          <div class="glass stat card-hover">
-            <div class="label mono">DB LOAD</div>
-            <div class="value">-30%</div>
-            <div class="note">Reduced database load via query + schema optimization.</div>
+          <div class="hero__cta">
+            <button class="btn btn--primary" type="button" data-scrollto="#impact">
+              Enter studio <span aria-hidden="true">↳</span>
+            </button>
+            <a class="btn btn--ghost" href="#gallery">View exhibit drawer</a>
           </div>
 
-          <div class="glass stat card-hover">
-            <div class="label mono">REALTIME</div>
-            <div class="value">+25%</div>
-            <div class="note">WebSockets chat features increased engagement & usage.</div>
-          </div>
-
-          <div class="glass stat card-hover">
-            <div class="label mono">DELIVERY</div>
-            <div class="value">≈100%</div>
-            <div class="note">CRON + RabbitMQ pipelines with near‑perfect delivery.</div>
-          </div>
-
-          <div class="glass stat card-hover">
-            <div class="label mono">LEADERSHIP</div>
-            <div class="value">+20%</div>
-            <div class="note">Mentored 2 devs; improved delivery velocity.</div>
+          <div class="hero__links mono">
+            <a href="mailto:aktomar@asu.edu">aktomar@asu.edu</a>
+            <span class="sep" aria-hidden="true">•</span>
+            <a href="https://github.com/AakashKTo" target="_blank" rel="noopener">GitHub</a>
+            <span class="sep" aria-hidden="true">•</span>
+            <a href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener">LinkedIn</a>
+            <span class="sep" aria-hidden="true">•</span>
+            <span>(480) 328-4695</span>
           </div>
         </div>
-      </section>
 
-      <!-- SKILLS -->
-      <section id="skills" class="mt-12">
-        <div class="os-header">
-          <h2 class="section-title">Studio Toolkit</h2>
-          <div class="os-rule"></div>
+        <aside class="card cut hero__note" data-accent="green">
+          <div class="note__top">
+            <span class="note__label mono">STUDIO NOTES</span>
+            <span class="note__mark mono">v14</span>
+          </div>
+
+          <ul class="note__list">
+            <li><span class="mono">MS Data Science (ASU)</span><span class="muted">GPA 3.78 • May 2026</span></li>
+            <li><span class="mono">2 yrs backend</span><span class="muted">Python + SQL • Django</span></li>
+            <li><span class="mono">Focus</span><span class="muted">realtime + reliability + GenAI</span></li>
+          </ul>
+
+          <div class="chips">
+            <span class="chip">Python</span>
+            <span class="chip">SQL</span>
+            <span class="chip">WebSockets</span>
+            <span class="chip">RabbitMQ</span>
+            <span class="chip">AWS</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- IMPACT (reworked; not the old 4-card row UI) -->
+    <section id="impact" class="section" data-section>
+      <div class="container">
+        <header class="section__head">
+          <h2 class="section__title">Impact Ledger</h2>
+          <p class="section__sub">Metrics as artifacts — stamped from production work.</p>
+        </header>
+
+        <div class="impact-ledger">
+          <article class="stamp cut" data-accent="coral">
+            <div class="stamp__top">
+              <span class="stamp__label mono">DB LOAD</span>
+              <span class="stamp__sig mono">OPT</span>
+            </div>
+            <div class="stamp__value">−30%</div>
+            <p class="stamp__desc">Reduced database load via query + schema optimization.</p>
+          </article>
+
+          <article class="stamp cut" data-accent="blue">
+            <div class="stamp__top">
+              <span class="stamp__label mono">REALTIME</span>
+              <span class="stamp__sig mono">WS</span>
+            </div>
+            <div class="stamp__value">+25%</div>
+            <p class="stamp__desc">WebSockets chat features increased engagement &amp; usage.</p>
+          </article>
+
+          <article class="stamp cut" data-accent="green">
+            <div class="stamp__top">
+              <span class="stamp__label mono">DELIVERY</span>
+              <span class="stamp__sig mono">MQ</span>
+            </div>
+            <div class="stamp__value">≈100%</div>
+            <p class="stamp__desc">CRON + RabbitMQ pipelines with near‑perfect delivery.</p>
+          </article>
+
+          <article class="stamp cut" data-accent="coral">
+            <div class="stamp__top">
+              <span class="stamp__label mono">LEADERSHIP</span>
+              <span class="stamp__sig mono">TEAM</span>
+            </div>
+            <div class="stamp__value">+20%</div>
+            <p class="stamp__desc">Mentored 2 devs; improved delivery velocity.</p>
+          </article>
         </div>
+      </div>
+    </section>
 
-        <div class="mt-4 grid lg:grid-cols-12 gap-7">
-          <div class="lg:col-span-8 grid sm:grid-cols-2 gap-7">
-            <div class="glass card-hover p-5 skill-card skill-coral">
-              <div class="mono text-xs skill-kicker"><span class="skill-dot"></span>BACKEND</div>
-              <div class="mt-3 flex flex-wrap gap-2">
-                <span class="pill">Python</span><span class="pill">SQL</span><span class="pill">Django</span>
-                <span class="pill">REST APIs</span><span class="pill">WebSockets</span>
-                <span class="pill">Redis</span><span class="pill">RabbitMQ</span>
+    <!-- TOOLBOARD (completely different layout than old grid cards) -->
+    <section id="toolboard" class="section" data-section>
+      <div class="container">
+        <header class="section__head">
+          <h2 class="section__title">Toolboard Constellation</h2>
+          <p class="section__sub">A generative map of the stack — clusters, not columns.</p>
+        </header>
+
+        <div class="toolboard" id="toolboardBox">
+          <svg class="toolboard__wires" id="toolboardWires" aria-hidden="true"></svg>
+
+          <article class="toolnode card cut" data-node="backend" data-accent="coral" style="--x:10;--y:8;--w:34;">
+            <h3 class="toolnode__title"><span class="dot dot--coral"></span> Backend</h3>
+            <div class="chips">
+              <span class="chip">Python</span><span class="chip">SQL</span><span class="chip">Django</span>
+              <span class="chip">REST APIs</span><span class="chip">WebSockets</span>
+              <span class="chip">Redis</span><span class="chip">RabbitMQ</span>
+            </div>
+            <p class="toolnode__note mono">patterns: caching • queues • scheduled jobs</p>
+          </article>
+
+          <article class="toolnode card cut" data-node="genai" data-accent="blue" style="--x:54;--y:10;--w:30;">
+            <h3 class="toolnode__title"><span class="dot dot--blue"></span> GenAI / ML</h3>
+            <div class="chips">
+              <span class="chip">PyTorch</span><span class="chip">TensorFlow</span><span class="chip">Keras</span>
+              <span class="chip">Transformers</span><span class="chip">ALBERT</span>
+              <span class="chip">OpenCV</span><span class="chip">MediaPipe</span>
+            </div>
+            <p class="toolnode__note mono">focus: training • evaluation • inference optimization</p>
+          </article>
+
+          <article class="toolnode card cut" data-node="core" data-accent="blue" style="--x:74;--y:36;--w:24;">
+            <h3 class="toolnode__title"><span class="dot dot--blue"></span> Core Practices</h3>
+            <div class="toolnode__tiles">
+              <div class="mini cut">
+                <div class="mini__t">Database design</div>
+                <div class="mini__s mono muted">schemas • indexes • query plans</div>
               </div>
-              <p class="mt-3 text-xs text-white/60 mono">Patterns: caching · message queues · scheduled jobs</p>
-            </div>
-
-            <div class="glass card-hover p-5 skill-card skill-blue">
-              <div class="mono text-xs skill-kicker"><span class="skill-dot"></span>GENAI / ML</div>
-              <div class="mt-3 flex flex-wrap gap-2">
-                <span class="pill">PyTorch</span><span class="pill">TensorFlow</span><span class="pill">Keras</span>
-                <span class="pill">Diffusion</span><span class="pill">Transformers</span><span class="pill">ALBERT</span>
-                <span class="pill">OpenCV</span><span class="pill">MediaPipe</span>
+              <div class="mini cut">
+                <div class="mini__t">Reliability</div>
+                <div class="mini__s mono muted">queues • retries • idempotency</div>
               </div>
-              <p class="mt-3 text-xs text-white/60 mono">Focus: training · evaluation · inference optimization</p>
-            </div>
-
-            <div class="glass card-hover p-5 skill-card skill-green">
-              <div class="mono text-xs skill-kicker"><span class="skill-dot"></span>DATA / ANALYTICS</div>
-              <div class="mt-3 flex flex-wrap gap-2">
-                <span class="pill">Pandas</span><span class="pill">Power BI</span><span class="pill">Tableau</span>
-                <span class="pill">Excel</span><span class="pill">ETL</span><span class="pill">EDA</span>
+              <div class="mini cut">
+                <div class="mini__t">Realtime</div>
+                <div class="mini__s mono muted">WebSockets • engagement metrics</div>
               </div>
-              <p class="mt-3 text-xs text-white/60 mono">Clean datasets · dashboards · reporting automation</p>
-            </div>
-
-            <div class="glass card-hover p-5 skill-card skill-ink">
-              <div class="mono text-xs skill-kicker"><span class="skill-dot"></span>CLOUD / TOOLS</div>
-              <div class="mt-3 flex flex-wrap gap-2">
-                <span class="pill">AWS</span><span class="pill">Databricks</span><span class="pill">Docker</span>
-                <span class="pill">Git</span><span class="pill">CRON</span>
-              </div>
-              <p class="mt-3 text-xs text-white/60 mono">Ship iteratively · measure everything · keep it maintainable</p>
-            </div>
-          </div>
-
-          <aside class="lg:col-span-4">
-            <div class="glass card-hover p-5 skill-card skill-blue skill-cert cert-card">
-              <div class="mono text-xs skill-kicker"><span class="skill-dot"></span>CORE PRACTICES</div>
-
-              <div class="cert-list">
-                <div class="cert-row">
-                  <span class="cert-title">Database design</span>
-                  <span class="cert-meta mono">schemas · indexes · query plans</span>
-                </div>
-                <div class="cert-row">
-                  <span class="cert-title">Reliability</span>
-                  <span class="cert-meta mono">queues · retries · idempotency</span>
-                </div>
-                <div class="cert-row">
-                  <span class="cert-title">Realtime</span>
-                  <span class="cert-meta mono">WebSockets · engagement metrics</span>
-                </div>
-                <div class="cert-row">
-                  <span class="cert-title">Automation</span>
-                  <span class="cert-meta mono">CRON · deployments · alerts</span>
-                </div>
+              <div class="mini cut">
+                <div class="mini__t">Automation</div>
+                <div class="mini__s mono muted">CRON • deployments • alerts</div>
               </div>
             </div>
-          </aside>
+          </article>
+
+          <article class="toolnode card cut" data-node="data" data-accent="green" style="--x:18;--y:52;--w:26;">
+            <h3 class="toolnode__title"><span class="dot dot--green"></span> Data / Analytics</h3>
+            <div class="chips">
+              <span class="chip">Pandas</span><span class="chip">Power BI</span><span class="chip">Tableau</span>
+              <span class="chip">Excel</span><span class="chip">ETL</span><span class="chip">EDA</span>
+            </div>
+            <p class="toolnode__note mono">clean datasets • dashboards • reporting automation</p>
+          </article>
+
+          <article class="toolnode card cut" data-node="cloud" data-accent="green" style="--x:46;--y:62;--w:28;">
+            <h3 class="toolnode__title"><span class="dot dot--green"></span> Cloud / Tools</h3>
+            <div class="chips">
+              <span class="chip">AWS</span><span class="chip">Databricks</span><span class="chip">Docker</span>
+              <span class="chip">Git</span><span class="chip">CRON</span>
+            </div>
+            <p class="toolnode__note mono">ship iteratively • measure everything • keep it maintainable</p>
+          </article>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- EDUCATION -->
-      <section id="education" class="mt-12">
-        <div class="os-header">
-          <h2 class="section-title">Education</h2>
-          <div class="os-rule"></div>
-        </div>
+    <!-- STUDIES (reworked format) -->
+    <section id="studies" class="section" data-section>
+      <div class="container">
+        <header class="section__head">
+          <h2 class="section__title">Studies</h2>
+          <p class="section__sub">Two degrees — one direction: systems that behave.</p>
+        </header>
 
-        <div class="mt-4 grid md:grid-cols-2 gap-7">
-          <div class="glass card-hover p-5">
-            <div class="mono text-xs text-white/60">M.S.</div>
-            <div class="mt-2 font-semibold">Data Science, Analytics & Engineering</div>
-            <div class="edu-row mt-2">
-              <div class="text-white/70 text-sm">Arizona State University · Tempe, AZ</div>
-              <div class="edu-gpa mono">GPA 3.78</div>
+        <div class="studies">
+          <article class="degree card cut" data-accent="blue">
+            <div class="degree__kicker mono">M.S.</div>
+            <h3 class="degree__title">Data Science, Analytics &amp; Engineering</h3>
+            <div class="degree__meta">
+              <span>Arizona State University • Tempe, AZ</span>
+              <span class="pill mono">GPA 3.78</span>
             </div>
-            <div class="text-white/70 text-sm mt-1">Graduating May 2026</div>
-          </div>
+            <div class="degree__when mono muted">Graduating May 2026</div>
+          </article>
 
-          <div class="glass card-hover p-5">
-            <div class="mono text-xs text-white/60">B.S.</div>
-            <div class="mt-2 font-semibold">Computer Science & Engineering</div>
-            <div class="edu-row mt-2">
-              <div class="text-white/70 text-sm">DIT University · India</div>
-              <div class="edu-gpa mono">GPA 3.16</div>
+          <article class="degree card cut" data-accent="green">
+            <div class="degree__kicker mono">B.S.</div>
+            <h3 class="degree__title">Computer Science &amp; Engineering</h3>
+            <div class="degree__meta">
+              <span>DIT University • India</span>
+              <span class="pill mono">GPA 3.16</span>
             </div>
-            <div class="text-white/70 text-sm mt-1">Aug 2018 — May 2022</div>
-          </div>
+            <div class="degree__when mono muted">Aug 2018 — May 2022</div>
+          </article>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- EXPERIENCE -->
-      <section id="experience" class="mt-12">
-        <div class="os-header">
-          <h2 class="section-title">Experience</h2>
-          <div class="os-rule"></div>
-        </div>
+    <!-- LOGBOOK (reworked experience format) -->
+    <section id="logbook" class="section" data-section>
+      <div class="container">
+        <header class="section__head">
+          <h2 class="section__title">Logbook</h2>
+          <p class="section__sub">Production notes — concise, testable, repeatable.</p>
+        </header>
 
-        <div class="timeline">
-          <div class="timeline-item">
-            <article class="glass card-hover p-5">
-              <div class="flex flex-col md:flex-row md:items-baseline md:justify-between gap-1">
-                <h3 class="font-semibold">Senior Associate Consultant · Oodles Technologies</h3>
-                <div class="mono text-xs text-white/60">India · May 2022 — Aug 2024</div>
+        <div class="logbook">
+          <details class="entry card cut" data-accent="coral" open>
+            <summary class="entry__summary">
+              <div class="entry__left">
+                <div class="entry__role">Senior Associate Consultant</div>
+                <div class="entry__company mono muted">Oodles Technologies</div>
               </div>
-              <ul class="mt-3 text-white/80 list-disc pl-5 space-y-2">
+              <div class="entry__right mono">India • May 2022 — Aug 2024</div>
+            </summary>
+
+            <div class="entry__body">
+              <ul class="entry__bullets">
                 <li>Engineered Python/Django backend services + SQL schemas for a blockchain trading platform.</li>
-                <li>Optimized queries and database design, reducing load by <span class="text-white font-semibold">30%</span> and improving API responsiveness.</li>
-                <li>Built realtime group chat using WebSockets; increased usage by <span class="text-white font-semibold">25%</span>.</li>
-                <li>Automated smart-contract deployments + RabbitMQ notification pipelines via CRON; near‑100% delivery reliability.</li>
-                <li>Mentored 2 junior devs, accelerating delivery by <span class="text-white font-semibold">20%</span>; earned 3 quarterly awards.</li>
+                <li>Optimized queries + database design, reducing load by <b>30%</b> and improving API responsiveness.</li>
+                <li>Built realtime group chat via WebSockets; increased usage by <b>25%</b>.</li>
+                <li>Automated smart‑contract deployments + RabbitMQ notification pipelines via CRON; near‑<b>100%</b> delivery.</li>
+                <li>Mentored 2 junior devs; accelerated delivery by <b>20%</b>; earned 3 quarterly awards.</li>
               </ul>
-              <div class="mt-4 flex flex-wrap gap-2">
-                <span class="badge">Python</span><span class="badge">Django</span><span class="badge">SQL</span>
-                <span class="badge">WebSockets</span><span class="badge">RabbitMQ</span><span class="badge">AWS</span>
+
+              <div class="chips">
+                <span class="chip">Python</span>
+                <span class="chip">Django</span>
+                <span class="chip">SQL</span>
+                <span class="chip">WebSockets</span>
+                <span class="chip">RabbitMQ</span>
+                <span class="chip">Redis</span>
+                <span class="chip">AWS</span>
               </div>
-            </article>
-          </div>
+            </div>
+          </details>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- PROJECTS -->
-      <section id="projects" class="mt-12">
-        <div class="os-header">
-          <h2 class="section-title">Gallery</h2>
-          <div class="os-rule"></div>
-        </div>
-
-        <div class="projects-toolbar">
-          <div class="mono text-xs text-white/60">
-            Piece <span id="projects-current">01</span> of <span id="projects-total">00</span>
-            <span class="mono text-xs text-white/50 ml-3">• tap to pin · double‑click to open</span>
-          </div>
-          <div id="projects-dots" class="projects-dots"></div>
-        </div>
-
-        <div class="projects-drawer mt-4">
-          <button id="projects-prev" class="drawer-btn drawer-left" aria-label="Previous project">
-            <span class="mono">‹</span>
-          </button>
-
-          <div id="projects-track" class="hscroll drawer-track flex gap-4 overflow-x-auto pb-6">
-            <article
-              class="glass card-hover project-card"
-              tabindex="0"
-              role="button"
-              aria-label="Faster Diffusion"
-              data-repo="https://github.com/AakashKTo"
-            >
-              <div class="project-thumb"><img src="assets/img/2.png" alt="Faster Diffusion thumbnail" loading="lazy" /></div>
-              <div class="project-meta">
-                <div class="project-title">Faster Diffusion</div>
-                <div class="mono text-xs text-white/60">Class project</div>
-              </div>
-              <p class="project-desc">Optimized diffusion models for real-time, scalable image generation.</p>
-              <ul class="project-bullets">
-                <li>Researched inference bottlenecks and optimization strategies.</li>
-                <li>Validated low‑latency feasibility with PyTorch experiments.</li>
-              </ul>
-              <div class="flex flex-wrap gap-2">
-                <span class="pill">Diffusion</span><span class="pill">PyTorch</span><span class="pill">Optimization</span>
-              </div>
-            </article>
-
-            <article
-              class="glass card-hover project-card"
-              tabindex="0"
-              role="button"
-              aria-label="Text Sentiment Analysis"
-              data-repo="https://github.com/AakashKTo"
-            >
-              <div class="project-thumb"><img src="assets/img/4.png" alt="Tweet Sentiment Analysis thumbnail" loading="lazy" /></div>
-              <div class="project-meta">
-                <div class="project-title">Text Sentiment Analysis</div>
-                <div class="mono text-xs text-white/60">Personal project</div>
-              </div>
-              <p class="project-desc">3‑class sentiment classifier for noisy, unstructured Twitter datasets.</p>
-              <ul class="project-bullets">
-                <li>Fine‑tuned ALBERT with rigorous preprocessing pipelines.</li>
-                <li>Improved robustness by mitigating social-text noise.</li>
-              </ul>
-              <div class="flex flex-wrap gap-2">
-                <span class="pill">NLP</span><span class="pill">Transformers</span><span class="pill">ALBERT</span>
-              </div>
-            </article>
-
-            <article
-              class="glass card-hover project-card"
-              tabindex="0"
-              role="button"
-              aria-label="Slack Python Q&A Bot"
-              data-repo="https://github.com/AakashKTo"
-            >
-              <div class="project-thumb"><img src="assets/img/1.png" alt="Slackbot thumbnail" loading="lazy" /></div>
-              <div class="project-meta">
-                <div class="project-title">Slack Python Q&amp;A Bot</div>
-                <div class="mono text-xs text-white/60">Personal project</div>
-              </div>
-              <p class="project-desc">Conversational agent to automate Python support inside Slack.</p>
-              <ul class="project-bullets">
-                <li>Built an event-driven chat interface with Slack Bolt.</li>
-                <li>Reduced resolution time by streamlining retrieval workflows.</li>
-              </ul>
-              <div class="flex flex-wrap gap-2">
-                <span class="pill">Python</span><span class="pill">Slack API</span><span class="pill">Automation</span>
-              </div>
-            </article>
+    <!-- GALLERY DRAWER (still horizontal, but totally different card + modal UI) -->
+    <section id="gallery" class="section" data-section>
+      <div class="container">
+        <header class="section__head section__head--row">
+          <div>
+            <h2 class="section__title">Exhibit Drawer</h2>
+            <p class="section__sub mono" id="drawerMeta">PIECE 01 OF 03 • SCROLL / DRAG • TAP TO OPEN</p>
           </div>
 
-          <button id="projects-next" class="drawer-btn drawer-right" aria-label="Next project">
-            <span class="mono">›</span>
-          </button>
+          <div class="drawer-controls" aria-label="Drawer controls">
+            <button class="icon-btn" type="button" data-drawer="prev" aria-label="Previous piece">←</button>
+            <button class="icon-btn" type="button" data-drawer="next" aria-label="Next piece">→</button>
+          </div>
+        </header>
+
+        <div class="drawer" id="drawer" tabindex="0" aria-label="Projects drawer">
+          <!-- Project 1 -->
+          <article class="frame card cut"
+            data-title="Faster Diffusion"
+            data-kind="Class project"
+            data-desc="Optimized diffusion models for real-time, scalable image generation. Researched inference bottlenecks and deployment efficiency."
+            data-tags="Diffusion,PyTorch,Optimization"
+            data-repo="https://github.com/AakashKTo"
+            data-accent="blue"
+          >
+            <div class="frame__matte cut">
+              <canvas class="thumb" data-seed="Faster Diffusion" aria-label="Generative thumbnail"></canvas>
+              <div class="frame__corner mono">FD</div>
+            </div>
+
+            <div class="frame__info">
+              <div class="frame__top">
+                <h3 class="frame__title">Faster Diffusion</h3>
+                <span class="badge mono">CLASS</span>
+              </div>
+
+              <p class="frame__text">
+                Optimized diffusion models for real-time, scalable image generation.
+              </p>
+
+              <div class="chips">
+                <span class="chip">Diffusion</span>
+                <span class="chip">PyTorch</span>
+                <span class="chip">Optimization</span>
+              </div>
+
+              <div class="frame__actions">
+                <button class="btn btn--tiny btn--primary" type="button" data-open>
+                  Open exhibit
+                </button>
+                <button class="btn btn--tiny btn--ghost" type="button" data-repo>
+                  Repo
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- Project 2 -->
+          <article class="frame card cut"
+            data-title="Text Sentiment Analysis"
+            data-kind="Personal project"
+            data-desc="Built a robust 3-class sentiment classifier for noisy Twitter datasets. Fine-tuned ALBERT with rigorous preprocessing and noise mitigation."
+            data-tags="NLP,Transformers,ALBERT,Hugging Face"
+            data-repo="https://github.com/AakashKTo"
+            data-accent="coral"
+          >
+            <div class="frame__matte cut">
+              <canvas class="thumb" data-seed="Text Sentiment Analysis" aria-label="Generative thumbnail"></canvas>
+              <div class="frame__corner mono">SA</div>
+            </div>
+
+            <div class="frame__info">
+              <div class="frame__top">
+                <h3 class="frame__title">Text Sentiment Analysis</h3>
+                <span class="badge mono">PERSONAL</span>
+              </div>
+
+              <p class="frame__text">
+                3-class sentiment classifier for noisy, unstructured Twitter datasets.
+              </p>
+
+              <div class="chips">
+                <span class="chip">NLP</span>
+                <span class="chip">Transformers</span>
+                <span class="chip">ALBERT</span>
+              </div>
+
+              <div class="frame__actions">
+                <button class="btn btn--tiny btn--primary" type="button" data-open>
+                  Open exhibit
+                </button>
+                <button class="btn btn--tiny btn--ghost" type="button" data-repo>
+                  Repo
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <!-- Project 3 -->
+          <article class="frame card cut"
+            data-title="Slack Python Q&A Bot"
+            data-kind="Personal project"
+            data-desc="Built a conversational Slack agent for faster technical support. Event-driven workflow with Slack Bolt + NLP libraries to streamline retrieval and reduce resolution time."
+            data-tags="Slack Bolt,NLP,Automation,Event-driven"
+            data-repo="https://github.com/AakashKTo"
+            data-accent="green"
+          >
+            <div class="frame__matte cut">
+              <canvas class="thumb" data-seed="Slack Python Q&A Bot" aria-label="Generative thumbnail"></canvas>
+              <div class="frame__corner mono">QB</div>
+            </div>
+
+            <div class="frame__info">
+              <div class="frame__top">
+                <h3 class="frame__title">Slack Python Q&amp;A Bot</h3>
+                <span class="badge mono">PERSONAL</span>
+              </div>
+
+              <p class="frame__text">
+                Conversational agent to automate support and democratize Python knowledge.
+              </p>
+
+              <div class="chips">
+                <span class="chip">Slack</span>
+                <span class="chip">NLP</span>
+                <span class="chip">Automation</span>
+              </div>
+
+              <div class="frame__actions">
+                <button class="btn btn--tiny btn--primary" type="button" data-open>
+                  Open exhibit
+                </button>
+                <button class="btn btn--tiny btn--ghost" type="button" data-repo>
+                  Repo
+                </button>
+              </div>
+            </div>
+          </article>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- CONTACT -->
-      <section id="contact" class="mt-12">
-        <div class="os-header">
-          <h2 class="section-title">Contact</h2>
-          <div class="os-rule"></div>
-        </div>
+    <!-- CONTACT -->
+    <section id="contact" class="section" data-section>
+      <div class="container">
+        <header class="section__head">
+          <h2 class="section__title">Contact</h2>
+          <p class="section__sub">If you’re building something weird + useful, let’s talk.</p>
+        </header>
 
-        <div class="mt-4 contact-wrap">
-          <div class="contact-bar glass" role="navigation" aria-label="Contact links">
-            <a
-              class="contact-icon"
-              href="mailto:aktomar@asu.edu"
-              aria-label="Email"
-              title="Email"
-              data-label="Email"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 6h16v12H4z"></path>
-                <path d="M4 7l8 6 8-6"></path>
-              </svg>
-            </a>
+        <div class="contact-grid">
+          <a class="contact-card card cut" data-accent="blue" href="mailto:aktomar@asu.edu">
+            <div class="contact-card__k mono">EMAIL</div>
+            <div class="contact-card__v">aktomar@asu.edu</div>
+            <div class="contact-card__s mono muted">Fastest response</div>
+          </a>
 
-            <a
-              class="contact-icon"
-              href="https://www.linkedin.com/in/aakashkt/"
-              target="_blank"
-              rel="noopener"
-              aria-label="LinkedIn"
-              title="LinkedIn"
-              data-label="LinkedIn"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6.5 9.5v9"></path>
-                <path d="M6.5 6.5h.01"></path>
-                <path d="M10 18.5v-5.2c0-2.8 4-3 4 0v5.2"></path>
-                <path d="M14 13.3c0-1.3.9-2.3 2.3-2.3 1.2 0 2.2.9 2.2 2.4v5.1"></path>
-              </svg>
-            </a>
+          <a class="contact-card card cut" data-accent="green" href="https://github.com/AakashKTo" target="_blank" rel="noopener">
+            <div class="contact-card__k mono">GITHUB</div>
+            <div class="contact-card__v">@AakashKTo</div>
+            <div class="contact-card__s mono muted">Repos + experiments</div>
+          </a>
 
-            <a
-              class="contact-icon"
-              href="https://github.com/AakashKTo"
-              target="_blank"
-              rel="noopener"
-              aria-label="GitHub"
-              title="GitHub"
-              data-label="GitHub"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 19c-4 1.2-4-2-5-2"></path>
-                <path
-                  d="M15 19v-2.2c0-.7.2-1.2.6-1.6-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.8-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.5 9.5 0 0 1 5 0c2-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.8 1 1.7 1 2.8 0 3.9-2.4 4.7-4.6 5 .4.4.7 1 .7 2v2.8"
-                ></path>
-              </svg>
-            </a>
+          <a class="contact-card card cut" data-accent="coral" href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener">
+            <div class="contact-card__k mono">LINKEDIN</div>
+            <div class="contact-card__v">/in/aakashkt</div>
+            <div class="contact-card__s mono muted">Let’s connect</div>
+          </a>
+
+          <div class="contact-card card cut" data-accent="blue">
+            <div class="contact-card__k mono">PHONE</div>
+            <div class="contact-card__v">(480) 328-4695</div>
+            <div class="contact-card__s mono muted">US number</div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  </main>
 
-      <footer class="mt-14 pb-10 text-xs text-white/50">
-        <span class="mono">©</span> <span id="year"></span> Aakash Tomar
-      </footer>
-    </main>
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div class="mono muted">© <span id="year"></span> Aakash Tomar</div>
+      <div class="mono muted">Theme: Generative Art Studio • Palette: coral / blue / green</div>
+    </div>
+  </footer>
 
-    <script src="assets/js/main.js?v=14"></script>
-  </body>
+  <!-- Exhibit sheet (new modal UI) -->
+  <div class="sheet" id="sheet" aria-hidden="true">
+    <div class="sheet__overlay" data-sheet="close" aria-hidden="true"></div>
+
+    <div class="sheet__panel card cut" role="dialog" aria-modal="true" aria-label="Project exhibit">
+      <button class="sheet__close icon-btn" type="button" data-sheet="close" aria-label="Close">×</button>
+
+      <div class="sheet__content">
+        <div class="sheet__art cut">
+          <canvas id="sheetCanvas" aria-label="Project art"></canvas>
+          <div class="sheet__badge mono" id="sheetKind">PERSONAL</div>
+        </div>
+
+        <div class="sheet__text">
+          <p class="kicker mono" id="sheetKicker">EXHIBIT</p>
+          <h3 class="sheet__title" id="sheetTitle">Project Title</h3>
+          <p class="sheet__desc" id="sheetDesc">Project description…</p>
+
+          <div class="chips" id="sheetTags"></div>
+
+          <div class="sheet__actions">
+            <a class="btn btn--primary" id="sheetRepo" href="#" target="_blank" rel="noopener">Open repo</a>
+            <a class="btn btn--ghost" href="#contact" data-sheet="close">Contact</a>
+          </div>
+
+          <p class="mono muted sheet__hint">Tip: hit <b>ESC</b> to close • drawer supports <b>←/→</b> keys</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/main.js" defer></script>
+</body>
 </html>
