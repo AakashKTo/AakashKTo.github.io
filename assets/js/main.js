@@ -14,7 +14,6 @@ var _imul = Math.imul || function(a, b) {
 function safe(name, fn){
   try { fn(); }
   catch (e) {
-    // do NOT kill whole script
     if (window && window.console && console.warn) console.warn("[studio] " + name + " failed:", e);
   }
 }
@@ -26,6 +25,21 @@ function hexToRgba(hex, a) {
   var g = parseInt(h.slice(2,4), 16);
   var b = parseInt(h.slice(4,6), 16);
   return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+}
+
+/* ========= Scroll lock (prevents “layout jump” due to scrollbar changes) ========= */
+function lockScroll(){
+  var de = document.documentElement;
+  // scrollbar width: innerWidth - clientWidth
+  var sbw = (window.innerWidth || 0) - (de.clientWidth || 0);
+  if (sbw < 0) sbw = 0;
+  de.style.setProperty("--sbw", sbw + "px");
+  de.classList.add("no-scroll");
+}
+function unlockScroll(){
+  var de = document.documentElement;
+  de.classList.remove("no-scroll");
+  de.style.setProperty("--sbw", "0px");
 }
 
 /* ========= Boot ========= */
@@ -45,11 +59,13 @@ document.addEventListener("DOMContentLoaded", function(){
   safe("smoothScroll", initSmoothScroll);
   safe("dockSpy", initDockSpyStable);
   safe("cardLight", initCardLight);
-  safe("blobBg", initBlobBackground);
+
+  // background more eye-catching
+  safe("bg", initEyeCatchingBackground);
+
   safe("jellyfish", initJellyfishSlowPath);
   safe("toolboardWires", initToolboardWires);
 
-  // drawer must be before sheet/thumb listeners (it clones)
   var drawerApi = null;
   safe("drawerInfinite", function(){ drawerApi = initDrawerInfiniteLoop(); });
 
@@ -139,8 +155,8 @@ function initCardLight() {
   });
 }
 
-/* ========= Blob background ========= */
-function initBlobBackground() {
+/* ========= Background: aurora + particles + grain (eye-catching but tasteful) ========= */
+function initEyeCatchingBackground(){
   var canvas = qs("#bg-canvas");
   if (!canvas) return;
   var ctx = canvas.getContext("2d", { alpha:true });
@@ -154,6 +170,8 @@ function initBlobBackground() {
   var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var w=0,h=0,dpr=1;
+  var pointer = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 };
+
   function resize(){
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     w = Math.floor(window.innerWidth);
@@ -167,66 +185,178 @@ function initBlobBackground() {
   resize();
   window.addEventListener("resize", resize, { passive:true });
 
-  var palette = [
-    { hex: cCoral, a: 0.11 },
-    { hex: cBlue,  a: 0.10 },
-    { hex: cGreen, a: 0.09 }
-  ];
+  function onMove(e){
+    var x = (e.clientX || 0) / Math.max(1, w);
+    var y = (e.clientY || 0) / Math.max(1, h);
+    pointer.tx = clamp(x, 0, 1);
+    pointer.ty = clamp(y, 0, 1);
+  }
+  window.addEventListener("pointermove", onMove, { passive:true });
+  window.addEventListener("mousemove", onMove, { passive:true });
 
-  var count = prefersReduced ? 4 : 6;
-  var blobs = [];
-  for (var i=0; i<count; i++){
-    var p = palette[i % palette.length];
-    blobs.push({
+  // Orbs (aurora blobs)
+  var orbCount = prefersReduced ? 4 : 7;
+  var orbs = [];
+  var pal = [cBlue, cCoral, cGreen, cBlue, cGreen, cCoral, cBlue];
+  for (var i=0; i<orbCount; i++){
+    var base = pal[i % pal.length];
+    orbs.push({
       x: Math.random()*w,
       y: Math.random()*h,
-      r: (Math.min(w,h) * (0.18 + Math.random()*0.18)),
-      vx: (Math.random()-0.5)*0.15,
-      vy: (Math.random()-0.5)*0.15,
-      c: p.hex,
-      a: p.a
+      r: (Math.min(w,h) * (0.18 + Math.random()*0.22)),
+      vx: (Math.random()-0.5) * 0.06,
+      vy: (Math.random()-0.5) * 0.06,
+      c: base,
+      a: 0.14 + Math.random()*0.06
     });
   }
 
+  // Particles (generative geometry)
+  var pCount = prefersReduced ? 24 : 44;
+  var particles = [];
+  for (var p=0; p<pCount; p++){
+    particles.push({
+      x: Math.random()*w,
+      y: Math.random()*h,
+      vx: (Math.random()-0.5) * 0.03,
+      vy: (Math.random()-0.5) * 0.03,
+      r: 0.9 + Math.random()*1.6
+    });
+  }
+
+  // Grain pattern
+  var noiseCanvas = document.createElement("canvas");
+  noiseCanvas.width = 128;
+  noiseCanvas.height = 128;
+  var nctx = noiseCanvas.getContext("2d");
+  var noisePattern = null;
+
+  function buildNoise(){
+    if (!nctx) return;
+    var img = nctx.createImageData(128, 128);
+    for (var i=0; i<img.data.length; i+=4){
+      var v = (Math.random()*255)|0;
+      img.data[i] = v;
+      img.data[i+1] = v;
+      img.data[i+2] = v;
+      img.data[i+3] = 28; // alpha
+    }
+    nctx.putImageData(img, 0, 0);
+    try { noisePattern = ctx.createPattern(noiseCanvas, "repeat"); }
+    catch(e){ noisePattern = null; }
+  }
+  buildNoise();
+
   var last = performance.now();
   function tick(now){
-    var dt = Math.min(32, now-last);
+    var dt = Math.min(34, now-last);
     last = now;
 
-    ctx.fillStyle = "rgba(10,10,10,0.22)";
+    // smooth pointer
+    pointer.x += (pointer.tx - pointer.x) * 0.06;
+    pointer.y += (pointer.ty - pointer.y) * 0.06;
+
+    // gentle trail fade
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "rgba(10,10,10,0.18)";
     ctx.fillRect(0,0,w,h);
 
-    for (var j=0; j<blobs.length; j++){
-      var b = blobs[j];
+    // aurora blobs (screen blend)
+    ctx.globalCompositeOperation = "screen";
+    var px = (pointer.x - 0.5) * 34;
+    var py = (pointer.y - 0.5) * 22;
+
+    for (var i=0; i<orbs.length; i++){
+      var b = orbs[i];
+
       b.x += b.vx * dt;
       b.y += b.vy * dt;
 
-      b.x += (w*0.5 - b.x) * 0.00002 * dt;
-      b.y += (h*0.5 - b.y) * 0.00002 * dt;
+      // slow “breathing” drift
+      b.x += (w*0.5 - b.x) * 0.000006 * dt;
+      b.y += (h*0.5 - b.y) * 0.000006 * dt;
 
       if (b.x < -b.r) b.x = w + b.r;
       if (b.x > w + b.r) b.x = -b.r;
       if (b.y < -b.r) b.y = h + b.r;
       if (b.y > h + b.r) b.y = -b.r;
 
-      var g = ctx.createRadialGradient(b.x,b.y,0,b.x,b.y,b.r);
+      var ox = b.x + px;
+      var oy = b.y + py;
+
+      var g = ctx.createRadialGradient(ox, oy, 0, ox, oy, b.r);
       g.addColorStop(0, hexToRgba(b.c, b.a));
+      g.addColorStop(0.55, hexToRgba(b.c, b.a * 0.35));
       g.addColorStop(1, "rgba(10,10,10,0)");
       ctx.fillStyle = g;
-      ctx.fillRect(b.x-b.r, b.y-b.r, b.r*2, b.r*2);
+      ctx.fillRect(ox-b.r, oy-b.r, b.r*2, b.r*2);
     }
+
+    // particles + links
+    ctx.globalCompositeOperation = "lighter";
+    for (var j=0; j<particles.length; j++){
+      var pt = particles[j];
+      pt.x += pt.vx * dt;
+      pt.y += pt.vy * dt;
+
+      // wrap
+      if (pt.x < -10) pt.x = w + 10;
+      if (pt.x > w + 10) pt.x = -10;
+      if (pt.y < -10) pt.y = h + 10;
+      if (pt.y > h + 10) pt.y = -10;
+
+      // dot
+      ctx.fillStyle = "rgba(245,245,245,0.16)";
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // links (keep light so it doesn't get noisy)
+    var maxD = 140;
+    for (var a=0; a<particles.length; a++){
+      for (var b= a+1; b<particles.length; b++){
+        var dx = particles[a].x - particles[b].x;
+        var dy = particles[a].y - particles[b].y;
+        var d2 = dx*dx + dy*dy;
+        if (d2 > maxD*maxD) continue;
+        var d = Math.sqrt(d2);
+        var alpha = (1 - d/maxD) * 0.07;
+        ctx.strokeStyle = "rgba(245,245,245," + alpha + ")";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(particles[a].x, particles[a].y);
+        ctx.lineTo(particles[b].x, particles[b].y);
+        ctx.stroke();
+      }
+    }
+
+    // grain overlay
+    ctx.globalCompositeOperation = "source-over";
+    if (noisePattern){
+      ctx.globalAlpha = 0.10;
+      ctx.fillStyle = noisePattern;
+      ctx.fillRect(0,0,w,h);
+      ctx.globalAlpha = 1;
+    }
+
+    // vignette
+    var vg = ctx.createRadialGradient(w*0.5, h*0.5, 0, w*0.5, h*0.5, Math.max(w,h)*0.72);
+    vg.addColorStop(0, "rgba(10,10,10,0)");
+    vg.addColorStop(1, "rgba(10,10,10,0.78)");
+    ctx.fillStyle = vg;
+    ctx.fillRect(0,0,w,h);
 
     if (!prefersReduced) requestAnimationFrame(tick);
   }
 
+  // first paint
   ctx.fillStyle = "rgba(10,10,10,1)";
   ctx.fillRect(0,0,w,h);
   requestAnimationFrame(tick);
 }
 
-/* ========= Jellyfish: VERY SLOW, SMOOTH, NOT RANDOM =========
-   Uses a gentle Lissajous-ish path; speed is constant across machines.
-*/
+/* ========= Jellyfish: VERY slow smooth path ========= */
 function initJellyfishSlowPath(){
   var jf = qs("#jellyfish");
   var hero = qs("#home");
@@ -257,8 +387,7 @@ function initJellyfishSlowPath(){
 
   var start = performance.now();
   function tick(now){
-    var t = (now - start) * 0.00004; 
-    // period ~ 2π / 0.04 ≈ 157s (very slow)
+    var t = (now - start) * 0.000035; // slower than before (~180s cycle)
 
     var a = area();
     var aw = Math.max(0, a.w - size.w - 2*a.pad);
@@ -270,8 +399,8 @@ function initJellyfishSlowPath(){
     var x = cx + (aw/2) * Math.sin(t);
     var y = cy + (ah/2) * Math.sin(t * 0.72 + 1.4);
 
-    var rot = Math.sin(t * 1.1) * 1.6;
-    var scl = 1 + Math.sin(t * 0.9) * 0.015;
+    var rot = Math.sin(t * 1.1) * 1.3;
+    var scl = 1 + Math.sin(t * 0.9) * 0.012;
 
     jf.style.transform =
       "translate3d(" + x + "px," + y + "px,0) rotate(" + rot + "deg) scale(" + scl + ")";
@@ -329,14 +458,14 @@ function initToolboardWires(){
 
       var midX = (A.x + B.x) / 2;
       var midY = (A.y + B.y) / 2;
-      var bend = 24;
+      var bend = 22;
       var cx = midX + (Math.sin((A.x + B.x) * 0.01) * bend);
       var cy = midY + (Math.cos((A.y + B.y) * 0.01) * bend);
 
       var glow = document.createElementNS("http://www.w3.org/2000/svg", "path");
       glow.setAttribute("d", "M " + A.x + " " + A.y + " Q " + cx + " " + cy + " " + B.x + " " + B.y);
       glow.setAttribute("fill", "none");
-      glow.setAttribute("stroke", "rgba(77,150,255,0.08)");
+      glow.setAttribute("stroke", "rgba(77,150,255,0.07)");
       glow.setAttribute("stroke-width", "4");
       glow.setAttribute("opacity", "0.7");
       glow.setAttribute("stroke-linecap", "round");
@@ -358,11 +487,7 @@ function initToolboardWires(){
   draw();
 }
 
-/* ========= Drawer: TRUE infinite loop =========
-   - clones before + after
-   - auto next every 5s
-   - wraps seamlessly (never “stops”)
-*/
+/* ========= Drawer: TRUE infinite loop ========= */
 function initDrawerInfiniteLoop(){
   var drawer = qs("#drawer");
   var meta = qs("#drawerMeta");
@@ -372,13 +497,11 @@ function initDrawerInfiniteLoop(){
   var n = originals.length;
   if (!n) return null;
 
-  // mark original indices
   originals.forEach(function(f, i){
     f.setAttribute("data-original-index", String(i));
     f.removeAttribute("data-clone");
   });
 
-  // clone before + after
   var fragBefore = document.createDocumentFragment();
   var fragAfter = document.createDocumentFragment();
   var before = [];
@@ -403,11 +526,8 @@ function initDrawerInfiniteLoop(){
 
   var frames = qsa(".frame", drawer);
 
-  // geometry for wrap
   var geom = { start: 0, setWidth: 0 };
-
   function recalcGeom(){
-    // setWidth = distance between first original and its after-clone
     var start = originals[0].offsetLeft;
     var setWidth = after[0].offsetLeft - start;
     geom.start = start;
@@ -440,17 +560,14 @@ function initDrawerInfiniteLoop(){
     var min = geom.start;
     var max = geom.start + geom.setWidth;
 
-    // keep scrollLeft in the "middle set"
     while (drawer.scrollLeft < min) drawer.scrollLeft += geom.setWidth;
     while (drawer.scrollLeft >= max) drawer.scrollLeft -= geom.setWidth;
   }
 
-  // start centered on first original
   recalcGeom();
   centerTo(originals[0], "auto");
   normalize();
 
-  // pinned behavior (optional)
   var pinned = false;
   var pinnedIndex = 0;
   var clickTimer = null;
@@ -490,12 +607,11 @@ function initDrawerInfiniteLoop(){
     startAuto();
   }
 
-  // click to pin, dblclick repo (works on clones too)
   frames.forEach(function(frame){
     frame.addEventListener("click", function(e){
       if (e.target && e.target.closest && e.target.closest("button,a")) return;
-
       if (clickTimer) return;
+
       clickTimer = window.setTimeout(function(){
         clickTimer = null;
         var idx = parseInt(frame.getAttribute("data-original-index") || "0", 10) || 0;
@@ -511,7 +627,6 @@ function initDrawerInfiniteLoop(){
     });
   });
 
-  // controls
   qsa("[data-drawer]").forEach(function(btn){
     btn.addEventListener("click", function(){
       var cur = getCenteredFrame();
@@ -529,7 +644,6 @@ function initDrawerInfiniteLoop(){
     });
   });
 
-  // scroll end: normalize to keep infinite feel
   var scrollEnd = null;
   drawer.addEventListener("scroll", function(){
     if (scrollEnd) window.clearTimeout(scrollEnd);
@@ -544,7 +658,6 @@ function initDrawerInfiniteLoop(){
     setMeta();
   }, { passive:true });
 
-  // autoplay (true loop)
   var timer = null;
   function startAuto(){
     if (timer || pinned) return;
@@ -555,7 +668,6 @@ function initDrawerInfiniteLoop(){
       var next = frames[i + 1];
       if (!next) next = frames[0];
       centerTo(next, "smooth");
-      // normalization happens on scrollEnd timer
     }, 5000);
   }
   function stopAuto(){
@@ -617,19 +729,18 @@ function initExhibitSheet(drawerApi) {
 
     drawGenerativeArt(canvas, title + "::sheet", accent);
 
+    lockScroll();
     sheet.classList.add("is-open");
     sheet.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
   }
 
   function close() {
     sheet.classList.remove("is-open");
     sheet.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
+    unlockScroll();
     if (drawerApi && drawerApi.resume) drawerApi.resume();
   }
 
-  // bind for ALL frames (including clones)
   qsa(".frame").forEach(function(frame){
     var btn = qs("[data-open]", frame);
     if (btn){
@@ -661,7 +772,6 @@ function initGenerativeThumbs(){
 
   drawAll();
   window.addEventListener("resize", function(){
-    // small debounce
     clearTimeout(initGenerativeThumbs._t);
     initGenerativeThumbs._t = setTimeout(drawAll, 120);
   }, { passive:true });

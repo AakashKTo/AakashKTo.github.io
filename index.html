@@ -11,6 +11,7 @@
 <body>
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
   <div class="grid-overlay" aria-hidden="true"></div>
+  <div class="grain-overlay" aria-hidden="true"></div>
 
   <header class="top-strip">
     <a class="brand" href="#home" aria-label="Go to top">
@@ -58,7 +59,7 @@
   </nav>
 
   <main>
-    <!-- HERO (minimal) -->
+    <!-- HERO (minimal, but more "finished" presentation) -->
     <section id="home" class="section hero" data-section>
       <div id="jellyfish" class="jellyfish" aria-hidden="true">
         <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -95,21 +96,23 @@
       </div>
 
       <div class="container hero__wrap">
-        <h1 class="hero__name">
-          Aakash <span class="accent accent--blue">Tomar</span>
-        </h1>
+        <div class="hero-panel card cut" data-accent="blue">
+          <h1 class="hero__name">
+            Aakash <span class="accent accent--blue">Tomar</span>
+          </h1>
 
-        <p class="hero__tagline">
-          Building reliable <span class="accent accent--coral">data systems</span> and
-          <span class="accent accent--blue">GenAI pipelines</span> —
-          performance, observability, clean automation.
-        </p>
+          <p class="hero__tagline">
+            Building reliable <span class="accent accent--coral">data systems</span> and
+            <span class="accent accent--blue">GenAI pipelines</span> —
+            performance, observability, clean automation.
+          </p>
 
-        <div class="hero__cta">
-          <button class="btn btn--primary" type="button" data-scrollto="#impact">
-            Enter studio <span aria-hidden="true">↳</span>
-          </button>
-          <a class="btn btn--ghost" href="#gallery">Exhibit drawer</a>
+          <div class="hero__cta">
+            <button class="btn btn--primary" type="button" data-scrollto="#impact">
+              Enter studio <span aria-hidden="true">↳</span>
+            </button>
+            <a class="btn btn--ghost" href="#gallery">Exhibit drawer</a>
+          </div>
         </div>
       </div>
     </section>
@@ -310,7 +313,7 @@
       </div>
     </section>
 
-    <!-- GALLERY (infinite loop drawer) -->
+    <!-- GALLERY -->
     <section id="gallery" class="section" data-section>
       <div class="container">
         <header class="section__head section__head--row">
@@ -327,87 +330,89 @@
           </div>
         </header>
 
-        <div class="drawer" id="drawer" aria-label="Projects drawer">
-          <article class="frame card cut"
-            data-title="Faster Diffusion"
-            data-kind="Class project"
-            data-desc="Optimized diffusion models for real-time, scalable image generation. Researched inference bottlenecks and deployment efficiency."
-            data-tags="Diffusion,PyTorch,Optimization"
-            data-repo="https://github.com/AakashKTo"
-            data-accent="blue"
-          >
-            <div class="frame__matte cut">
-              <canvas class="thumb" data-seed="Faster Diffusion" aria-label="Generative thumbnail"></canvas>
-              <div class="frame__corner mono">FD</div>
-            </div>
-            <div class="frame__info">
-              <div class="frame__top">
-                <h3 class="frame__title">Faster Diffusion</h3>
-                <span class="badge mono">CLASS</span>
+        <div class="drawer-shell">
+          <div class="drawer" id="drawer" aria-label="Projects drawer">
+            <article class="frame card cut"
+              data-title="Faster Diffusion"
+              data-kind="Class project"
+              data-desc="Optimized diffusion models for real-time, scalable image generation. Researched inference bottlenecks and deployment efficiency."
+              data-tags="Diffusion,PyTorch,Optimization"
+              data-repo="https://github.com/AakashKTo"
+              data-accent="blue"
+            >
+              <div class="frame__matte cut">
+                <canvas class="thumb" data-seed="Faster Diffusion" aria-label="Generative thumbnail"></canvas>
+                <div class="frame__corner mono">FD</div>
               </div>
-              <p class="frame__text">Optimized diffusion models for real-time, scalable image generation.</p>
-              <div class="chips">
-                <span class="chip">Diffusion</span><span class="chip">PyTorch</span><span class="chip">Optimization</span>
+              <div class="frame__info">
+                <div class="frame__top">
+                  <h3 class="frame__title">Faster Diffusion</h3>
+                  <span class="badge mono">CLASS</span>
+                </div>
+                <p class="frame__text">Optimized diffusion models for real-time, scalable image generation.</p>
+                <div class="chips">
+                  <span class="chip">Diffusion</span><span class="chip">PyTorch</span><span class="chip">Optimization</span>
+                </div>
+                <div class="frame__actions">
+                  <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
+                </div>
               </div>
-              <div class="frame__actions">
-                <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
-              </div>
-            </div>
-          </article>
+            </article>
 
-          <article class="frame card cut"
-            data-title="Text Sentiment Analysis"
-            data-kind="Personal project"
-            data-desc="Built a robust 3-class sentiment classifier for noisy Twitter datasets. Fine-tuned ALBERT with rigorous preprocessing and noise mitigation."
-            data-tags="NLP,Transformers,ALBERT,Hugging Face"
-            data-repo="https://github.com/AakashKTo"
-            data-accent="coral"
-          >
-            <div class="frame__matte cut">
-              <canvas class="thumb" data-seed="Text Sentiment Analysis" aria-label="Generative thumbnail"></canvas>
-              <div class="frame__corner mono">SA</div>
-            </div>
-            <div class="frame__info">
-              <div class="frame__top">
-                <h3 class="frame__title">Text Sentiment Analysis</h3>
-                <span class="badge mono">PERSONAL</span>
+            <article class="frame card cut"
+              data-title="Text Sentiment Analysis"
+              data-kind="Personal project"
+              data-desc="Built a robust 3-class sentiment classifier for noisy Twitter datasets. Fine-tuned ALBERT with rigorous preprocessing and noise mitigation."
+              data-tags="NLP,Transformers,ALBERT,Hugging Face"
+              data-repo="https://github.com/AakashKTo"
+              data-accent="coral"
+            >
+              <div class="frame__matte cut">
+                <canvas class="thumb" data-seed="Text Sentiment Analysis" aria-label="Generative thumbnail"></canvas>
+                <div class="frame__corner mono">SA</div>
               </div>
-              <p class="frame__text">3-class sentiment classifier for noisy, unstructured Twitter datasets.</p>
-              <div class="chips">
-                <span class="chip">NLP</span><span class="chip">Transformers</span><span class="chip">ALBERT</span>
+              <div class="frame__info">
+                <div class="frame__top">
+                  <h3 class="frame__title">Text Sentiment Analysis</h3>
+                  <span class="badge mono">PERSONAL</span>
+                </div>
+                <p class="frame__text">3-class sentiment classifier for noisy, unstructured Twitter datasets.</p>
+                <div class="chips">
+                  <span class="chip">NLP</span><span class="chip">Transformers</span><span class="chip">ALBERT</span>
+                </div>
+                <div class="frame__actions">
+                  <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
+                </div>
               </div>
-              <div class="frame__actions">
-                <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
-              </div>
-            </div>
-          </article>
+            </article>
 
-          <article class="frame card cut"
-            data-title="Slack Python Q&A Bot"
-            data-kind="Personal project"
-            data-desc="Built a conversational Slack agent for faster technical support. Event-driven workflow with Slack Bolt + NLP libraries to streamline retrieval and reduce resolution time."
-            data-tags="Slack Bolt,NLP,Automation,Event-driven"
-            data-repo="https://github.com/AakashKTo"
-            data-accent="green"
-          >
-            <div class="frame__matte cut">
-              <canvas class="thumb" data-seed="Slack Python Q&A Bot" aria-label="Generative thumbnail"></canvas>
-              <div class="frame__corner mono">QB</div>
-            </div>
-            <div class="frame__info">
-              <div class="frame__top">
-                <h3 class="frame__title">Slack Python Q&amp;A Bot</h3>
-                <span class="badge mono">PERSONAL</span>
+            <article class="frame card cut"
+              data-title="Slack Python Q&A Bot"
+              data-kind="Personal project"
+              data-desc="Built a conversational Slack agent for faster technical support. Event-driven workflow with Slack Bolt + NLP libraries to streamline retrieval and reduce resolution time."
+              data-tags="Slack Bolt,NLP,Automation,Event-driven"
+              data-repo="https://github.com/AakashKTo"
+              data-accent="green"
+            >
+              <div class="frame__matte cut">
+                <canvas class="thumb" data-seed="Slack Python Q&A Bot" aria-label="Generative thumbnail"></canvas>
+                <div class="frame__corner mono">QB</div>
               </div>
-              <p class="frame__text">Conversational agent to automate support and democratize Python knowledge.</p>
-              <div class="chips">
-                <span class="chip">Slack</span><span class="chip">NLP</span><span class="chip">Automation</span>
+              <div class="frame__info">
+                <div class="frame__top">
+                  <h3 class="frame__title">Slack Python Q&amp;A Bot</h3>
+                  <span class="badge mono">PERSONAL</span>
+                </div>
+                <p class="frame__text">Conversational agent to automate support and democratize Python knowledge.</p>
+                <div class="chips">
+                  <span class="chip">Slack</span><span class="chip">NLP</span><span class="chip">Automation</span>
+                </div>
+                <div class="frame__actions">
+                  <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
+                </div>
               </div>
-              <div class="frame__actions">
-                <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
-              </div>
-            </div>
-          </article>
+            </article>
+          </div>
         </div>
       </div>
     </section>
