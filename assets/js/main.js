@@ -18,13 +18,13 @@ window.addEventListener("load", () => {
   if (y) y.textContent = String(new Date().getFullYear());
 
   initSmoothScroll();
-  initScrollSpy();
+  initScrollSpyStable();     // FIXED: no more jumping
   initCardLight();
   initBlobBackground();
-  initJellyfishRoam();      // improved roaming
-  initToolboardWires();     // still works with new grid layout
-  initDrawer();
-  initExhibitSheet();
+  initJellyfishRoam();       // desktop full-page, mobile hero-only
+  initToolboardWires();      // tuned so wires don't wash text
+  const drawerApi = initDrawerAutoPin(); // auto every 5s + click pin + dblclick repo
+  initExhibitSheet(drawerApi);
   initGenerativeThumbs();
 });
 
@@ -51,25 +51,60 @@ function initSmoothScroll() {
   });
 }
 
-/* ===== Scroll spy (dock highlight) ===== */
-function initScrollSpy() {
+/* ===== Scroll spy (stable, non-jumpy) ===== */
+function initScrollSpyStable() {
   const navItems = qsa(".dock__item");
   const sections = qsa("[data-section]");
   if (!navItems.length || !sections.length) return;
 
-  const obs = new IntersectionObserver((entries) => {
-    let best = null;
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      if (!best || entry.intersectionRatio > best.intersectionRatio) best = entry;
-    }
-    if (!best) return;
+  const header = qs(".top-strip");
+  const headerH = () => (header?.getBoundingClientRect().height || 0);
 
-    const id = best.target.id;
+  let currentId = null;
+  let ticking = false;
+
+  function setActive(id) {
+    if (!id || id === currentId) return;
+    currentId = id;
     navItems.forEach((a) => a.classList.toggle("is-active", a.getAttribute("data-nav") === id));
-  }, { threshold: [0.18, 0.28, 0.38, 0.48, 0.58] });
+  }
 
-  sections.forEach((s) => obs.observe(s));
+  function compute() {
+    ticking = false;
+
+    const marker = headerH() + window.innerHeight * 0.30; // stable marker line
+    let best = null;
+    let bestDist = Infinity;
+
+    for (const s of sections) {
+      const r = s.getBoundingClientRect();
+
+      // Prefer section that actually contains marker
+      if (r.top <= marker && r.bottom >= marker) {
+        best = s;
+        break;
+      }
+
+      // Otherwise choose nearest top to marker
+      const dist = Math.abs(r.top - marker);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = s;
+      }
+    }
+
+    setActive(best?.id || sections[0].id);
+  }
+
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(compute);
+  }
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", compute, { passive: true });
+  compute();
 }
 
 /* ===== Card “studio light” ===== */
@@ -85,7 +120,7 @@ function initCardLight() {
   });
 }
 
-/* ===== Ambient blob background canvas ===== */
+/* ===== Ambient blob background ===== */
 function initBlobBackground() {
   const canvas = qs("#bg-canvas");
   if (!canvas) return;
@@ -135,7 +170,6 @@ function initBlobBackground() {
   });
 
   let last = performance.now();
-
   function tick(now) {
     const dt = Math.min(32, now - last);
     last = now;
@@ -170,110 +204,110 @@ function initBlobBackground() {
   requestAnimationFrame(tick);
 }
 
-/* ===== Jellyfish roaming (target-seeking drift + avoids UI zones) ===== */
+/* ===== Jellyfish roaming
+   Desktop: entire viewport (fixed)
+   Mobile: hero-only (absolute inside hero) ===== */
 function initJellyfishRoam() {
   const jf = qs("#jellyfish");
-  if (!jf) return;
+  const hero = qs("#home");
+  if (!jf || !hero) return;
 
   const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   if (prefersReduced) return;
 
-  const dock = qs(".studio-dock");
-  const header = qs(".top-strip");
+  const mqMobile = window.matchMedia("(max-width: 768px)");
 
   let bounds = { w: window.innerWidth, h: window.innerHeight };
+  let s = { w: 160, h: 160 };
 
   function size() {
     const r = jf.getBoundingClientRect();
-    return { w: r.width || 160, h: r.height || 160 };
+    s = { w: r.width || 160, h: r.height || 160 };
   }
 
-  function safeBox() {
-    const d = dock ? dock.getBoundingClientRect() : { right: 0, left: 0, top: 0, bottom: 0 };
-    const hd = header ? header.getBoundingClientRect() : { bottom: 0 };
-
-    const safeLeft = Math.max(12, Math.ceil(d.right + 18));  // keep away from dock
-    const safeTop  = Math.max(12, Math.ceil(hd.bottom + 12)); // keep away from header
-    const safeRight = 12;
-    const safeBottom = 12;
-
-    return { safeLeft, safeTop, safeRight, safeBottom };
-  }
-
-  let s = size();
-  let safe = safeBox();
-
-  function rand(min, max) {
-    return min + Math.random() * (max - min);
-  }
-
-  function clampPosX(x) {
-    const maxX = bounds.w - s.w - safe.safeRight;
-    return clamp(x, safe.safeLeft, Math.max(safe.safeLeft, maxX));
-  }
-  function clampPosY(y) {
-    const maxY = bounds.h - s.h - safe.safeBottom;
-    return clamp(y, safe.safeTop, Math.max(safe.safeTop, maxY));
-  }
-
-  let x = clampPosX(rand(safe.safeLeft, bounds.w - s.w - safe.safeRight));
-  let y = clampPosY(rand(safe.safeTop, bounds.h - s.h - safe.safeBottom));
-
-  let vx = 0, vy = 0;
-  let tx = x, ty = y;
+  // target-seeking drift state
+  let x = 0, y = 0, vx = 0, vy = 0;
+  let tx = 0, ty = 0;
   let nextTargetAt = 0;
 
+  function mode() {
+    return mqMobile.matches ? "hero" : "viewport";
+  }
+
+  function getArea() {
+    if (mode() === "hero") {
+      // confine to hero visible space on mobile
+      const w = Math.min(hero.clientWidth || window.innerWidth, window.innerWidth);
+      const h = Math.min(hero.clientHeight || window.innerHeight, window.innerHeight);
+      return { w, h, pad: 10 };
+    }
+    // desktop: whole viewport
+    return { w: window.innerWidth, h: window.innerHeight, pad: 10 };
+  }
+
+  function clampX(nx, area) {
+    const maxX = area.w - s.w - area.pad;
+    return clamp(nx, area.pad, Math.max(area.pad, maxX));
+  }
+  function clampY(ny, area) {
+    const maxY = area.h - s.h - area.pad;
+    return clamp(ny, area.pad, Math.max(area.pad, maxY));
+  }
+
+  function rand(min, max) { return min + Math.random() * (max - min); }
+
   function pickTarget(now) {
-    safe = safeBox(); // refresh occasionally to follow layout
-    s = size();
+    const area = getArea();
+    tx = rand(area.pad, Math.max(area.pad, area.w - s.w - area.pad));
+    ty = rand(area.pad, Math.max(area.pad, area.h - s.h - area.pad));
+    nextTargetAt = now + 2600 + Math.random() * 3200;
+  }
 
-    const maxX = bounds.w - s.w - safe.safeRight;
-    const maxY = bounds.h - s.h - safe.safeBottom;
-
-    tx = rand(safe.safeLeft, Math.max(safe.safeLeft, maxX));
-    ty = rand(safe.safeTop, Math.max(safe.safeTop, maxY));
-
-    // next target in 3-6 seconds
-    nextTargetAt = now + 3000 + Math.random() * 3000;
+  function reset() {
+    size();
+    const area = getArea();
+    x = clampX(rand(area.pad, area.w - s.w - area.pad), area);
+    y = clampY(rand(area.pad, area.h - s.h - area.pad), area);
+    vx = 0; vy = 0;
+    pickTarget(performance.now());
   }
 
   function onResize() {
     bounds.w = window.innerWidth;
     bounds.h = window.innerHeight;
-    safe = safeBox();
-    s = size();
-    x = clampPosX(x);
-    y = clampPosY(y);
+    size();
   }
+
   window.addEventListener("resize", onResize, { passive: true });
+  mqMobile.addEventListener?.("change", reset);
+
+  reset();
 
   let last = performance.now();
-  pickTarget(last);
-
   function tick(now) {
     const dt = Math.min(34, now - last);
     last = now;
 
     if (now >= nextTargetAt) pickTarget(now);
 
-    // accel towards target (slow, floaty)
+    const area = getArea();
+
+    // floaty accel towards target
     const ax = (tx - x) * 0.00035;
     const ay = (ty - y) * 0.00035;
 
-    // damping
     vx = (vx + ax * dt) * 0.985;
     vy = (vy + ay * dt) * 0.985;
 
-    // tiny noise so it feels organic
-    vx += (Math.random() - 0.5) * 0.0022 * dt;
-    vy += (Math.random() - 0.5) * 0.0022 * dt;
+    // organic noise
+    vx += (Math.random() - 0.5) * 0.0020 * dt;
+    vy += (Math.random() - 0.5) * 0.0020 * dt;
 
     x += vx * dt;
     y += vy * dt;
 
-    // clamp softly (bounce a bit)
-    const x2 = clampPosX(x);
-    const y2 = clampPosY(y);
+    const x2 = clampX(x, area);
+    const y2 = clampY(y, area);
     if (x2 !== x) vx *= -0.55;
     if (y2 !== y) vy *= -0.55;
     x = x2; y = y2;
@@ -288,7 +322,7 @@ function initJellyfishRoam() {
   requestAnimationFrame(tick);
 }
 
-/* ===== Toolboard wires (dynamic SVG linking nodes) ===== */
+/* ===== Toolboard wires (behind cards; tuned so it doesn't wash text) ===== */
 function initToolboardWires() {
   const box = qs("#toolboardBox");
   const svg = qs("#toolboardWires");
@@ -303,21 +337,14 @@ function initToolboardWires() {
     ["data", "cloud"],
     ["cloud", "genai"],
     ["genai", "core"],
-    ["backend", "core"],
   ];
 
   function centerOf(el) {
     const r = el.getBoundingClientRect();
     const br = box.getBoundingClientRect();
-    return {
-      x: (r.left - br.left) + r.width / 2,
-      y: (r.top - br.top) + r.height / 2
-    };
+    return { x: (r.left - br.left) + r.width / 2, y: (r.top - br.top) + r.height / 2 };
   }
-
-  function findNode(name) {
-    return nodes.find(n => n.getAttribute("data-node") === name);
-  }
+  function findNode(name) { return nodes.find(n => n.getAttribute("data-node") === name); }
 
   function draw() {
     const br = box.getBoundingClientRect();
@@ -336,36 +363,48 @@ function initToolboardWires() {
 
       const midX = (A.x + B.x) / 2;
       const midY = (A.y + B.y) / 2;
-      const bend = 26;
+      const bend = 24;
+
       const cx = midX + (Math.sin((A.x + B.x) * 0.01) * bend);
       const cy = midY + (Math.cos((A.y + B.y) * 0.01) * bend);
 
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", `M ${A.x} ${A.y} Q ${cx} ${cy} ${B.x} ${B.y}`);
-      path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "rgba(245,245,245,0.14)");
-      path.setAttribute("stroke-width", "1.25");
-      path.setAttribute("stroke-dasharray", "4 10");
-      path.setAttribute("opacity", "0.8");
-      svg.appendChild(path);
-
+      // glow (subtle)
       const glow = document.createElementNS("http://www.w3.org/2000/svg", "path");
       glow.setAttribute("d", `M ${A.x} ${A.y} Q ${cx} ${cy} ${B.x} ${B.y}`);
       glow.setAttribute("fill", "none");
-      glow.setAttribute("stroke", "rgba(77,150,255,0.10)");
-      glow.setAttribute("stroke-width", "6");
-      glow.setAttribute("opacity", "0.55");
+      glow.setAttribute("stroke", "rgba(77,150,255,0.08)");
+      glow.setAttribute("stroke-width", "4");
+      glow.setAttribute("opacity", "0.7");
+      glow.setAttribute("stroke-linecap", "round");
       svg.appendChild(glow);
-    }
 
-    for (const n of nodes) {
-      const c = centerOf(n);
-      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      dot.setAttribute("cx", `${c.x}`);
-      dot.setAttribute("cy", `${c.y}`);
-      dot.setAttribute("r", "2.6");
-      dot.setAttribute("fill", "rgba(245,245,245,0.22)");
-      svg.appendChild(dot);
+      // dashed wire
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", `M ${A.x} ${A.y} Q ${cx} ${cy} ${B.x} ${B.y}`);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "rgba(245,245,245,0.11)");
+      path.setAttribute("stroke-width", "1.2");
+      path.setAttribute("stroke-dasharray", "3 11");
+      path.setAttribute("opacity", "0.95");
+      path.setAttribute("stroke-linecap", "round");
+      svg.appendChild(path);
+
+      // endpoints
+      for (const P of [A, B]) {
+        const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        ring.setAttribute("cx", `${P.x}`);
+        ring.setAttribute("cy", `${P.y}`);
+        ring.setAttribute("r", "4.2");
+        ring.setAttribute("fill", "rgba(77,150,255,0.10)");
+        svg.appendChild(ring);
+
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("cx", `${P.x}`);
+        dot.setAttribute("cy", `${P.y}`);
+        dot.setAttribute("r", "2.2");
+        dot.setAttribute("fill", "rgba(245,245,245,0.24)");
+        svg.appendChild(dot);
+      }
     }
   }
 
@@ -375,14 +414,20 @@ function initToolboardWires() {
   draw();
 }
 
-/* ===== Drawer controls + meta ===== */
-function initDrawer() {
+/* ===== Drawer: auto-advance every 5s, click pins, dblclick opens repo ===== */
+function initDrawerAutoPin() {
   const drawer = qs("#drawer");
   const meta = qs("#drawerMeta");
-  if (!drawer || !meta) return;
+  if (!drawer || !meta) return null;
 
   const frames = qsa(".frame", drawer);
   const n = frames.length || 1;
+
+  const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+  let pinned = false;
+  let pinnedIndex = 0;
+  let timer = null;
 
   function nearestIndex() {
     const dr = drawer.getBoundingClientRect();
@@ -397,39 +442,129 @@ function initDrawer() {
     return best.idx;
   }
 
-  function updateMeta() {
-    const i = nearestIndex();
-    meta.textContent = `PIECE ${String(i + 1).padStart(2, "0")} OF ${String(n).padStart(2, "0")} • SCROLL / DRAG • TAP TO OPEN`;
+  function setPinnedUI(idx) {
+    frames.forEach((f, i) => f.classList.toggle("is-pinned", i === idx));
   }
 
+  function goTo(idx, behavior = "smooth") {
+    const el = frames[idx];
+    if (!el) return;
+    el.scrollIntoView({ behavior, block: "nearest", inline: "center" });
+  }
+
+  function updateMeta() {
+    if (pinned) {
+      meta.textContent = `PINNED • PIECE ${String(pinnedIndex + 1).padStart(2,"0")} OF ${String(n).padStart(2,"0")} • DOUBLE‑CLICK FOR REPO`;
+    } else {
+      const i = nearestIndex();
+      meta.textContent = `AUTO • PIECE ${String(i + 1).padStart(2,"0")} OF ${String(n).padStart(2,"0")} • MOVES EVERY 5s • CLICK TO PIN • DOUBLE‑CLICK FOR REPO`;
+    }
+  }
+
+  function startAuto() {
+    if (prefersReduced) return;
+    if (timer || pinned) return;
+    timer = window.setInterval(() => {
+      if (pinned) return;
+      const i = nearestIndex();
+      const next = (i + 1) % n;
+      goTo(next, "smooth");
+    }, 5000);
+  }
+
+  function stopAuto() {
+    if (!timer) return;
+    window.clearInterval(timer);
+    timer = null;
+  }
+
+  function pinTo(idx) {
+    pinned = true;
+    pinnedIndex = idx;
+    stopAuto();
+    setPinnedUI(idx);
+    goTo(idx, "smooth");
+    updateMeta();
+  }
+
+  function unpin() {
+    pinned = false;
+    frames.forEach(f => f.classList.remove("is-pinned"));
+    updateMeta();
+    startAuto();
+  }
+
+  // click to pin + center
+  frames.forEach((frame, idx) => {
+    frame.addEventListener("click", (e) => {
+      // ignore clicks on "Open exhibit" button so it doesn't pin if you don't want
+      if (e.target.closest("button, a")) return;
+      pinTo(idx);
+    });
+
+    frame.addEventListener("dblclick", () => {
+      const repo = frame.getAttribute("data-repo");
+      if (repo) window.open(repo, "_blank", "noopener");
+    });
+  });
+
+  // arrow buttons still work; they also keep auto unless pinned
+  qsa("[data-drawer]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const dir = btn.getAttribute("data-drawer");
+      const i = pinned ? pinnedIndex : nearestIndex();
+      const next = dir === "next" ? (i + 1) % n : (i - 1 + n) % n;
+      goTo(next, "smooth");
+      if (pinned) {
+        pinnedIndex = next;
+        setPinnedUI(next);
+      }
+      updateMeta();
+    });
+  });
+
+  // keyboard
+  drawer.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+
+    const i = pinned ? pinnedIndex : nearestIndex();
+    const next = e.key === "ArrowRight" ? (i + 1) % n : (i - 1 + n) % n;
+    goTo(next, "smooth");
+
+    if (pinned) {
+      pinnedIndex = next;
+      setPinnedUI(next);
+    }
+    updateMeta();
+  });
+
+  // update meta on scroll
   let raf = null;
   drawer.addEventListener("scroll", () => {
+    if (pinned) return;
     if (raf) cancelAnimationFrame(raf);
     raf = requestAnimationFrame(updateMeta);
   }, { passive: true });
 
-  qsa("[data-drawer]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const dir = btn.getAttribute("data-drawer");
-      const i = nearestIndex();
-      const next = dir === "next" ? Math.min(n - 1, i + 1) : Math.max(0, i - 1);
-      frames[next]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-    });
-  });
+  // optional: any interaction pauses auto a bit, but still continues unless pinned
+  drawer.addEventListener("pointerdown", () => { if (!pinned) stopAuto(); }, { passive:true });
+  drawer.addEventListener("pointerup", () => { if (!pinned) startAuto(); }, { passive:true });
 
-  drawer.addEventListener("keydown", (e) => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    e.preventDefault();
-    const i = nearestIndex();
-    const next = e.key === "ArrowRight" ? Math.min(n - 1, i + 1) : Math.max(0, i - 1);
-    frames[next]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-  });
-
+  // Start
   updateMeta();
+  startAuto();
+
+  return {
+    pause: stopAuto,
+    resume: () => { if (!pinned) startAuto(); },
+    isPinned: () => pinned,
+    unpin
+  };
 }
 
-/* ===== Exhibit sheet open/close ===== */
-function initExhibitSheet() {
+/* ===== Exhibit sheet ===== */
+function initExhibitSheet(drawerApi) {
   const sheet = qs("#sheet");
   const overlay = qs(".sheet__overlay", sheet || undefined);
   const closeBtns = qsa("[data-sheet='close']", sheet || undefined);
@@ -444,6 +579,8 @@ function initExhibitSheet() {
   if (!sheet || !overlay || !titleEl || !descEl || !tagsEl || !kindEl || !repoEl || !canvas) return;
 
   function openFromFrame(frame) {
+    drawerApi?.pause?.();
+
     const title = frame.getAttribute("data-title") || "Project";
     const kind = frame.getAttribute("data-kind") || "Project";
     const desc = frame.getAttribute("data-desc") || "";
@@ -475,15 +612,15 @@ function initExhibitSheet() {
     sheet.classList.remove("is-open");
     sheet.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    drawerApi?.resume?.();
   }
 
+  // Only open via "Open exhibit" button (so single click can pin)
   qsa(".frame").forEach((frame) => {
-    qs("[data-open]", frame)?.addEventListener("click", () => openFromFrame(frame));
-    qs("[data-repo]", frame)?.addEventListener("click", () => {
-      const repo = frame.getAttribute("data-repo");
-      if (repo) window.open(repo, "_blank", "noopener");
+    qs("[data-open]", frame)?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openFromFrame(frame);
     });
-    qs(".frame__matte", frame)?.addEventListener("click", () => openFromFrame(frame));
   });
 
   overlay.addEventListener("click", close);
@@ -498,7 +635,7 @@ function initExhibitSheet() {
   });
 }
 
-/* ===== Generative thumbnails for gallery cards ===== */
+/* ===== Generative thumbnails ===== */
 function initGenerativeThumbs() {
   const thumbs = qsa("canvas.thumb");
   if (!thumbs.length) return;

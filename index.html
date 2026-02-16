@@ -13,47 +13,6 @@
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
   <div class="grid-overlay" aria-hidden="true"></div>
 
-  <!-- Roaming jellyfish -->
-  <div id="jellyfish" class="jellyfish" aria-hidden="true">
-    <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <radialGradient id="cap" cx="50%" cy="45%" r="60%">
-          <stop offset="0%" stop-color="rgba(245,245,245,0.65)"/>
-          <stop offset="55%" stop-color="rgba(77,150,255,0.35)"/>
-          <stop offset="100%" stop-color="rgba(255,107,107,0.18)"/>
-        </radialGradient>
-        <linearGradient id="tent" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="rgba(77,150,255,0.55)"/>
-          <stop offset="50%" stop-color="rgba(107,203,119,0.45)"/>
-          <stop offset="100%" stop-color="rgba(255,107,107,0.45)"/>
-        </linearGradient>
-      </defs>
-
-      <path d="M30 110C30 65 66 30 110 30C154 30 190 65 190 110C190 118 184 124 176 124H44C36 124 30 118 30 110Z"
-            fill="url(#cap)" stroke="rgba(245,245,245,0.22)" stroke-width="2"/>
-
-      <path d="M55 105C60 70 83 50 110 50C137 50 160 70 165 105"
-            stroke="rgba(245,245,245,0.12)" stroke-width="2" />
-
-      <path d="M52 124C60 140 78 148 110 148C142 148 160 140 168 124"
-            stroke="rgba(245,245,245,0.18)" stroke-width="2" />
-
-      <g class="jf-tentacles" stroke="url(#tent)" stroke-width="2.6" stroke-linecap="round" opacity="0.9">
-        <path d="M70 148C62 170 68 188 56 204" />
-        <path d="M88 148C78 170 86 190 76 205" />
-        <path d="M106 148C98 172 110 190 100 206" />
-        <path d="M124 148C116 172 130 190 122 206" />
-        <path d="M142 148C134 170 150 190 146 205" />
-      </g>
-
-      <g opacity="0.35">
-        <circle cx="86" cy="84" r="2.2" fill="rgba(245,245,245,0.9)"/>
-        <circle cx="132" cy="74" r="1.7" fill="rgba(245,245,245,0.9)"/>
-        <circle cx="110" cy="92" r="1.4" fill="rgba(245,245,245,0.9)"/>
-      </g>
-    </svg>
-  </div>
-
   <!-- Top strip -->
   <header class="top-strip">
     <a class="brand" href="#home" aria-label="Go to top">
@@ -69,7 +28,7 @@
     </div>
   </header>
 
-  <!-- Studio Dock (slim) -->
+  <!-- Studio Dock -->
   <nav class="studio-dock" aria-label="Studio navigation">
     <a class="dock__item is-active" href="#home" data-nav="home" aria-label="Home">
       <span class="dock__dot" aria-hidden="true"></span>
@@ -104,24 +63,70 @@
   <main>
     <!-- HERO -->
     <section id="home" class="section hero" data-section>
+      <!-- Jellyfish now lives INSIDE hero so mobile can keep it hero-only -->
+      <div id="jellyfish" class="jellyfish" aria-hidden="true">
+        <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="cap" cx="50%" cy="45%" r="60%">
+              <stop offset="0%" stop-color="rgba(245,245,245,0.65)"/>
+              <stop offset="55%" stop-color="rgba(77,150,255,0.35)"/>
+              <stop offset="100%" stop-color="rgba(255,107,107,0.18)"/>
+            </radialGradient>
+            <linearGradient id="tent" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="rgba(77,150,255,0.55)"/>
+              <stop offset="50%" stop-color="rgba(107,203,119,0.45)"/>
+              <stop offset="100%" stop-color="rgba(255,107,107,0.45)"/>
+            </linearGradient>
+          </defs>
+
+          <path d="M30 110C30 65 66 30 110 30C154 30 190 65 190 110C190 118 184 124 176 124H44C36 124 30 118 30 110Z"
+                fill="url(#cap)" stroke="rgba(245,245,245,0.22)" stroke-width="2"/>
+
+          <path d="M55 105C60 70 83 50 110 50C137 50 160 70 165 105"
+                stroke="rgba(245,245,245,0.12)" stroke-width="2" />
+
+          <path d="M52 124C60 140 78 148 110 148C142 148 160 140 168 124"
+                stroke="rgba(245,245,245,0.18)" stroke-width="2" />
+
+          <g class="jf-tentacles" stroke="url(#tent)" stroke-width="2.6" stroke-linecap="round" opacity="0.9">
+            <path d="M70 148C62 170 68 188 56 204" />
+            <path d="M88 148C78 170 86 190 76 205" />
+            <path d="M106 148C98 172 110 190 100 206" />
+            <path d="M124 148C116 172 130 190 122 206" />
+            <path d="M142 148C134 170 150 190 146 205" />
+          </g>
+
+          <g opacity="0.35">
+            <circle cx="86" cy="84" r="2.2" fill="rgba(245,245,245,0.9)"/>
+            <circle cx="132" cy="74" r="1.7" fill="rgba(245,245,245,0.9)"/>
+            <circle cx="110" cy="92" r="1.4" fill="rgba(245,245,245,0.9)"/>
+          </g>
+        </svg>
+      </div>
+
       <div class="container hero__grid">
-        <div class="hero__copy">
-          <p class="kicker mono">GENERATIVE AI • DATA SCIENCE • BACKEND ENGINEERING</p>
+        <!-- HERO plaque (new design) -->
+        <div class="hero__panel card cut" data-accent="blue">
+          <div class="hero__panelTop">
+            <p class="hero__eyebrow mono">GENERATIVE AI • DATA SCIENCE • BACKEND ENGINEERING</p>
+            <span class="hero__stamp mono">STUDIO / 14</span>
+          </div>
+
           <h1 class="hero__title">
             Aakash <span class="accent accent--blue">Tomar</span>
           </h1>
 
-          <p class="hero__lede">
-            Building reliable <span class="accent accent--coral">data systems</span> and
+          <p class="hero__tagline">
+            Building <span class="accent accent--coral">data systems</span> and
             <span class="accent accent--blue">GenAI pipelines</span> —
             performance, observability, clean automation.
           </p>
 
           <div class="hero__cta">
-            <button class="btn btn--primary" type="button" data-scrollto="#impact">
+            <button class="btn btn--enter btn--primary" type="button" data-scrollto="#impact">
               Enter studio <span aria-hidden="true">↳</span>
             </button>
-            <a class="btn btn--ghost" href="#gallery">View exhibit drawer</a>
+            <a class="btn btn--ghost" href="#gallery">Exhibit drawer</a>
           </div>
 
           <div class="hero__links mono">
@@ -133,17 +138,29 @@
           </div>
         </div>
 
+        <!-- Studio notes (new formatting) -->
         <aside class="card cut hero__note" data-accent="green">
           <div class="note__top">
             <span class="note__label mono">STUDIO NOTES</span>
-            <span class="note__mark mono">v14</span>
+            <span class="note__mark mono">LIVE</span>
           </div>
 
-          <ul class="note__list">
-            <li><span class="mono">MS Data Science (ASU)</span><span class="muted">GPA 3.78 • May 2026</span></li>
-            <li><span class="mono">2 yrs backend</span><span class="muted">Python + SQL • Django</span></li>
-            <li><span class="mono">Focus</span><span class="muted">realtime + reliability + GenAI</span></li>
-          </ul>
+          <div class="note__rows">
+            <div class="note__row">
+              <div class="note__k mono">MS (ASU)</div>
+              <div class="note__v">GPA 3.78 • May 2026</div>
+            </div>
+            <div class="note__row">
+              <div class="note__k mono">Experience</div>
+              <div class="note__v">2 yrs • Python + SQL • Django</div>
+            </div>
+            <div class="note__row">
+              <div class="note__k mono">Focus</div>
+              <div class="note__v">realtime • reliability • GenAI</div>
+            </div>
+          </div>
+
+          <div class="note__divider"></div>
 
           <div class="chips">
             <span class="chip">Python</span>
@@ -204,7 +221,7 @@
       </div>
     </section>
 
-    <!-- TOOLBOARD (de-clustered: grid constellation, no overlap) -->
+    <!-- TOOLBOARD -->
     <section id="toolboard" class="section" data-section>
       <div class="container">
         <header class="section__head">
@@ -278,7 +295,7 @@
       </div>
     </section>
 
-    <!-- STUDIES (stacked vertically) -->
+    <!-- STUDIES -->
     <section id="studies" class="section" data-section>
       <div class="container">
         <header class="section__head">
@@ -358,7 +375,7 @@
         <header class="section__head section__head--row">
           <div>
             <h2 class="section__title">Exhibit Drawer</h2>
-            <p class="section__sub mono" id="drawerMeta">PIECE 01 OF 03 • SCROLL / DRAG • TAP TO OPEN</p>
+            <p class="section__sub mono" id="drawerMeta">AUTO • MOVES EVERY 5s • CLICK TO PIN • DOUBLE‑CLICK FOR REPO</p>
           </div>
 
           <div class="drawer-controls" aria-label="Drawer controls">
@@ -387,9 +404,7 @@
                 <span class="badge mono">CLASS</span>
               </div>
 
-              <p class="frame__text">
-                Optimized diffusion models for real-time, scalable image generation.
-              </p>
+              <p class="frame__text">Optimized diffusion models for real-time, scalable image generation.</p>
 
               <div class="chips">
                 <span class="chip">Diffusion</span>
@@ -400,9 +415,6 @@
               <div class="frame__actions">
                 <button class="btn btn--tiny btn--primary" type="button" data-open>
                   Open exhibit
-                </button>
-                <button class="btn btn--tiny btn--ghost" type="button" data-repo>
-                  Repo
                 </button>
               </div>
             </div>
@@ -427,9 +439,7 @@
                 <span class="badge mono">PERSONAL</span>
               </div>
 
-              <p class="frame__text">
-                3-class sentiment classifier for noisy, unstructured Twitter datasets.
-              </p>
+              <p class="frame__text">3-class sentiment classifier for noisy, unstructured Twitter datasets.</p>
 
               <div class="chips">
                 <span class="chip">NLP</span>
@@ -440,9 +450,6 @@
               <div class="frame__actions">
                 <button class="btn btn--tiny btn--primary" type="button" data-open>
                   Open exhibit
-                </button>
-                <button class="btn btn--tiny btn--ghost" type="button" data-repo>
-                  Repo
                 </button>
               </div>
             </div>
@@ -467,9 +474,7 @@
                 <span class="badge mono">PERSONAL</span>
               </div>
 
-              <p class="frame__text">
-                Conversational agent to automate support and democratize Python knowledge.
-              </p>
+              <p class="frame__text">Conversational agent to automate support and democratize Python knowledge.</p>
 
               <div class="chips">
                 <span class="chip">Slack</span>
@@ -481,9 +486,6 @@
                 <button class="btn btn--tiny btn--primary" type="button" data-open>
                   Open exhibit
                 </button>
-                <button class="btn btn--tiny btn--ghost" type="button" data-repo>
-                  Repo
-                </button>
               </div>
             </div>
           </article>
@@ -491,7 +493,7 @@
       </div>
     </section>
 
-    <!-- CONTACT (icons-only, no phone number) -->
+    <!-- CONTACT (icons-only) -->
     <section id="contact" class="section" data-section>
       <div class="container">
         <header class="section__head">
@@ -540,10 +542,10 @@
     </section>
   </main>
 
+  <!-- Footer (theme line removed) -->
   <footer class="footer">
     <div class="container footer__grid">
       <div class="mono muted">© <span id="year"></span> Aakash Tomar</div>
-      <div class="mono muted">Theme: Generative Art Studio • Palette: coral / blue / green</div>
     </div>
   </footer>
 
@@ -572,7 +574,7 @@
             <a class="btn btn--ghost" href="#contact" data-sheet="close">Contact</a>
           </div>
 
-          <p class="mono muted sheet__hint">Tip: hit <b>ESC</b> to close • drawer supports <b>←/→</b> keys</p>
+          <p class="mono muted sheet__hint">Tip: hit <b>ESC</b> to close • drawer pins on click</p>
         </div>
       </div>
     </div>
