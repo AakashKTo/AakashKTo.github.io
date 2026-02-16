@@ -61,9 +61,9 @@
   </nav>
 
   <main>
-    <!-- HERO -->
+    <!-- HERO (minimal: name + tagline only) -->
     <section id="home" class="section hero" data-section>
-      <!-- Jellyfish now lives INSIDE hero so mobile can keep it hero-only -->
+      <!-- Jellyfish -->
       <div id="jellyfish" class="jellyfish" aria-hidden="true">
         <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -95,81 +95,48 @@
             <path d="M124 148C116 172 130 190 122 206" />
             <path d="M142 148C134 170 150 190 146 205" />
           </g>
-
-          <g opacity="0.35">
-            <circle cx="86" cy="84" r="2.2" fill="rgba(245,245,245,0.9)"/>
-            <circle cx="132" cy="74" r="1.7" fill="rgba(245,245,245,0.9)"/>
-            <circle cx="110" cy="92" r="1.4" fill="rgba(245,245,245,0.9)"/>
-          </g>
         </svg>
       </div>
 
-      <div class="container hero__grid">
-        <!-- HERO plaque (new design) -->
-        <div class="hero__panel card cut" data-accent="blue">
-          <div class="hero__panelTop">
-            <p class="hero__eyebrow mono">GENERATIVE AI • DATA SCIENCE • BACKEND ENGINEERING</p>
-            <span class="hero__stamp mono">STUDIO / 14</span>
-          </div>
+      <div class="container hero__wrap">
+        <h1 class="hero__name">
+          Aakash <span class="accent accent--blue">Tomar</span>
+        </h1>
 
-          <h1 class="hero__title">
-            Aakash <span class="accent accent--blue">Tomar</span>
-          </h1>
+        <p class="hero__tagline">
+          Building reliable <span class="accent accent--coral">data systems</span> and
+          <span class="accent accent--blue">GenAI pipelines</span> —
+          performance, observability, clean automation.
+        </p>
 
-          <p class="hero__tagline">
-            Building <span class="accent accent--coral">data systems</span> and
-            <span class="accent accent--blue">GenAI pipelines</span> —
-            performance, observability, clean automation.
-          </p>
-
-          <div class="hero__cta">
-            <button class="btn btn--enter btn--primary" type="button" data-scrollto="#impact">
-              Enter studio <span aria-hidden="true">↳</span>
-            </button>
-            <a class="btn btn--ghost" href="#gallery">Exhibit drawer</a>
-          </div>
-
-          <div class="hero__links mono">
-            <a href="mailto:aktomar@asu.edu">aktomar@asu.edu</a>
-            <span class="sep" aria-hidden="true">•</span>
-            <a href="https://github.com/AakashKTo" target="_blank" rel="noopener">GitHub</a>
-            <span class="sep" aria-hidden="true">•</span>
-            <a href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener">LinkedIn</a>
-          </div>
+        <div class="hero__cta">
+          <button class="btn btn--primary" type="button" data-scrollto="#impact">
+            Enter studio <span aria-hidden="true">↳</span>
+          </button>
+          <a class="btn btn--ghost" href="#gallery">Exhibit drawer</a>
         </div>
 
-        <!-- Studio notes (new formatting) -->
-        <aside class="card cut hero__note" data-accent="green">
-          <div class="note__top">
-            <span class="note__label mono">STUDIO NOTES</span>
-            <span class="note__mark mono">LIVE</span>
-          </div>
-
-          <div class="note__rows">
-            <div class="note__row">
-              <div class="note__k mono">MS (ASU)</div>
-              <div class="note__v">GPA 3.78 • May 2026</div>
+        <!-- Notes exist but hidden by default -->
+        <details class="hero-notes">
+          <summary class="hero-notes__summary mono">Studio notes</summary>
+          <div class="hero-notes__panel card cut" data-accent="green">
+            <div class="hero-notes__rows">
+              <div class="hero-notes__row"><span class="mono muted">MS (ASU)</span><span>GPA 3.78 • May 2026</span></div>
+              <div class="hero-notes__row"><span class="mono muted">Experience</span><span>2 yrs • Python + SQL • Django</span></div>
+              <div class="hero-notes__row"><span class="mono muted">Focus</span><span>realtime • reliability • GenAI</span></div>
             </div>
-            <div class="note__row">
-              <div class="note__k mono">Experience</div>
-              <div class="note__v">2 yrs • Python + SQL • Django</div>
-            </div>
-            <div class="note__row">
-              <div class="note__k mono">Focus</div>
-              <div class="note__v">realtime • reliability • GenAI</div>
+
+            <div class="hero-notes__divider"></div>
+
+            <div class="chips">
+              <span class="chip">Python</span>
+              <span class="chip">SQL</span>
+              <span class="chip">WebSockets</span>
+              <span class="chip">RabbitMQ</span>
+              <span class="chip">AWS</span>
             </div>
           </div>
-
-          <div class="note__divider"></div>
-
-          <div class="chips">
-            <span class="chip">Python</span>
-            <span class="chip">SQL</span>
-            <span class="chip">WebSockets</span>
-            <span class="chip">RabbitMQ</span>
-            <span class="chip">AWS</span>
-          </div>
-        </aside>
+        </details>
       </div>
     </section>
 
@@ -350,7 +317,7 @@
                 <li>Engineered Python/Django backend services + SQL schemas for a blockchain trading platform.</li>
                 <li>Optimized queries + database design, reducing load by <b>30%</b> and improving API responsiveness.</li>
                 <li>Built realtime group chat via WebSockets; increased usage by <b>25%</b>.</li>
-                <li>Automated smart‑contract deployments + RabbitMQ notification pipelines via CRON; near‑<b>100%</b> delivery.</li>
+                <li>Automated smart‑contract deployments + RabbitMQ pipelines via CRON; near‑<b>100%</b> delivery.</li>
                 <li>Mentored 2 junior devs; accelerated delivery by <b>20%</b>; earned 3 quarterly awards.</li>
               </ul>
 
@@ -375,7 +342,9 @@
         <header class="section__head section__head--row">
           <div>
             <h2 class="section__title">Exhibit Drawer</h2>
-            <p class="section__sub mono" id="drawerMeta">AUTO • MOVES EVERY 5s • CLICK TO PIN • DOUBLE‑CLICK FOR REPO</p>
+            <p class="section__sub mono" id="drawerMeta">
+              AUTO (WHEN VISIBLE) • 5s • CLICK TO PIN • DOUBLE‑CLICK FOR REPO
+            </p>
           </div>
 
           <div class="drawer-controls" aria-label="Drawer controls">
@@ -384,7 +353,7 @@
           </div>
         </header>
 
-        <div class="drawer" id="drawer" tabindex="0" aria-label="Projects drawer">
+        <div class="drawer" id="drawer" aria-label="Projects drawer">
           <article class="frame card cut"
             data-title="Faster Diffusion"
             data-kind="Class project"
@@ -397,25 +366,17 @@
               <canvas class="thumb" data-seed="Faster Diffusion" aria-label="Generative thumbnail"></canvas>
               <div class="frame__corner mono">FD</div>
             </div>
-
             <div class="frame__info">
               <div class="frame__top">
                 <h3 class="frame__title">Faster Diffusion</h3>
                 <span class="badge mono">CLASS</span>
               </div>
-
               <p class="frame__text">Optimized diffusion models for real-time, scalable image generation.</p>
-
               <div class="chips">
-                <span class="chip">Diffusion</span>
-                <span class="chip">PyTorch</span>
-                <span class="chip">Optimization</span>
+                <span class="chip">Diffusion</span><span class="chip">PyTorch</span><span class="chip">Optimization</span>
               </div>
-
               <div class="frame__actions">
-                <button class="btn btn--tiny btn--primary" type="button" data-open>
-                  Open exhibit
-                </button>
+                <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
               </div>
             </div>
           </article>
@@ -432,25 +393,17 @@
               <canvas class="thumb" data-seed="Text Sentiment Analysis" aria-label="Generative thumbnail"></canvas>
               <div class="frame__corner mono">SA</div>
             </div>
-
             <div class="frame__info">
               <div class="frame__top">
                 <h3 class="frame__title">Text Sentiment Analysis</h3>
                 <span class="badge mono">PERSONAL</span>
               </div>
-
               <p class="frame__text">3-class sentiment classifier for noisy, unstructured Twitter datasets.</p>
-
               <div class="chips">
-                <span class="chip">NLP</span>
-                <span class="chip">Transformers</span>
-                <span class="chip">ALBERT</span>
+                <span class="chip">NLP</span><span class="chip">Transformers</span><span class="chip">ALBERT</span>
               </div>
-
               <div class="frame__actions">
-                <button class="btn btn--tiny btn--primary" type="button" data-open>
-                  Open exhibit
-                </button>
+                <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
               </div>
             </div>
           </article>
@@ -467,25 +420,17 @@
               <canvas class="thumb" data-seed="Slack Python Q&A Bot" aria-label="Generative thumbnail"></canvas>
               <div class="frame__corner mono">QB</div>
             </div>
-
             <div class="frame__info">
               <div class="frame__top">
                 <h3 class="frame__title">Slack Python Q&amp;A Bot</h3>
                 <span class="badge mono">PERSONAL</span>
               </div>
-
               <p class="frame__text">Conversational agent to automate support and democratize Python knowledge.</p>
-
               <div class="chips">
-                <span class="chip">Slack</span>
-                <span class="chip">NLP</span>
-                <span class="chip">Automation</span>
+                <span class="chip">Slack</span><span class="chip">NLP</span><span class="chip">Automation</span>
               </div>
-
               <div class="frame__actions">
-                <button class="btn btn--tiny btn--primary" type="button" data-open>
-                  Open exhibit
-                </button>
+                <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
               </div>
             </div>
           </article>
@@ -493,7 +438,7 @@
       </div>
     </section>
 
-    <!-- CONTACT (icons-only) -->
+    <!-- CONTACT -->
     <section id="contact" class="section" data-section>
       <div class="container">
         <header class="section__head">
@@ -502,9 +447,7 @@
         </header>
 
         <div class="contact-icons" aria-label="Contact links">
-          <a class="icon-tile card cut" data-accent="blue"
-             href="mailto:aktomar@asu.edu"
-             aria-label="Email">
+          <a class="icon-tile card cut" data-accent="blue" href="mailto:aktomar@asu.edu" aria-label="Email">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M4 7.5C4 6.67 4.67 6 5.5 6h13c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5h-13C4.67 18 4 17.33 4 16.5v-9Z"
                     stroke="rgba(245,245,245,.85)" stroke-width="1.6" />
@@ -513,9 +456,7 @@
             <span class="sr-only">Email</span>
           </a>
 
-          <a class="icon-tile card cut" data-accent="green"
-             href="https://github.com/AakashKTo" target="_blank" rel="noopener"
-             aria-label="GitHub">
+          <a class="icon-tile card cut" data-accent="green" href="https://github.com/AakashKTo" target="_blank" rel="noopener" aria-label="GitHub">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M7.5 8.5 5 12l2.5 3.5M16.5 8.5 19 12l-2.5 3.5"
                     stroke="rgba(245,245,245,.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -524,9 +465,7 @@
             <span class="sr-only">GitHub</span>
           </a>
 
-          <a class="icon-tile card cut" data-accent="coral"
-             href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener"
-             aria-label="LinkedIn">
+          <a class="icon-tile card cut" data-accent="coral" href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener" aria-label="LinkedIn">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M10.5 10.5v7.5M10.5 10.5c0-1.1.9-2 2-2h.8c1.1 0 2 .9 2 2v7.5"
                     stroke="rgba(245,245,245,.85)" stroke-width="1.6" stroke-linecap="round"/>
@@ -542,7 +481,6 @@
     </section>
   </main>
 
-  <!-- Footer (theme line removed) -->
   <footer class="footer">
     <div class="container footer__grid">
       <div class="mono muted">© <span id="year"></span> Aakash Tomar</div>
@@ -574,7 +512,7 @@
             <a class="btn btn--ghost" href="#contact" data-sheet="close">Contact</a>
           </div>
 
-          <p class="mono muted sheet__hint">Tip: hit <b>ESC</b> to close • drawer pins on click</p>
+          <p class="mono muted sheet__hint">Tip: hit <b>ESC</b> to close • click a card to pin • double-click for repo</p>
         </div>
       </div>
     </div>

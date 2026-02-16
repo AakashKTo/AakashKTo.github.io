@@ -22,8 +22,6 @@
   --pad: 28px;
 
   --header-h: 64px;
-
-  /* keep content away from dock */
   --dock-space: 96px;
 }
 
@@ -68,7 +66,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 .section{
   padding: 96px 0;
   position:relative;
-  z-index: 2; /* keep content above jellyfish */
+  z-index: 2;
 }
 
 .section__head{ margin-bottom: 28px; }
@@ -114,23 +112,37 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 
 /* ===== Jellyfish ===== */
-.hero{ position:relative; overflow:hidden; }
+.hero{ position:relative; overflow:hidden; padding-top: 70px; }
+.hero{ min-height: calc(100vh - var(--header-h)); display:flex; align-items:center; }
 
 .jellyfish{
   position:fixed; /* desktop */
-  left: 0;
-  top: 0;
+  left: 8vw;
+  top: 12vh;
 
   width: 170px;
   height: 170px;
 
-  z-index: 1; /* under sections */
+  z-index: 1;
   pointer-events:none;
   opacity:.52;
   filter: drop-shadow(0 22px 40px rgba(0,0,0,.55));
   mix-blend-mode: screen;
   will-change: transform;
+
+  /* CSS fallback roam (only if JS fails to set .js class) */
+  animation: jf-fallback 22s ease-in-out infinite;
 }
+@keyframes jf-fallback{
+  0%   { left: 8vw;  top: 12vh; }
+  25%  { left: 72vw; top: 10vh; }
+  50%  { left: 58vw; top: 70vh; }
+  75%  { left: 10vw; top: 62vh; }
+  100% { left: 42vw; top: 22vh; }
+}
+/* When JS is active, disable fallback and let JS drive it */
+.js .jellyfish{ animation: none; left: 0; top: 0; }
+
 .jellyfish svg{
   width:100%;
   height:100%;
@@ -151,11 +163,21 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   50%{ transform: translateY(3px); opacity:.78; }
 }
 
-/* Mobile: jellyfish becomes hero-only (absolute inside hero) */
+/* Mobile: jellyfish stays only in hero */
 @media (max-width: 768px){
   .jellyfish{
     position:absolute;
+    left: 6%;
+    top: 10%;
+    animation: jf-fallback-mobile 16s ease-in-out infinite;
   }
+  @keyframes jf-fallback-mobile{
+    0%   { left: 6%;  top: 10%; }
+    33%  { left: 72%; top: 18%; }
+    66%  { left: 50%; top: 58%; }
+    100% { left: 10%; top: 22%; }
+  }
+  .js .jellyfish{ animation:none; left:0; top:0; }
 }
 
 /* ===== Top strip ===== */
@@ -285,7 +307,6 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
 .btn:hover{ text-decoration:none; background: rgba(245,245,245,.07); }
-
 .btn--primary{
   border-color: rgba(77,150,255,.55);
   background:
@@ -293,11 +314,6 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 .btn--ghost{ background: transparent; }
 .btn--tiny{ padding: 9px 12px; font-size:.85rem; }
-
-.btn--enter{
-  padding: 14px 18px;
-  font-size: 1rem;
-}
 
 .icon-btn{
   width: 42px;height: 42px;border-radius: 999px;
@@ -348,7 +364,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
     radial-gradient(circle at var(--mx, 50%) var(--my, 40%),
       rgba(245,245,245,.14),
       transparent 55%);
-  opacity:.0;
+  opacity:0;
   transition: opacity .18s ease;
   pointer-events:none;
 }
@@ -371,102 +387,66 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   color: rgba(245,245,245,.82);
 }
 
-/* ===== Hero redesign ===== */
-.hero{ padding-top: 78px; }
-.hero__grid{
-  display:grid;
-  grid-template-columns: 1.25fr .75fr;
-  gap: 22px;
-  align-items:start;
+/* ===== Hero minimal ===== */
+.hero__wrap{
+  width: 100%;
+  max-width: 860px;
 }
-.hero__panel{
-  padding: 22px 22px 18px 22px;
-  background: rgba(10,10,10,.42);
-  border-color: rgba(77,150,255,.25);
-  backdrop-filter: blur(14px);
-}
-.hero__panelTop{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap: 14px;
-  margin-bottom: 10px;
-}
-.hero__eyebrow{
-  margin: 0;
-  color: rgba(245,245,245,.66);
-  text-transform: uppercase;
-  font-size: .78rem;
-}
-.hero__stamp{
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px dashed rgba(245,245,245,.18);
-  color: rgba(245,245,245,.55);
-  font-size: .72rem;
-  white-space:nowrap;
-}
-.hero__title{
+.hero__name{
   margin:0 0 12px 0;
-  font-size: clamp(44px, 6vw, 84px);
+  font-size: clamp(54px, 7vw, 104px);
   line-height: .95;
   letter-spacing:-.03em;
 }
 .hero__tagline{
-  margin: 0 0 16px 0;
-  font-size: clamp(16px, 1.4vw, 20px);
+  margin:0;
+  font-size: clamp(16px, 1.6vw, 22px);
   color: rgba(245,245,245,.78);
   max-width: 70ch;
 }
 .hero__cta{
   display:flex;
+  gap: 12px;
   flex-wrap:wrap;
-  gap: 12px;
-  margin: 16px 0 14px 0;
+  margin-top: 18px;
 }
-.hero__links{
-  color: rgba(245,245,245,.66);
-  font-size:.85rem;
-}
-.hero__links a:hover{ text-decoration:none; color: var(--fg); }
 
-.hero__note{
-  padding: 18px;
-  background: rgba(10,10,10,.38);
-  backdrop-filter: blur(14px);
+/* notes hidden by default */
+.hero-notes{
+  margin-top: 18px;
+  width: min(620px, 100%);
 }
-.note__top{
-  display:flex;
+.hero-notes__summary{
+  list-style:none;
+  cursor:pointer;
+  user-select:none;
+  display:inline-flex;
   align-items:center;
-  justify-content:space-between;
-  margin-bottom: 12px;
-}
-.note__label{
-  font-size:.75rem;
-  text-transform: uppercase;
-  color: rgba(245,245,245,.72);
-}
-.note__mark{
-  font-size:.72rem;
-  color: rgba(245,245,245,.55);
-}
-.note__rows{
-  display:grid;
-  gap: 12px;
-}
-.note__row{
-  display:grid;
-  grid-template-columns: 110px 1fr;
   gap: 10px;
-  align-items:baseline;
-}
-.note__k{
-  color: rgba(245,245,245,.72);
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(245,245,245,.14);
+  background: rgba(10,10,10,.35);
+  backdrop-filter: blur(12px);
+  color: rgba(245,245,245,.76);
   text-transform: uppercase;
   font-size: .74rem;
 }
-.note__v{ color: rgba(245,245,245,.80); }
-.note__divider{
+.hero-notes__summary::-webkit-details-marker{ display:none; }
+.hero-notes__panel{
+  margin-top: 12px;
+  padding: 16px;
+  background: rgba(10,10,10,.38);
+  backdrop-filter: blur(14px);
+}
+.hero-notes__rows{ display:grid; gap: 10px; }
+.hero-notes__row{
+  display:flex;
+  justify-content:space-between;
+  gap: 12px;
+  color: rgba(245,245,245,.80);
+}
+.hero-notes__divider{
   height:1px;
   background: rgba(245,245,245,.10);
   margin: 14px 0;
@@ -484,17 +464,8 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   background: rgba(10,10,10,.35);
   backdrop-filter: blur(12px);
 }
-.stamp__top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom: 12px;
-}
-.stamp__label{
-  font-size:.75rem;
-  text-transform:uppercase;
-  color: rgba(245,245,245,.70);
-}
+.stamp__top{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px; }
+.stamp__label{ font-size:.75rem; text-transform:uppercase; color: rgba(245,245,245,.70); }
 .stamp__sig{
   font-size:.75rem;
   color: rgba(245,245,245,.50);
@@ -510,7 +481,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 .stamp__desc{ margin:0; color: rgba(245,245,245,.70); }
 
-/* ===== Toolboard: make it pop + hide wires behind readable cards ===== */
+/* ===== Toolboard ===== */
 .toolboard{
   position:relative;
   border: 1px solid rgba(245,245,245,.10);
@@ -544,19 +515,17 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   height:100%;
   pointer-events:none;
   z-index: 0;
-  opacity: .75;
+  opacity: .70;
 }
 
-/* Cards are now more opaque and blurred -> wires don't cover text */
 .toolnode{
   position:relative;
   z-index: 1;
   padding: 16px 16px 14px 16px;
 
   background: rgba(10,10,10,.62);
-  border-color: rgba(245,245,245,.14);
+  border: 1px solid rgba(245,245,245,.14);
   backdrop-filter: blur(16px);
-
   box-shadow: 0 20px 55px rgba(0,0,0,.55);
 }
 
@@ -598,12 +567,8 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 .mini__t{ font-weight: 700; margin-bottom: 8px; }
 .mini__s{ font-size:.78rem; }
 
-/* ===== Studies (vertical) ===== */
-.studies{
-  display:grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
+/* ===== Studies ===== */
+.studies{ display:grid; grid-template-columns: 1fr; gap: 16px; }
 .degree{
   padding: 18px;
   background: rgba(10,10,10,.38);
@@ -615,11 +580,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   color: rgba(245,245,245,.72);
   margin-bottom: 10px;
 }
-.degree__title{
-  margin:0 0 10px 0;
-  font-size: 1.3rem;
-  letter-spacing:-.01em;
-}
+.degree__title{ margin:0 0 10px 0; font-size: 1.3rem; letter-spacing:-.01em; }
 .degree__meta{
   display:flex;
   align-items:center;
@@ -719,13 +680,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
   font-size:.78rem;
 }
 .frame__info{ padding: 2px 6px 4px 6px; }
-.frame__top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap: 14px;
-  margin-bottom: 10px;
-}
+.frame__top{ display:flex; align-items:center; justify-content:space-between; gap: 14px; margin-bottom: 10px; }
 .frame__title{ margin:0; font-size: 1.35rem; letter-spacing:-.02em; }
 .badge{
   padding: 7px 10px;
@@ -737,7 +692,6 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 }
 .frame__text{ margin: 0 0 12px 0; color: rgba(245,245,245,.76); }
 .frame__actions{ margin-top: 14px; display:flex; gap: 10px; flex-wrap:wrap; }
-
 .drawer-controls{ display:flex; gap: 10px; align-items:center; }
 
 /* ===== Sheet ===== */
@@ -800,12 +754,7 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 .sheet__hint{ margin-top: 14px; }
 
 /* ===== Contact icons ===== */
-.contact-icons{
-  display:flex;
-  gap: 16px;
-  flex-wrap:wrap;
-  align-items:center;
-}
+.contact-icons{ display:flex; gap: 16px; flex-wrap:wrap; align-items:center; }
 .icon-tile{
   width: 92px;
   height: 92px;
@@ -841,7 +790,6 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 @media (max-width: 1000px){
   main{ padding-left: 0; }
 
-  .hero__grid{ grid-template-columns: 1fr; }
   .impact-ledger{ grid-template-columns: repeat(2, 1fr); }
   .stamp{ grid-column: auto; }
 
@@ -867,11 +815,4 @@ a:hover{ text-decoration:underline; text-decoration-thickness:1px; text-underlin
 @media (max-width: 640px){
   .section{ padding: 78px 0; }
   .jellyfish{ width: 140px; height: 140px; opacity:.46; }
-}
-
-/* ===== Reduced motion ===== */
-@media (prefers-reduced-motion: reduce){
-  .jellyfish svg,
-  .jf-tentacles{ animation:none !important; }
-  .card::before{ transition:none; }
 }
