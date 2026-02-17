@@ -19,27 +19,75 @@
       <span class="brand__tag mono">Generative Art Studio</span>
     </a>
 
-    <nav class="top-nav" aria-label="Primary navigation">
-      <a class="top-nav__link is-active" href="#home" data-nav="home">Home</a>
-      <a class="top-nav__link" href="#impact" data-nav="impact">Impact</a>
-      <a class="top-nav__link" href="#techstack" data-nav="techstack">Tech Stack</a>
-      <a class="top-nav__link" href="#education" data-nav="education">Education</a>
-      <a class="top-nav__link" href="#experience" data-nav="experience">Experience</a>
-      <a class="top-nav__link" href="#projects" data-nav="projects">Projects</a>
-      <a class="top-nav__link" href="#contact" data-nav="contact">Contact Me</a>
+    <!-- Constellation rail navigation -->
+    <nav class="top-nav" id="topNav" aria-label="Primary navigation">
+      <a class="top-nav__item is-active" href="#home" data-nav="home" data-accent="blue">
+        <span class="top-nav__dot" aria-hidden="true"></span>
+        <span class="top-nav__text">Home</span>
+      </a>
+
+      <a class="top-nav__item" href="#impact" data-nav="impact" data-accent="coral">
+        <span class="top-nav__dot" aria-hidden="true"></span>
+        <span class="top-nav__text">Impact</span>
+      </a>
+
+      <a class="top-nav__item" href="#techstack" data-nav="techstack" data-accent="blue">
+        <span class="top-nav__dot" aria-hidden="true"></span>
+        <span class="top-nav__text">Tech Stack</span>
+      </a>
+
+      <a class="top-nav__item" href="#education" data-nav="education" data-accent="green">
+        <span class="top-nav__dot" aria-hidden="true"></span>
+        <span class="top-nav__text">Education</span>
+      </a>
+
+      <a class="top-nav__item" href="#experience" data-nav="experience" data-accent="coral">
+        <span class="top-nav__dot" aria-hidden="true"></span>
+        <span class="top-nav__text">Experience</span>
+      </a>
+
+      <a class="top-nav__item" href="#projects" data-nav="projects" data-accent="blue">
+        <span class="top-nav__dot" aria-hidden="true"></span>
+        <span class="top-nav__text">Projects</span>
+      </a>
+
+      <a class="top-nav__item" href="#contact" data-nav="contact" data-accent="green">
+        <span class="top-nav__dot" aria-hidden="true"></span>
+        <span class="top-nav__text">Contact Me</span>
+      </a>
+
+      <!-- mobile-only resume link -->
+      <a class="top-nav__item top-nav__item--external" href="resume/resume.pdf" target="_blank" rel="noopener" data-accent="green">
+        <span class="top-nav__dot" aria-hidden="true"></span>
+        <span class="top-nav__text">Resume PDF</span>
+      </a>
     </nav>
 
     <div class="top-strip__actions">
-      <a class="btn btn--ghost" href="resume/resume.pdf" target="_blank" rel="noopener">
+      <a class="btn btn--ghost btn--resume" href="resume/resume.pdf" target="_blank" rel="noopener">
         Resume PDF
       </a>
+
+      <!-- mobile dropdown toggle -->
+      <button
+        class="nav-toggle"
+        id="navToggle"
+        type="button"
+        aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="topNav"
+      >
+        <span class="nav-toggle__bars" aria-hidden="true"></span>
+      </button>
     </div>
   </header>
+
+  <!-- scrim for mobile dropdown -->
+  <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
 
   <main>
     <!-- HERO -->
     <section id="home" class="section hero" data-section>
-      <!-- Rover-sized jellyfish -->
       <div id="jellyfish" class="jellyfish" aria-hidden="true">
         <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -407,7 +455,12 @@
         </header>
 
         <div class="contact-icons" aria-label="Contact links">
-          <a class="icon-tile cut" data-accent="blue" href="mailto:aktomar@asu.edu" aria-label="Email">
+          <a class="icon-tile cut"
+             data-accent="blue"
+             data-tip="Email • aktomar@asu.edu"
+             title="aktomar@asu.edu"
+             href="mailto:aktomar@asu.edu"
+             aria-label="Email">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M4 7.5C4 6.67 4.67 6 5.5 6h13c.83 0 1.5.67 1.5 1.5v9c0 .83-.67 1.5-1.5 1.5h-13C4.67 18 4 17.33 4 16.5v-9Z"
                     stroke="rgba(245,245,245,.88)" stroke-width="1.6" />
@@ -416,7 +469,13 @@
             </svg>
           </a>
 
-          <a class="icon-tile cut" data-accent="green" href="https://github.com/AakashKTo" target="_blank" rel="noopener" aria-label="GitHub">
+          <a class="icon-tile cut"
+             data-accent="green"
+             data-tip="GitHub • github.com/AakashKTo"
+             title="github.com/AakashKTo"
+             href="https://github.com/AakashKTo"
+             target="_blank" rel="noopener"
+             aria-label="GitHub">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M7.5 8.5 5 12l2.5 3.5M16.5 8.5 19 12l-2.5 3.5"
                     stroke="rgba(245,245,245,.88)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -424,7 +483,13 @@
             </svg>
           </a>
 
-          <a class="icon-tile cut" data-accent="coral" href="https://www.linkedin.com/in/aakashkt/" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <a class="icon-tile cut"
+             data-accent="coral"
+             data-tip="LinkedIn • linkedin.com/in/aakashkt"
+             title="linkedin.com/in/aakashkt"
+             href="https://www.linkedin.com/in/aakashkt/"
+             target="_blank" rel="noopener"
+             aria-label="LinkedIn">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M10.5 10.5v7.5M10.5 10.5c0-1.1.9-2 2-2h.8c1.1 0 2 .9 2 2v7.5"
                     stroke="rgba(245,245,245,.88)" stroke-width="1.6" stroke-linecap="round"/>

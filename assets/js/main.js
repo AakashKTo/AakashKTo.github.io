@@ -4,7 +4,6 @@ function qsa(sel, el){ return Array.prototype.slice.call((el || document).queryS
 function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 function pad2(n){ return (n < 10 ? "0" : "") + String(n); }
 
-// Math.imul fallback
 var _imul = Math.imul || function(a, b) {
   var ah = (a >>> 16) & 0xffff, al = a & 0xffff;
   var bh = (b >>> 16) & 0xffff, bl = b & 0xffff;
@@ -57,11 +56,9 @@ document.addEventListener("DOMContentLoaded", function(){
 
   safe("smoothScroll", initSmoothScroll);
   safe("navSpy", initTopNavSpyStable);
+  safe("mobileNavDropdown", initMobileNavDropdown);
 
-  // NEW: Aurora Borealis background
   safe("aurora", initAuroraBorealisBackground);
-
-  // Jellyfish: smaller + slow tricks
   safe("jellyfish", initJellyfishSlowTricks);
 
   safe("toolboardWires", initToolboardWires);
@@ -96,9 +93,52 @@ function initSmoothScroll() {
   });
 }
 
+/* ========= Mobile dropdown menu ========= */
+function initMobileNavDropdown(){
+  var toggle = qs("#navToggle");
+  var nav = qs("#topNav");
+  var scrim = qs("#navScrim");
+  if (!toggle || !nav || !scrim) return;
+
+  function open(){
+    document.body.classList.add("nav-open");
+    toggle.setAttribute("aria-expanded", "true");
+  }
+  function close(){
+    document.body.classList.remove("nav-open");
+    toggle.setAttribute("aria-expanded", "false");
+  }
+  function isOpen(){
+    return document.body.classList.contains("nav-open");
+  }
+
+  toggle.addEventListener("click", function(){
+    if (isOpen()) close(); else open();
+  });
+
+  scrim.addEventListener("click", close);
+
+  // close on in-menu anchor click
+  qsa("a[href^='#']", nav).forEach(function(a){
+    a.addEventListener("click", function(){
+      close();
+    });
+  });
+
+  // close on escape
+  window.addEventListener("keydown", function(e){
+    if (e.key === "Escape") close();
+  });
+
+  // if you resize back to desktop, ensure it closes
+  window.addEventListener("resize", function(){
+    if (window.innerWidth > 1000) close();
+  }, { passive:true });
+}
+
 /* ========= Top nav spy (stable) ========= */
 function initTopNavSpyStable() {
-  var navItems = qsa(".top-nav__link[data-nav]");
+  var navItems = qsa(".top-nav__item[data-nav]");
   var sections = qsa("[data-section]");
   var header = qs(".top-strip");
   if (!navItems.length || !sections.length) return;
@@ -145,11 +185,7 @@ function initTopNavSpyStable() {
   onScroll();
 }
 
-/* ========= Aurora Borealis background =========
-   - Curtain-style aurora ribbons
-   - Stars + subtle drift
-   - No external libs
-*/
+/* ========= Aurora Borealis background ========= */
 function initAuroraBorealisBackground(){
   var canvas = qs("#bg-canvas");
   if (!canvas) return;
@@ -188,7 +224,6 @@ function initAuroraBorealisBackground(){
   window.addEventListener("pointermove", onMove, { passive:true });
   window.addEventListener("mousemove", onMove, { passive:true });
 
-  // ---- Value noise (1D) ----
   function rand1(i, seed){
     var x = (i | 0) + (seed | 0) * 131;
     x = (x << 13) ^ x;
@@ -212,10 +247,9 @@ function initAuroraBorealisBackground(){
       amp *= 0.5;
       freq *= 2;
     }
-    return sum; // ~0..1
+    return sum;
   }
 
-  // ---- Stars ----
   var stars = [];
   function buildStars(){
     stars = [];
@@ -233,7 +267,6 @@ function initAuroraBorealisBackground(){
   }
 
   function paintBase(){
-    // deep night gradient
     var bg = ctx.createLinearGradient(0,0,0,h);
     bg.addColorStop(0, "rgba(6,10,14,1)");
     bg.addColorStop(0.55, "rgba(8,10,12,1)");
@@ -267,7 +300,6 @@ function initAuroraBorealisBackground(){
     var stepBlur = 10;
     var stepFine = 6;
 
-    // gradient used as strokeStyle
     var g = ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0.00, hexToRgba(color, 0.00));
     g.addColorStop(clamp(baseY/h - 0.03, 0, 1), hexToRgba(color, 0.00));
@@ -275,7 +307,6 @@ function initAuroraBorealisBackground(){
     g.addColorStop(clamp((baseY + baseH*0.60)/h, 0, 1), hexToRgba(color, 0.14*intensity));
     g.addColorStop(clamp((baseY + baseH)/h, 0, 1), hexToRgba(color, 0.00));
 
-    // --- soft glow pass (few strokes, blurred)
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     ctx.strokeStyle = g;
@@ -290,7 +321,6 @@ function initAuroraBorealisBackground(){
       var n2 = fbm1(x*freq*0.7 + s*speed2, seed+99);
       var top = baseY + (n - 0.5) * (h*0.08) + py;
       var bottom = top + baseH + (n2 - 0.5) * (h*0.10);
-      // slight sway
       top += Math.sin(s*0.25 + x*0.004) * 6 + px*0.15;
       bottom += Math.cos(s*0.22 + x*0.003) * 8 + px*0.10;
 
@@ -300,7 +330,6 @@ function initAuroraBorealisBackground(){
     ctx.stroke();
     ctx.restore();
 
-    // --- fine curtain strands (higher detail, mild blur)
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     ctx.strokeStyle = g;
@@ -318,7 +347,7 @@ function initAuroraBorealisBackground(){
       top2 += Math.sin(s*0.28 + x2*0.0045) * 8 + px*0.18;
       bottom2 += Math.cos(s*0.24 + x2*0.0038) * 12 + px*0.12;
 
-      var strand = 0.06 + 0.10 * m; // alpha per strand
+      var strand = 0.06 + 0.10 * m;
       ctx.globalAlpha = strand * intensity;
 
       ctx.beginPath();
@@ -351,16 +380,14 @@ function initAuroraBorealisBackground(){
 
   var start = performance.now();
   function frame(now){
-    var s = (now - start) / 1000; // seconds
+    var s = (now - start) / 1000;
 
-    // smooth pointer
     pointer.x += (pointer.tx - pointer.x) * 0.06;
     pointer.y += (pointer.ty - pointer.y) * 0.06;
 
     paintBase();
     drawStars(s);
 
-    // aurora curtains: main green + secondary blue + rare coral highlights
     drawCurtain(C_G, h*0.06, h*0.72, 11, s, 1.00);
     drawCurtain(C_B, h*0.10, h*0.66, 29, s*0.92, 0.88);
     drawCurtain(C_C, h*0.14, h*0.58, 43, s*0.86, 0.55);
@@ -371,7 +398,9 @@ function initAuroraBorealisBackground(){
     if (!prefersReduced) requestAnimationFrame(frame);
   }
 
-  requestAnimationFrame(frame);
+  // Ensure at least ONE paint even when reduced-motion is enabled
+  if (prefersReduced) frame(performance.now());
+  else requestAnimationFrame(frame);
 }
 
 /* ========= Jellyfish smaller + slow tricks ========= */
@@ -403,7 +432,6 @@ function initJellyfishSlowTricks(){
   window.addEventListener("resize", function(){ measure(); }, { passive:true });
 
   var start = performance.now();
-
   function ease(t){ return t*t*(3-2*t); }
 
   function tick(now){
@@ -416,28 +444,25 @@ function initJellyfishSlowTricks(){
     var cx = a.pad + aw/2;
     var cy = a.pad + ah/2;
 
-    // base roam (VERY slow)
-    var t = secs * 0.14; // slow
+    var t = secs * 0.14;
     var x = cx + (aw/2) * Math.sin(t);
     var y = cy + (ah/2) * Math.sin(t * 0.73 + 1.2);
 
-    // “Trick” window (slow loop + gentle spin)
-    var cycle = 34;      // seconds per cycle
-    var win = 7.0;       // seconds trick duration
+    // slow “trick” loop
+    var cycle = 34;
+    var win = 7.0;
     var within = secs % cycle;
 
     var extraX = 0, extraY = 0, extraRot = 0, extraScale = 0;
     if (within < win){
-      var p = within / win;     // 0..1
+      var p = within / win;
       var e = ease(p);
       var loopR = Math.min(aw, ah) * 0.05;
 
-      // loop around current position once
       extraX = loopR * Math.sin(e * Math.PI * 2);
       extraY = loopR * Math.cos(e * Math.PI * 2);
 
-      // slow spin (not rapid)
-      extraRot = e * 160;       // degrees
+      extraRot = e * 160;
       extraScale = Math.sin(e * Math.PI) * 0.06;
     }
 
@@ -507,19 +532,19 @@ function initToolboardWires(){
       var glow = document.createElementNS("http://www.w3.org/2000/svg", "path");
       glow.setAttribute("d", "M " + A.x + " " + A.y + " Q " + cx + " " + cy + " " + B.x + " " + B.y);
       glow.setAttribute("fill", "none");
-      glow.setAttribute("stroke", "rgba(107,203,119,0.05)");
+      glow.setAttribute("stroke", "rgba(107,203,119,0.045)");
       glow.setAttribute("stroke-width", "4");
-      glow.setAttribute("opacity", "0.6");
+      glow.setAttribute("opacity", "0.55");
       glow.setAttribute("stroke-linecap", "round");
       svg.appendChild(glow);
 
       var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", "M " + A.x + " " + A.y + " Q " + cx + " " + cy + " " + B.x + " " + B.y);
       path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "rgba(245,245,245,0.10)");
-      path.setAttribute("stroke-width", "1.1");
+      path.setAttribute("stroke", "rgba(245,245,245,0.09)");
+      path.setAttribute("stroke-width", "1.05");
       path.setAttribute("stroke-dasharray", "3 12");
-      path.setAttribute("opacity", "0.85");
+      path.setAttribute("opacity", "0.80");
       path.setAttribute("stroke-linecap", "round");
       svg.appendChild(path);
     }
@@ -529,7 +554,7 @@ function initToolboardWires(){
   draw();
 }
 
-/* ========= Drawer: TRUE infinite loop ========= */
+/* ========= Drawer / Sheet / Thumbs (same as before) ========= */
 function initDrawerInfiniteLoop(){
   var drawer = qs("#drawer");
   var meta = qs("#drawerMeta");
@@ -726,7 +751,6 @@ function initDrawerInfiniteLoop(){
   };
 }
 
-/* ========= Exhibit sheet ========= */
 function initExhibitSheet(drawerApi) {
   var sheet = qs("#sheet");
   if (!sheet) return;
@@ -798,7 +822,6 @@ function initExhibitSheet(drawerApi) {
   });
 }
 
-/* ========= Thumbnails ========= */
 function initGenerativeThumbs(){
   function drawAll(){
     qsa("canvas.thumb").forEach(function(c){
@@ -816,7 +839,6 @@ function initGenerativeThumbs(){
   }, { passive:true });
 }
 
-/* ========= Seeded PRNG ========= */
 function hashString(str) {
   var h = 2166136261;
   for (var i = 0; i < str.length; i++) {
@@ -840,7 +862,6 @@ function getAccentColor(accent) {
   return cs.getPropertyValue("--blue").trim() || "#4D96FF";
 }
 
-/* ========= Generative art thumbnails ========= */
 function drawGenerativeArt(canvas, seed, accentName) {
   var ctx = canvas.getContext("2d");
   if (!ctx) return;
