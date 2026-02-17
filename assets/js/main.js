@@ -58,7 +58,9 @@ document.addEventListener("DOMContentLoaded", function(){
   safe("navSpy", initTopNavSpyStable);
   safe("mobileNavDropdown", initMobileNavDropdown);
 
+  safe("scrollRefraction", initScrollGlassRefraction);
   safe("aurora", initAuroraBorealisBackground);
+
   safe("jellyfish", initJellyfishSlowTricks);
 
   safe("toolboardWires", initToolboardWires);
@@ -118,19 +120,14 @@ function initMobileNavDropdown(){
 
   scrim.addEventListener("click", close);
 
-  // close on in-menu anchor click
   qsa("a[href^='#']", nav).forEach(function(a){
-    a.addEventListener("click", function(){
-      close();
-    });
+    a.addEventListener("click", function(){ close(); });
   });
 
-  // close on escape
   window.addEventListener("keydown", function(e){
     if (e.key === "Escape") close();
   });
 
-  // if you resize back to desktop, ensure it closes
   window.addEventListener("resize", function(){
     if (window.innerWidth > 1000) close();
   }, { passive:true });
@@ -185,7 +182,82 @@ function initTopNavSpyStable() {
   onScroll();
 }
 
-/* ========= Aurora Borealis background ========= */
+/* ========= Scroll-driven glass refraction (blur/sat pulse) ========= */
+function initScrollGlassRefraction(){
+  var root = document.documentElement;
+
+  var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReduced) return; // keep stable for reduced-motion users
+
+  var baseBlur = 16;
+  var baseSat = 1.16;
+
+  var curBlur = baseBlur, curSat = baseSat;
+  var tgtBlur = baseBlur, tgtSat = baseSat;
+
+  var lastY = window.scrollY || 0;
+  var lastT = performance.now();
+
+  var running = false;
+
+  function setVars(){
+    root.style.setProperty("--glass-blur", curBlur.toFixed(2) + "px");
+    root.style.setProperty("--glass-sat", curSat.toFixed(3));
+  }
+
+  function onScroll(){
+    var now = performance.now();
+    var y = window.scrollY || 0;
+    var dy = Math.abs(y - lastY);
+    var dt = Math.max(1, now - lastT);
+
+    lastY = y;
+    lastT = now;
+
+    // px/ms -> map to blur boost
+    var v = dy / dt;
+    var boost = clamp(v * 180, 0, 10.5);
+
+    tgtBlur = baseBlur + boost;
+    tgtSat = baseSat + boost * 0.012;
+
+    if (!running){
+      running = true;
+      requestAnimationFrame(tick);
+    }
+  }
+
+  function tick(){
+    // ease toward target
+    curBlur += (tgtBlur - curBlur) * 0.14;
+    curSat  += (tgtSat  - curSat)  * 0.14;
+
+    // decay target back to base
+    tgtBlur += (baseBlur - tgtBlur) * 0.08;
+    tgtSat  += (baseSat  - tgtSat)  * 0.08;
+
+    setVars();
+
+    var done =
+      Math.abs(curBlur - baseBlur) < 0.12 &&
+      Math.abs(tgtBlur - baseBlur) < 0.12 &&
+      Math.abs(curSat - baseSat) < 0.01;
+
+    if (done){
+      running = false;
+      curBlur = baseBlur; curSat = baseSat;
+      tgtBlur = baseBlur; tgtSat = baseSat;
+      setVars();
+      return;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  window.addEventListener("scroll", onScroll, { passive:true });
+  setVars();
+}
+
+/* ========= Aurora Borealis background (deep navy + teal/violet/magenta) ========= */
 function initAuroraBorealisBackground(){
   var canvas = qs("#bg-canvas");
   if (!canvas) return;
@@ -193,9 +265,9 @@ function initAuroraBorealisBackground(){
   if (!ctx) return;
 
   var rs = getComputedStyle(document.documentElement);
-  var C_G = rs.getPropertyValue("--green").trim() || "#6BCB77";
-  var C_B = rs.getPropertyValue("--blue").trim() || "#4D96FF";
-  var C_C = rs.getPropertyValue("--coral").trim() || "#FF6B6B";
+  var C_TEAL = (rs.getPropertyValue("--teal").trim() || "#2AF5FF");
+  var C_VIO  = (rs.getPropertyValue("--violet").trim() || "#6D28D9");
+  var C_MAG  = (rs.getPropertyValue("--magenta").trim() || "#FF4FD8");
 
   var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -253,24 +325,25 @@ function initAuroraBorealisBackground(){
   var stars = [];
   function buildStars(){
     stars = [];
-    var count = Math.round((w*h) / 60000);
-    count = clamp(count, 40, 140);
+    var count = Math.round((w*h) / 80000);
+    count = clamp(count, 45, 120);
     for (var i=0; i<count; i++){
       stars.push({
         x: Math.random()*w,
-        y: Math.random()*(h*0.55),
-        r: 0.6 + Math.random()*1.4,
-        a: 0.08 + Math.random()*0.20,
+        y: Math.random()*(h*0.58),
+        r: 0.5 + Math.random()*1.3,
+        a: 0.06 + Math.random()*0.16,
         tw: Math.random()*6.28
       });
     }
   }
 
   function paintBase(){
+    // Deep navy base, almost black
     var bg = ctx.createLinearGradient(0,0,0,h);
-    bg.addColorStop(0, "rgba(6,10,14,1)");
-    bg.addColorStop(0.55, "rgba(8,10,12,1)");
-    bg.addColorStop(1, "rgba(10,10,10,1)");
+    bg.addColorStop(0, "rgba(5,10,24,1)");
+    bg.addColorStop(0.55, "rgba(4,8,20,1)");
+    bg.addColorStop(1, "rgba(2,5,14,1)");
     ctx.fillStyle = bg;
     ctx.fillRect(0,0,w,h);
   }
@@ -280,7 +353,7 @@ function initAuroraBorealisBackground(){
     ctx.globalCompositeOperation = "screen";
     for (var i=0; i<stars.length; i++){
       var st = stars[i];
-      var tw = 0.65 + 0.35 * Math.sin(s*0.7 + st.tw);
+      var tw = 0.65 + 0.35 * Math.sin(s*0.55 + st.tw);
       ctx.fillStyle = "rgba(245,245,245," + (st.a * tw) + ")";
       ctx.beginPath();
       ctx.arc(st.x, st.y, st.r, 0, Math.PI*2);
@@ -290,39 +363,41 @@ function initAuroraBorealisBackground(){
   }
 
   function drawCurtain(color, baseY, baseH, seed, s, intensity){
-    var px = (pointer.x - 0.5) * 36;
-    var py = (pointer.y - 0.5) * 16;
+    var px = (pointer.x - 0.5) * 18;  // subtle parallax
+    var py = (pointer.y - 0.5) * 10;
 
     var freq = 0.010;
-    var speed = 0.11;
-    var speed2 = 0.08;
+    var speed = 0.055;   // SLOW
+    var speed2 = 0.040;
 
-    var stepBlur = 10;
-    var stepFine = 6;
+    var stepBlur = 11;
+    var stepFine = 7;
 
     var g = ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0.00, hexToRgba(color, 0.00));
     g.addColorStop(clamp(baseY/h - 0.03, 0, 1), hexToRgba(color, 0.00));
-    g.addColorStop(clamp((baseY + baseH*0.20)/h, 0, 1), hexToRgba(color, 0.35*intensity));
-    g.addColorStop(clamp((baseY + baseH*0.60)/h, 0, 1), hexToRgba(color, 0.14*intensity));
+    g.addColorStop(clamp((baseY + baseH*0.18)/h, 0, 1), hexToRgba(color, 0.30*intensity));
+    g.addColorStop(clamp((baseY + baseH*0.60)/h, 0, 1), hexToRgba(color, 0.12*intensity));
     g.addColorStop(clamp((baseY + baseH)/h, 0, 1), hexToRgba(color, 0.00));
 
+    // Bloom strands (blurred)
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     ctx.strokeStyle = g;
     ctx.lineCap = "round";
-    ctx.filter = "blur(14px)";
-    ctx.globalAlpha = 0.40;
+    ctx.filter = "blur(16px)";
+    ctx.globalAlpha = 0.34 * intensity;
     ctx.lineWidth = 12;
 
     ctx.beginPath();
-    for (var x=-20; x<=w+20; x+=stepBlur){
+    for (var x=-22; x<=w+22; x+=stepBlur){
       var n = fbm1(x*freq + s*speed, seed);
       var n2 = fbm1(x*freq*0.7 + s*speed2, seed+99);
-      var top = baseY + (n - 0.5) * (h*0.08) + py;
+      var top = baseY + (n - 0.5) * (h*0.07) + py;
       var bottom = top + baseH + (n2 - 0.5) * (h*0.10);
-      top += Math.sin(s*0.25 + x*0.004) * 6 + px*0.15;
-      bottom += Math.cos(s*0.22 + x*0.003) * 8 + px*0.10;
+
+      top += Math.sin(s*0.18 + x*0.004) * 5 + px*0.12;
+      bottom += Math.cos(s*0.16 + x*0.003) * 7 + px*0.10;
 
       ctx.moveTo(x, top);
       ctx.lineTo(x, bottom);
@@ -330,6 +405,7 @@ function initAuroraBorealisBackground(){
     ctx.stroke();
     ctx.restore();
 
+    // Fine strands
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     ctx.strokeStyle = g;
@@ -338,16 +414,16 @@ function initAuroraBorealisBackground(){
     ctx.lineWidth = 4;
 
     for (var x2=-10; x2<=w+10; x2+=stepFine){
-      var m = fbm1(x2*freq*1.15 + s*(speed*1.25), seed+17);
-      var m2 = fbm1(x2*freq*0.85 + s*(speed2*1.15), seed+117);
+      var m = fbm1(x2*freq*1.12 + s*(speed*1.15), seed+17);
+      var m2 = fbm1(x2*freq*0.86 + s*(speed2*1.10), seed+117);
 
-      var top2 = baseY + (m - 0.5) * (h*0.10) + py;
-      var bottom2 = top2 + baseH + (m2 - 0.5) * (h*0.14);
+      var top2 = baseY + (m - 0.5) * (h*0.09) + py;
+      var bottom2 = top2 + baseH + (m2 - 0.5) * (h*0.12);
 
-      top2 += Math.sin(s*0.28 + x2*0.0045) * 8 + px*0.18;
-      bottom2 += Math.cos(s*0.24 + x2*0.0038) * 12 + px*0.12;
+      top2 += Math.sin(s*0.20 + x2*0.0045) * 6 + px*0.12;
+      bottom2 += Math.cos(s*0.18 + x2*0.0038) * 10 + px*0.10;
 
-      var strand = 0.06 + 0.10 * m;
+      var strand = 0.05 + 0.10 * m;
       ctx.globalAlpha = strand * intensity;
 
       ctx.beginPath();
@@ -360,17 +436,17 @@ function initAuroraBorealisBackground(){
   }
 
   function vignette(){
-    var vg = ctx.createRadialGradient(w*0.52, h*0.42, 0, w*0.52, h*0.42, Math.max(w,h)*0.80);
-    vg.addColorStop(0, "rgba(10,10,10,0)");
-    vg.addColorStop(1, "rgba(10,10,10,0.82)");
+    var vg = ctx.createRadialGradient(w*0.52, h*0.44, 0, w*0.52, h*0.44, Math.max(w,h)*0.82);
+    vg.addColorStop(0, "rgba(5,10,24,0)");
+    vg.addColorStop(1, "rgba(5,10,24,0.84)");
     ctx.fillStyle = vg;
     ctx.fillRect(0,0,w,h);
   }
 
   function groundHaze(){
     var g = ctx.createLinearGradient(0, h*0.55, 0, h);
-    g.addColorStop(0, "rgba(10,10,10,0)");
-    g.addColorStop(1, "rgba(10,10,10,0.65)");
+    g.addColorStop(0, "rgba(5,10,24,0)");
+    g.addColorStop(1, "rgba(5,10,24,0.66)");
     ctx.fillStyle = g;
     ctx.fillRect(0, h*0.55, w, h*0.45);
   }
@@ -382,15 +458,16 @@ function initAuroraBorealisBackground(){
   function frame(now){
     var s = (now - start) / 1000;
 
-    pointer.x += (pointer.tx - pointer.x) * 0.06;
-    pointer.y += (pointer.ty - pointer.y) * 0.06;
+    pointer.x += (pointer.tx - pointer.x) * 0.05;
+    pointer.y += (pointer.ty - pointer.y) * 0.05;
 
     paintBase();
     drawStars(s);
 
-    drawCurtain(C_G, h*0.06, h*0.72, 11, s, 1.00);
-    drawCurtain(C_B, h*0.10, h*0.66, 29, s*0.92, 0.88);
-    drawCurtain(C_C, h*0.14, h*0.58, 43, s*0.86, 0.55);
+    // subtle curtains
+    drawCurtain(C_TEAL, h*0.07, h*0.72, 11, s, 0.95);
+    drawCurtain(C_VIO,  h*0.10, h*0.66, 29, s*0.92, 0.78);
+    drawCurtain(C_MAG,  h*0.14, h*0.58, 43, s*0.86, 0.58);
 
     groundHaze();
     vignette();
@@ -398,7 +475,6 @@ function initAuroraBorealisBackground(){
     if (!prefersReduced) requestAnimationFrame(frame);
   }
 
-  // Ensure at least ONE paint even when reduced-motion is enabled
   if (prefersReduced) frame(performance.now());
   else requestAnimationFrame(frame);
 }
@@ -411,11 +487,11 @@ function initJellyfishSlowTricks(){
 
   var mqMobile = window.matchMedia ? window.matchMedia("(max-width: 1000px)") : { matches:false };
 
-  var size = { w: 96, h: 96 };
+  var size = { w: 88, h: 88 };
   function measure(){
     var r = jf.getBoundingClientRect();
-    size.w = r.width || 96;
-    size.h = r.height || 96;
+    size.w = r.width || 88;
+    size.h = r.height || 88;
   }
   function area(){
     if (mqMobile.matches) {
@@ -444,30 +520,31 @@ function initJellyfishSlowTricks(){
     var cx = a.pad + aw/2;
     var cy = a.pad + ah/2;
 
-    var t = secs * 0.14;
+    // slower roam
+    var t = secs * 0.11;
     var x = cx + (aw/2) * Math.sin(t);
-    var y = cy + (ah/2) * Math.sin(t * 0.73 + 1.2);
+    var y = cy + (ah/2) * Math.sin(t * 0.72 + 1.18);
 
     // slow “trick” loop
-    var cycle = 34;
-    var win = 7.0;
+    var cycle = 40;
+    var win = 7.8;
     var within = secs % cycle;
 
     var extraX = 0, extraY = 0, extraRot = 0, extraScale = 0;
     if (within < win){
       var p = within / win;
       var e = ease(p);
-      var loopR = Math.min(aw, ah) * 0.05;
+      var loopR = Math.min(aw, ah) * 0.045;
 
       extraX = loopR * Math.sin(e * Math.PI * 2);
       extraY = loopR * Math.cos(e * Math.PI * 2);
 
-      extraRot = e * 160;
-      extraScale = Math.sin(e * Math.PI) * 0.06;
+      extraRot = e * 140;
+      extraScale = Math.sin(e * Math.PI) * 0.05;
     }
 
-    var rot = (Math.sin(secs * 0.35) * 1.2) + extraRot;
-    var scl = 1 + (Math.sin(secs * 0.28) * 0.015) + extraScale;
+    var rot = (Math.sin(secs * 0.28) * 1.0) + extraRot;
+    var scl = 1 + (Math.sin(secs * 0.22) * 0.012) + extraScale;
 
     jf.style.transform =
       "translate3d(" + (x + extraX) + "px," + (y + extraY) + "px,0) rotate(" + rot + "deg) scale(" + scl + ")";
@@ -532,7 +609,7 @@ function initToolboardWires(){
       var glow = document.createElementNS("http://www.w3.org/2000/svg", "path");
       glow.setAttribute("d", "M " + A.x + " " + A.y + " Q " + cx + " " + cy + " " + B.x + " " + B.y);
       glow.setAttribute("fill", "none");
-      glow.setAttribute("stroke", "rgba(107,203,119,0.045)");
+      glow.setAttribute("stroke", "rgba(42,245,255,0.03)");
       glow.setAttribute("stroke-width", "4");
       glow.setAttribute("opacity", "0.55");
       glow.setAttribute("stroke-linecap", "round");
@@ -541,7 +618,7 @@ function initToolboardWires(){
       var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", "M " + A.x + " " + A.y + " Q " + cx + " " + cy + " " + B.x + " " + B.y);
       path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "rgba(245,245,245,0.09)");
+      path.setAttribute("stroke", "rgba(245,245,245,0.085)");
       path.setAttribute("stroke-width", "1.05");
       path.setAttribute("stroke-dasharray", "3 12");
       path.setAttribute("opacity", "0.80");
@@ -554,7 +631,7 @@ function initToolboardWires(){
   draw();
 }
 
-/* ========= Drawer / Sheet / Thumbs (same as before) ========= */
+/* ========= Drawer / Sheet / Thumbs ========= */
 function initDrawerInfiniteLoop(){
   var drawer = qs("#drawer");
   var meta = qs("#drawerMeta");
@@ -878,7 +955,7 @@ function drawGenerativeArt(canvas, seed, accentName) {
   var accent = getAccentColor(accentName);
 
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(10,10,10,0.92)";
+  ctx.fillStyle = "rgba(5,10,24,0.94)";
   ctx.fillRect(0, 0, w, h);
 
   var g = ctx.createLinearGradient(0, 0, w, h);
@@ -932,8 +1009,8 @@ function drawGenerativeArt(canvas, seed, accentName) {
   }
 
   var vg = ctx.createRadialGradient(w * 0.5, h * 0.5, 0, w * 0.5, h * 0.5, Math.max(w, h) * 0.65);
-  vg.addColorStop(0, "rgba(10,10,10,0)");
-  vg.addColorStop(1, "rgba(10,10,10,0.78)");
+  vg.addColorStop(0, "rgba(5,10,24,0)");
+  vg.addColorStop(1, "rgba(5,10,24,0.78)");
   ctx.fillStyle = vg;
   ctx.fillRect(0, 0, w, h);
 }
