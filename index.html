@@ -4,18 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#050A18" />
-  <title>Aakash Tomar</title>
+  <title>Aakash Tomar — Generative Art Studio</title>
   <link rel="stylesheet" href="assets/css/main.css" />
 </head>
 
 <body>
+  <!-- Aurora background -->
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
   <div class="grain-overlay" aria-hidden="true"></div>
 
+  <!-- Top navigation -->
   <header class="top-strip">
     <a class="brand" href="#home" aria-label="Go to top">
       <span class="brand__dot" aria-hidden="true"></span>
       <span class="brand__name">Aakash</span>
+      <span class="brand__tag mono">Generative Art Studio</span>
     </a>
 
     <nav class="top-nav" id="topNav" aria-label="Primary navigation">
@@ -84,6 +87,7 @@
   <main>
     <!-- HERO -->
     <section id="home" class="section hero" data-section>
+      <!-- roaming jellyfish -->
       <div id="jellyfish" class="jellyfish" aria-hidden="true">
         <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -120,23 +124,19 @@
 
       <div class="container hero__wrap">
         <div class="hero__content">
-          <p class="hero__kicker mono">GENERATIVE AI • DATA SCIENCE • BACKEND ENGINEERING</p>
-
           <h1 class="hero__name">
             Aakash <span class="accent accent--blue">Tomar</span>
           </h1>
 
           <p class="hero__tagline">
             Building reliable <span class="accent accent--coral">data systems</span> and
-            <span class="accent accent--blue">GenAI pipelines</span> —
-            performance, observability, clean automation.
+            <span class="accent accent--blue">GenAI pipelines</span> — performance, observability, clean automation.
           </p>
 
           <div class="hero__cta">
             <button class="btn btn--primary" type="button" data-scrollto="#impact">
               Enter studio <span aria-hidden="true">↳</span>
             </button>
-            <a class="btn btn--ghost" href="#projects">Projects</a>
           </div>
         </div>
       </div>
@@ -194,7 +194,7 @@
     <section id="techstack" class="section" data-section>
       <div class="container">
         <header class="section__head">
-          <h2 class="section__title">Tech Stack </h2>
+          <h2 class="section__title">Tech Stack Constellation</h2>
           <p class="section__sub">Clusters of capabilities — the skills are the foreground.</p>
         </header>
 
@@ -320,7 +320,7 @@
                 <li>Optimized queries + database design, reducing load by <b>30%</b> and improving API responsiveness.</li>
                 <li>Built realtime group chat via WebSockets; increased usage by <b>25%</b>.</li>
                 <li>Automated smart‑contract deployments + RabbitMQ pipelines via CRON; near‑<b>100%</b> delivery.</li>
-                <li>Mentored 2 junior devs; accelerated delivery by <b>20%</b>; earned 3 quarterly awards.</li>
+                <li>Mentored 2 junior devs; improved delivery velocity by <b>20%</b>; earned 3 quarterly awards.</li>
               </ul>
 
               <div class="chips">
@@ -344,6 +344,7 @@
         <header class="section__head section__head--row">
           <div>
             <h2 class="section__title">Projects</h2>
+            <!-- keep in DOM for JS; CSS can hide it -->
             <p class="section__sub mono" id="drawerMeta">
               INFINITE LOOP • 5s • CLICK TO PIN • DOUBLE‑CLICK FOR REPO
             </p>
@@ -357,6 +358,8 @@
 
         <div class="drawer-shell">
           <div class="drawer" id="drawer" aria-label="Projects drawer">
+
+            <!-- 1) Faster Diffusion (assets/img/1.webp) -->
             <article class="frame cut"
               data-title="Faster Diffusion"
               data-kind="Class project"
@@ -365,21 +368,18 @@
               data-repo="https://github.com/AakashKTo"
               data-accent="blue"
             >
-            <div class="frame__matte cut">
-  <img
-    class="thumb"
-    src="assets/img/1.webp"
-    alt="Faster Diffusion project preview"
-    loading="lazy"
-    decoding="async"
-  />
-  <div class="frame__corner mono">FD</div>
-</div>
-
               <div class="frame__matte cut">
-                <canvas class="thumb" data-seed="Faster Diffusion" aria-label="Generative thumbnail"></canvas>
+                <img
+                  class="thumb"
+                  src="assets/img/1.webp"
+                  alt="Faster Diffusion project preview"
+                  loading="lazy"
+                  decoding="async"
+                  style="object-fit:cover"
+                />
                 <div class="frame__corner mono">FD</div>
               </div>
+
               <div class="frame__info">
                 <div class="frame__top">
                   <h3 class="frame__title">Faster Diffusion</h3>
@@ -395,6 +395,7 @@
               </div>
             </article>
 
+            <!-- 2) Text Sentiment Analysis (assets/img/2.webp) -->
             <article class="frame cut"
               data-title="Text Sentiment Analysis"
               data-kind="Personal project"
@@ -403,31 +404,18 @@
               data-repo="https://github.com/AakashKTo"
               data-accent="coral"
             >
-            <div class="frame__matte cut">
-  <img
-    class="thumb"
-    src="assets/img/2.webp"
-    alt="Text Sentiment Analysis project preview"
-    loading="lazy"
-    decoding="async"
-  />
-  <div class="frame__corner mono">SA</div>
-</div>
-<div class="frame__matte cut">
-  <img
-    class="thumb"
-    src="assets/img/2.webp"
-    alt="Text Sentiment Analysis project preview"
-    loading="lazy"
-    decoding="async"
-  />
-  <div class="frame__corner mono">SA</div>
-</div>
-
               <div class="frame__matte cut">
-                <canvas class="thumb" data-seed="Text Sentiment Analysis" aria-label="Generative thumbnail"></canvas>
+                <img
+                  class="thumb"
+                  src="assets/img/2.webp"
+                  alt="Text Sentiment Analysis project preview"
+                  loading="lazy"
+                  decoding="async"
+                  style="object-fit:cover"
+                />
                 <div class="frame__corner mono">SA</div>
               </div>
+
               <div class="frame__info">
                 <div class="frame__top">
                   <h3 class="frame__title">Text Sentiment Analysis</h3>
@@ -443,6 +431,7 @@
               </div>
             </article>
 
+            <!-- 3) Slack Python Q&A Bot (assets/img/3.webp) -->
             <article class="frame cut"
               data-title="Slack Python Q&A Bot"
               data-kind="Personal project"
@@ -451,21 +440,18 @@
               data-repo="https://github.com/AakashKTo"
               data-accent="green"
             >
-            <div class="frame__matte cut">
-  <img
-    class="thumb"
-    src="assets/img/3.webp"
-    alt="Slack Python Q&A Bot project preview"
-    loading="lazy"
-    decoding="async"
-  />
-  <div class="frame__corner mono">QB</div>
-</div>
-
               <div class="frame__matte cut">
-                <canvas class="thumb" data-seed="Slack Python Q&A Bot" aria-label="Generative thumbnail"></canvas>
+                <img
+                  class="thumb"
+                  src="assets/img/3.webp"
+                  alt="Slack Python Q&A Bot project preview"
+                  loading="lazy"
+                  decoding="async"
+                  style="object-fit:cover"
+                />
                 <div class="frame__corner mono">QB</div>
               </div>
+
               <div class="frame__info">
                 <div class="frame__top">
                   <h3 class="frame__title">Slack Python Q&amp;A Bot</h3>
@@ -479,53 +465,44 @@
                   <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
                 </div>
               </div>
-            </article><!-- NEW PROJECT: Digital Assets Analytics Pipeline -->
-<article class="frame cut"
-  data-title="Digital Assets Analytics Pipeline"
-  data-kind="Data Engineering / Streaming"
-  data-desc="Portfolio-grade local-first streaming analytics pipeline for real-time digital asset market data: Kraken WebSocket → Kafka (Avro + schema registry) → PySpark Structured Streaming (OHLCV) → TimescaleDB/Postgres → dbt → Power BI (DirectQuery + auto refresh)."
-  data-tags="Kafka,Avro,Schema Registry,PySpark,Structured Streaming,TimescaleDB,Postgres,dbt,Power BI,WebSockets,Streaming Analytics"
-  data-repo="https://github.com/AII-projects/DigitalAssetsAnalyticsPipeline"
-  data-seed="digital-assets-analytics-pipeline"
-  data-accent="green">
+            </article>
 
-  <div class="frame__media">
-    <canvas class="thumb" data-seed="digital-assets-analytics-pipeline"></canvas>
-    <div class="frame__corner">DA</div>
-  </div>
-<div class="frame__matte cut">
-  <img
-    class="thumb"
-    src="assets/img/4.webp"
-    alt="Digital Assets Analytics Pipeline project preview"
-    loading="lazy"
-    decoding="async"
-  />
-  <div class="frame__corner mono">DA</div>
-</div>
+            <!-- 4) Digital Assets Analytics Pipeline (assets/img/4.webp) -->
+            <article class="frame cut"
+              data-title="Digital Assets Analytics Pipeline"
+              data-kind="Data Engineering / Streaming"
+              data-desc="Portfolio-grade local-first streaming analytics pipeline for real-time digital asset market data: Kraken WebSocket → Kafka (Avro + schema registry) → PySpark Structured Streaming (OHLCV) → TimescaleDB/Postgres → dbt → Power BI (DirectQuery + auto refresh)."
+              data-tags="Kafka,Avro,Schema Registry,PySpark,Structured Streaming,TimescaleDB,Postgres,dbt,Power BI,WebSockets,Streaming Analytics"
+              data-repo="https://github.com/AII-projects/DigitalAssetsAnalyticsPipeline"
+              data-accent="green"
+            >
+              <div class="frame__matte cut">
+                <img
+                  class="thumb"
+                  src="assets/img/4.webp"
+                  alt="Digital Assets Analytics Pipeline project preview"
+                  loading="lazy"
+                  decoding="async"
+                  style="object-fit:cover"
+                />
+                <div class="frame__corner mono">DA</div>
+              </div>
 
-  <div class="frame__body">
-    <div class="frame__head">
-      <h3 class="frame__title">Digital Assets Analytics Pipeline</h3>
-      <span class="badge">Streaming</span>
-    </div>
-
-    <p class="frame__desc">
-    </p>
-
-    <div class="chips">
-      <span class="chip">Kafka</span>
-      <span class="chip">PySpark</span>
-      <span class="chip">TimescaleDB</span>
-      <span class="chip">dbt</span>
-      <span class="chip">Power BI</span>
-    </div>
-
-    <div class="frame__actions">
-      <button class="btn btn--primary" data-open>Open exhibit</button>
-    </div>
-  </div>
-</article>
+              <div class="frame__info">
+                <div class="frame__top">
+                  <h3 class="frame__title">Digital Assets Analytics Pipeline</h3>
+                  <span class="badge mono">STREAMING</span>
+                </div>
+                <p class="frame__text">Kraken → Kafka (Avro) → PySpark → TimescaleDB → dbt → Power BI live terminal.</p>
+                <div class="chips">
+                  <span class="chip">Kafka</span><span class="chip">PySpark</span><span class="chip">TimescaleDB</span>
+                  <span class="chip">dbt</span><span class="chip">Power BI</span>
+                </div>
+                <div class="frame__actions">
+                  <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
+                </div>
+              </div>
+            </article>
 
           </div>
         </div>
