@@ -1143,3 +1143,165 @@ html.perf-low .grain-overlay{
   opacity: .07 !important;
   background-size: 260px 260px !important;
 }
+/* =========================================================
+   ALIGNMENT + CLEANUP FIXES (Mobile + Desktop)
+   Paste at the VERY END of main.css
+   ========================================================= */
+
+/* ----------------------------
+   (BOTH) 1) Remove big "random line" under Projects title
+   This is the drawer meta text line (#drawerMeta).
+   Keep it in DOM for JS, hide visually.
+---------------------------- */
+#drawerMeta{
+  display:none !important;
+}
+
+/* If the section separator line is what you meant (the thin rule),
+   remove it only for these sections. */
+#projects.section::before,
+#techstack.section::before{
+  content:none !important;
+}
+
+/* ----------------------------
+   (BOTH) 2) GPA right-aligned ALWAYS (desktop + mobile)
+   Fixes GPA pill alignment for both degrees.
+---------------------------- */
+.degree__meta{
+  display:grid !important;
+  grid-template-columns: 1fr auto !important;
+  align-items: center !important;
+  column-gap: 12px !important;
+}
+
+.degree__meta > span:first-child{
+  min-width: 0; /* allows left text to wrap without pushing GPA off-screen */
+}
+
+.degree__meta .pill{
+  justify-self: end !important;
+  text-align: center !important;
+}
+
+/* mobile: keep GPA at top-right even if left text wraps */
+@media (max-width: 760px){
+  .degree__meta{
+    align-items: start !important;
+    row-gap: 10px;
+  }
+  .degree__meta .pill{
+    align-self: start !important;
+  }
+}
+
+/* ----------------------------
+   (BOTH) 3) Remove "random lines" under Tech Stack blocks
+   These are the small mono note lines under chips.
+---------------------------- */
+.toolnode__note{
+  display:none !important;
+}
+
+/* Also make the skills pop more: slightly more opaque cards,
+   and make the constellation wires quieter. */
+.toolnode{
+  background: rgba(5,10,24,.86) !important;  /* was more see-through */
+}
+
+.toolboard__wires{
+  opacity: 0.09 !important;                 /* reduce "random line" feeling */
+}
+.toolboard:hover .toolboard__wires{
+  opacity: 0.14 !important;                 /* subtle interaction only */
+}
+
+/* =========================================================
+   MOBILE: Impact + Experience alignment / cut-off fixes
+   ========================================================= */
+
+/* --- MOBILE / TABLET: impact should be single clean column --- */
+@media (max-width: 980px){
+  .impact-ledger{
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .stamp{
+    grid-column: auto !important;
+    width: 100%;
+  }
+}
+
+/* --- PHONE: remove clip-path on these cards to stop edge cut-offs --- */
+@media (max-width: 760px){
+  /* Reduce aggressive corner cut on small screens */
+  :root{ --cut: 14px; }
+
+  /* Impact card: stop weird clipping on mobile */
+  .stamp.cut{
+    clip-path: none !important;
+    border-radius: 22px !important;
+  }
+  .stamp{
+    padding: 18px 18px 20px 18px !important;
+  }
+  .stamp__top{
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .stamp__value{
+    font-size: clamp(34px, 11vw, 46px) !important;
+    line-height: 1.0;
+  }
+  .stamp__desc{
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* Experience card: stop cut-offs and align summary cleanly */
+  .entry.cut{
+    clip-path: none !important;
+    border-radius: 22px !important;
+  }
+
+  /* Instead of stacking awkwardly, use a grid:
+     left (role/company) | right (date) */
+  .entry__summary{
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    align-items: start !important;
+    gap: 12px !important;
+    padding: 18px 18px !important;
+  }
+
+  .entry__left{ min-width: 0; }
+
+  .entry__right{
+    justify-self: end !important;
+    text-align: right !important;
+    white-space: normal !important;   /* no overflow */
+    max-width: 48vw;                  /* prevents pushing header off screen */
+    line-height: 1.35;
+  }
+
+  .entry__body{
+    padding: 0 18px 18px 18px !important;
+  }
+
+  .entry__bullets{
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+/* Ultra-small phones: allow date to drop under if needed */
+@media (max-width: 420px){
+  .entry__summary{
+    grid-template-columns: 1fr !important;
+  }
+  .entry__right{
+    max-width: none !important;
+    text-align: left !important;
+    justify-self: start !important;
+  }
+}
