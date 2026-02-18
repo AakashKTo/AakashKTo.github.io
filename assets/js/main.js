@@ -40,9 +40,61 @@ function unlockScroll(){
   de.style.setProperty("--sbw", "0px");
 }
 
+/* ========= Performance profile =========
+   - Auto low mode on weak devices
+   - Force with:
+       ?low=1  (forces low)
+       ?high=1 (forces high)
+   - Or localStorage:
+       localStorage.setItem('studioPerf','low'|'high')
+*/
+function getPerfProfile(){
+  var reduced = false;
+  try {
+    reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  } catch(e){}
+
+  var dm = 0, hc = 0, saveData = false;
+  try { dm = navigator.deviceMemory || 0; } catch(e){}
+  try { hc = navigator.hardwareConcurrency || 0; } catch(e){}
+  try { saveData = !!(navigator.connection && navigator.connection.saveData); } catch(e){}
+
+  var low = false;
+  if (reduced) low = true;
+  if (saveData) low = true;
+  if (dm && dm <= 4) low = true;
+  if (hc && hc <= 4) low = true;
+
+  // URL override
+  try {
+    var p = new URLSearchParams(location.search);
+    if (p.get("low") === "1") low = true;
+    if (p.get("high") === "1") low = false;
+  } catch(e){}
+
+  // localStorage override
+  try {
+    var stored = localStorage.getItem("studioPerf");
+    if (stored === "low") low = true;
+    if (stored === "high") low = false;
+  } catch(e){}
+
+  return { low: !!low, reduced: !!reduced };
+}
+
+function applyPerformanceProfile(){
+  var perf = getPerfProfile();
+  window.__STUDIO_PERF__ = perf;
+  document.documentElement.classList.toggle("perf-low", !!perf.low);
+  return perf;
+}
+
 /* ========= Boot ========= */
 document.addEventListener("DOMContentLoaded", function(){
   document.documentElement.classList.add("js");
+
+  // Apply perf profile BEFORE starting animations
+  var perf = applyPerformanceProfile();
 
   safe("scrollRestoration", function(){
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -69,7 +121,9 @@ document.addEventListener("DOMContentLoaded", function(){
   safe("drawerInfinite", function(){ drawerApi = initDrawerInfiniteLoop(); });
 
   safe("sheet", function(){ initExhibitSheet(drawerApi); });
-  safe("thumbs", initGenerativeThumbs);
+
+  // Lazy thumbnails: big initial-load win
+  safe("thumbs", initGenerativeThumbsLazy);
 });
 
 /* ========= Smooth scroll ========= */
@@ -182,13 +236,14 @@ function initTopNavSpyStable() {
   onScroll();
 }
 
-/* ========= Scroll-driven glass refraction (blur/sat pulse) ========= */
+/* ========= Scroll-driven glass refraction =========
+   Disabled in perf-low because backdrop-related effects can stall GPUs
+*/
 function initScrollGlassRefraction(){
+  var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
+  if (perf.low || perf.reduced) return;
+
   var root = document.documentElement;
-
-  var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (prefersReduced) return; // keep stable for reduced-motion users
-
   var baseBlur = 16;
   var baseSat = 1.16;
 
@@ -214,12 +269,11 @@ function initScrollGlassRefraction(){
     lastY = y;
     lastT = now;
 
-    // px/ms -> map to blur boost
     var v = dy / dt;
-    var boost = clamp(v * 180, 0, 10.5);
+    var boost = clamp(v * 160, 0, 9.0);
 
     tgtBlur = baseBlur + boost;
-    tgtSat = baseSat + boost * 0.012;
+    tgtSat = baseSat + boost * 0.010;
 
     if (!running){
       running = true;
@@ -228,13 +282,11 @@ function initScrollGlassRefraction(){
   }
 
   function tick(){
-    // ease toward target
     curBlur += (tgtBlur - curBlur) * 0.14;
     curSat  += (tgtSat  - curSat)  * 0.14;
 
-    // decay target back to base
-    tgtBlur += (baseBlur - tgtBlur) * 0.08;
-    tgtSat  += (baseSat  - tgtSat)  * 0.08;
+    tgtBlur += (baseBlur - tgtBlur) * 0.10;
+    tgtSat  += (baseSat  - tgtSat)  * 0.10;
 
     setVars();
 
@@ -257,44 +309,82 @@ function initScrollGlassRefraction(){
   setVars();
 }
 
-/* ========= Aurora Borealis background (deep navy + teal/violet/magenta) ========= */
+/* ========= Aurora Borealis background (optimized) ========= */
 function initAuroraBorealisBackground(){
   var canvas = qs("#bg-canvas");
   if (!canvas) return;
+
   var ctx = canvas.getContext("2d", { alpha:true });
   if (!ctx) return;
+
+  var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
+  var low = !!perf.low;
+  var reduced = !!perf.reduced;
 
   var rs = getComputedStyle(document.documentElement);
   var C_TEAL = (rs.getPropertyValue("--teal").trim() || "#2AF5FF");
   var C_VIO  = (rs.getPropertyValue("--violet").trim() || "#6D28D9");
   var C_MAG  = (rs.getPropertyValue("--magenta").trim() || "#FF4FD8");
 
-  var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var hasFilter = ("filter" in ctx);
 
-  var w=0,h=0,dpr=1;
+  var vw=0,vh=0,w=0,h=0,dpr=1,scale=1;
+  var fps = 30;
+  var last = 0;
+  var start = performance.now();
+  var running = true;
+
   var pointer = { x:0.5, y:0.5, tx:0.5, ty:0.5 };
 
+  // auto-degrade if frame time too slow
+  var slowScore = 0;
+
+  function applyQuality(){
+    perf = window.__STUDIO_PERF__ || perf;
+    low = !!perf.low;
+
+    // Big win: render at lower internal resolution
+    scale = low ? 0.55 : 0.75;
+    dpr = low ? 1 : Math.min(window.devicePixelRatio || 1, 1.35);
+    fps = low ? 18 : 30;
+  }
+
   function resize(){
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    w = Math.floor(window.innerWidth);
-    h = Math.floor(window.innerHeight);
-    canvas.width = Math.floor(w*dpr);
-    canvas.height = Math.floor(h*dpr);
-    canvas.style.width = w + "px";
-    canvas.style.height = h + "px";
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+    applyQuality();
+    vw = Math.floor(window.innerWidth);
+    vh = Math.floor(window.innerHeight);
+
+    w = Math.max(1, Math.floor(vw * scale));
+    h = Math.max(1, Math.floor(vh * scale));
+
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+
+    canvas.style.width = vw + "px";
+    canvas.style.height = vh + "px";
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     buildStars();
   }
 
   function onMove(e){
-    var x = (e.clientX || 0) / Math.max(1, w);
-    var y = (e.clientY || 0) / Math.max(1, h);
+    var x = (e.clientX || 0) / Math.max(1, vw);
+    var y = (e.clientY || 0) / Math.max(1, vh);
     pointer.tx = clamp(x, 0, 1);
     pointer.ty = clamp(y, 0, 1);
   }
 
   window.addEventListener("pointermove", onMove, { passive:true });
   window.addEventListener("mousemove", onMove, { passive:true });
+  window.addEventListener("resize", resize, { passive:true });
+
+  document.addEventListener("visibilitychange", function(){
+    running = !document.hidden;
+    if (running && !reduced) {
+      last = 0;
+      requestAnimationFrame(frame);
+    }
+  });
 
   function rand1(i, seed){
     var x = (i | 0) + (seed | 0) * 131;
@@ -312,9 +402,11 @@ function initAuroraBorealisBackground(){
     var u = smooth(f);
     return lerp(rand1(i0, seed), rand1(i1, seed), u);
   }
+
+  // fewer octaves than before (cheaper)
   function fbm1(x, seed){
     var sum = 0, amp = 0.55, freq = 1;
-    for (var o=0; o<5; o++){
+    for (var o=0; o<4; o++){
       sum += amp * noise1(x*freq, seed + o*17);
       amp *= 0.5;
       freq *= 2;
@@ -325,21 +417,23 @@ function initAuroraBorealisBackground(){
   var stars = [];
   function buildStars(){
     stars = [];
-    var count = Math.round((w*h) / 80000);
-    count = clamp(count, 45, 120);
+    var area = w*h;
+    var base = low ? 120000 : 90000;
+    var count = Math.round(area / base);
+    count = clamp(count, low ? 30 : 45, low ? 85 : 110);
+
     for (var i=0; i<count; i++){
       stars.push({
         x: Math.random()*w,
         y: Math.random()*(h*0.58),
-        r: 0.5 + Math.random()*1.3,
-        a: 0.06 + Math.random()*0.16,
+        r: 0.5 + Math.random()*1.2,
+        a: 0.05 + Math.random()*0.14,
         tw: Math.random()*6.28
       });
     }
   }
 
   function paintBase(){
-    // Deep navy base, almost black
     var bg = ctx.createLinearGradient(0,0,0,h);
     bg.addColorStop(0, "rgba(5,10,24,1)");
     bg.addColorStop(0.55, "rgba(4,8,20,1)");
@@ -363,31 +457,31 @@ function initAuroraBorealisBackground(){
   }
 
   function drawCurtain(color, baseY, baseH, seed, s, intensity){
-    var px = (pointer.x - 0.5) * 18;  // subtle parallax
-    var py = (pointer.y - 0.5) * 10;
+    var px = (pointer.x - 0.5) * (low ? 10 : 16);
+    var py = (pointer.y - 0.5) * (low ? 6 : 9);
 
-    var freq = 0.010;
-    var speed = 0.055;   // SLOW
-    var speed2 = 0.040;
+    var freq = 0.012;
+    var speed = 0.050;   // slow
+    var speed2 = 0.038;
 
-    var stepBlur = 11;
-    var stepFine = 7;
+    var stepBlur = low ? 20 : 14;
+    var stepFine = low ? 14 : 10;
 
     var g = ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0.00, hexToRgba(color, 0.00));
     g.addColorStop(clamp(baseY/h - 0.03, 0, 1), hexToRgba(color, 0.00));
-    g.addColorStop(clamp((baseY + baseH*0.18)/h, 0, 1), hexToRgba(color, 0.30*intensity));
+    g.addColorStop(clamp((baseY + baseH*0.18)/h, 0, 1), hexToRgba(color, 0.28*intensity));
     g.addColorStop(clamp((baseY + baseH*0.60)/h, 0, 1), hexToRgba(color, 0.12*intensity));
     g.addColorStop(clamp((baseY + baseH)/h, 0, 1), hexToRgba(color, 0.00));
 
-    // Bloom strands (blurred)
+    // ---- Pass 1: bloom strands (1 stroke total)
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     ctx.strokeStyle = g;
     ctx.lineCap = "round";
-    ctx.filter = "blur(16px)";
-    ctx.globalAlpha = 0.34 * intensity;
-    ctx.lineWidth = 12;
+    if (hasFilter) ctx.filter = "blur(" + (low ? 10 : 14) + "px)";
+    ctx.globalAlpha = (low ? 0.26 : 0.32) * intensity;
+    ctx.lineWidth = low ? 10 : 12;
 
     ctx.beginPath();
     for (var x=-22; x<=w+22; x+=stepBlur){
@@ -396,8 +490,8 @@ function initAuroraBorealisBackground(){
       var top = baseY + (n - 0.5) * (h*0.07) + py;
       var bottom = top + baseH + (n2 - 0.5) * (h*0.10);
 
-      top += Math.sin(s*0.18 + x*0.004) * 5 + px*0.12;
-      bottom += Math.cos(s*0.16 + x*0.003) * 7 + px*0.10;
+      top += Math.sin(s*0.18 + x*0.004) * 4 + px*0.12;
+      bottom += Math.cos(s*0.16 + x*0.003) * 6 + px*0.10;
 
       ctx.moveTo(x, top);
       ctx.lineTo(x, bottom);
@@ -405,33 +499,32 @@ function initAuroraBorealisBackground(){
     ctx.stroke();
     ctx.restore();
 
-    // Fine strands
+    // ---- Pass 2: fine strands (CHEAP: 1 stroke total, skipped in low mode)
+    if (low) return;
+
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     ctx.strokeStyle = g;
     ctx.lineCap = "round";
-    ctx.filter = "blur(2px)";
-    ctx.lineWidth = 4;
+    if (hasFilter) ctx.filter = "blur(1.2px)";
+    ctx.globalAlpha = 0.09 * intensity;
+    ctx.lineWidth = 3;
 
+    ctx.beginPath();
     for (var x2=-10; x2<=w+10; x2+=stepFine){
-      var m = fbm1(x2*freq*1.12 + s*(speed*1.15), seed+17);
-      var m2 = fbm1(x2*freq*0.86 + s*(speed2*1.10), seed+117);
+      var m = fbm1(x2*freq*1.10 + s*(speed*1.10), seed+17);
+      var m2 = fbm1(x2*freq*0.86 + s*(speed2*1.05), seed+117);
 
       var top2 = baseY + (m - 0.5) * (h*0.09) + py;
       var bottom2 = top2 + baseH + (m2 - 0.5) * (h*0.12);
 
-      top2 += Math.sin(s*0.20 + x2*0.0045) * 6 + px*0.12;
-      bottom2 += Math.cos(s*0.18 + x2*0.0038) * 10 + px*0.10;
+      top2 += Math.sin(s*0.20 + x2*0.0045) * 5 + px*0.12;
+      bottom2 += Math.cos(s*0.18 + x2*0.0038) * 8 + px*0.10;
 
-      var strand = 0.05 + 0.10 * m;
-      ctx.globalAlpha = strand * intensity;
-
-      ctx.beginPath();
       ctx.moveTo(x2, top2);
       ctx.lineTo(x2, bottom2);
-      ctx.stroke();
     }
-
+    ctx.stroke();
     ctx.restore();
   }
 
@@ -451,11 +544,7 @@ function initAuroraBorealisBackground(){
     ctx.fillRect(0, h*0.55, w, h*0.45);
   }
 
-  resize();
-  window.addEventListener("resize", resize, { passive:true });
-
-  var start = performance.now();
-  function frame(now){
+  function render(now){
     var s = (now - start) / 1000;
 
     pointer.x += (pointer.tx - pointer.x) * 0.05;
@@ -464,27 +553,68 @@ function initAuroraBorealisBackground(){
     paintBase();
     drawStars(s);
 
-    // subtle curtains
-    drawCurtain(C_TEAL, h*0.07, h*0.72, 11, s, 0.95);
-    drawCurtain(C_VIO,  h*0.10, h*0.66, 29, s*0.92, 0.78);
-    drawCurtain(C_MAG,  h*0.14, h*0.58, 43, s*0.86, 0.58);
+    drawCurtain(C_TEAL, h*0.07, h*0.72, 11, s, 0.92);
+    drawCurtain(C_VIO,  h*0.10, h*0.66, 29, s*0.92, 0.76);
+    drawCurtain(C_MAG,  h*0.14, h*0.58, 43, s*0.86, 0.56);
 
     groundHaze();
     vignette();
-
-    if (!prefersReduced) requestAnimationFrame(frame);
   }
 
-  if (prefersReduced) frame(performance.now());
-  else requestAnimationFrame(frame);
+  function frame(now){
+    if (!running) return;
+
+    if (reduced){
+      render(now);
+      return;
+    }
+
+    // FPS cap
+    var minDt = 1000 / fps;
+    if (last && (now - last) < minDt){
+      requestAnimationFrame(frame);
+      return;
+    }
+
+    var dt = last ? (now - last) : minDt;
+    last = now;
+
+    // Auto-degrade if too slow while in high mode
+    if (!low && dt > 80) slowScore++;
+    else slowScore = Math.max(0, slowScore - 1);
+
+    if (!low && slowScore > 25){
+      // flip to low perf mode
+      var perf2 = window.__STUDIO_PERF__ || { low:false, reduced:false };
+      perf2.low = true;
+      window.__STUDIO_PERF__ = perf2;
+      document.documentElement.classList.add("perf-low");
+      low = true;
+      slowScore = 0;
+      resize();
+    }
+
+    render(now);
+    requestAnimationFrame(frame);
+  }
+
+  resize();
+
+  // If reduced-motion: draw once and stop (fast + accessible)
+  if (reduced) {
+    frame(performance.now());
+  } else {
+    requestAnimationFrame(frame);
+  }
 }
 
-/* ========= Jellyfish smaller + slow tricks ========= */
+/* ========= Jellyfish smaller + slow (throttled FPS) ========= */
 function initJellyfishSlowTricks(){
   var jf = qs("#jellyfish");
   var hero = qs("#home");
   if (!jf || !hero) return;
 
+  var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
   var mqMobile = window.matchMedia ? window.matchMedia("(max-width: 1000px)") : { matches:false };
 
   var size = { w: 88, h: 88 };
@@ -507,10 +637,20 @@ function initJellyfishSlowTricks(){
   measure();
   window.addEventListener("resize", function(){ measure(); }, { passive:true });
 
+  var fps = perf.low ? 20 : 30;
+  var last = 0;
+
   var start = performance.now();
   function ease(t){ return t*t*(3-2*t); }
 
   function tick(now){
+    var minDt = 1000 / fps;
+    if (last && (now - last) < minDt){
+      requestAnimationFrame(tick);
+      return;
+    }
+    last = now;
+
     var secs = (now - start) / 1000;
     var a = area();
 
@@ -520,12 +660,11 @@ function initJellyfishSlowTricks(){
     var cx = a.pad + aw/2;
     var cy = a.pad + ah/2;
 
-    // slower roam
     var t = secs * 0.11;
     var x = cx + (aw/2) * Math.sin(t);
     var y = cy + (ah/2) * Math.sin(t * 0.72 + 1.18);
 
-    // slow “trick” loop
+    // very slow "trick"
     var cycle = 40;
     var win = 7.8;
     var within = secs % cycle;
@@ -899,23 +1038,54 @@ function initExhibitSheet(drawerApi) {
   });
 }
 
-function initGenerativeThumbs(){
-  function drawAll(){
-    qsa("canvas.thumb").forEach(function(c){
-      var seed = c.getAttribute("data-seed") || "thumb";
-      var frame = c.closest ? c.closest(".frame") : null;
-      var accent = frame ? (frame.getAttribute("data-accent") || "blue") : "blue";
-      drawGenerativeArt(c, seed, accent);
-    });
+/* ========= Lazy thumbnails (only render near viewport) ========= */
+function initGenerativeThumbsLazy(){
+  var canvases = qsa("canvas.thumb");
+  if (!canvases.length) return;
+
+  function renderCanvas(c){
+    if (c.__rendered) return;
+    c.__rendered = true;
+    var seed = c.getAttribute("data-seed") || "thumb";
+    var frame = c.closest ? c.closest(".frame") : null;
+    var accent = frame ? (frame.getAttribute("data-accent") || "blue") : "blue";
+    drawGenerativeArt(c, seed, accent);
   }
 
-  drawAll();
+  // Fallback if IO not supported
+  if (!("IntersectionObserver" in window)){
+    canvases.forEach(renderCanvas);
+    return;
+  }
+
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting){
+        renderCanvas(entry.target);
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { root: null, rootMargin: "220px 0px", threshold: 0.01 });
+
+  canvases.forEach(function(c){ obs.observe(c); });
+
+  // Re-render on resize (only those already rendered)
   window.addEventListener("resize", function(){
-    clearTimeout(initGenerativeThumbs._t);
-    initGenerativeThumbs._t = setTimeout(drawAll, 120);
+    clearTimeout(initGenerativeThumbsLazy._t);
+    initGenerativeThumbsLazy._t = setTimeout(function(){
+      canvases.forEach(function(c){
+        if (c.__rendered) {
+          var seed = c.getAttribute("data-seed") || "thumb";
+          var frame = c.closest ? c.closest(".frame") : null;
+          var accent = frame ? (frame.getAttribute("data-accent") || "blue") : "blue";
+          drawGenerativeArt(c, seed, accent);
+        }
+      });
+    }, 140);
   }, { passive:true });
 }
 
+/* ========= Generative art ========= */
 function hashString(str) {
   var h = 2166136261;
   for (var i = 0; i < str.length; i++) {
@@ -943,7 +1113,10 @@ function drawGenerativeArt(canvas, seed, accentName) {
   var ctx = canvas.getContext("2d");
   if (!ctx) return;
 
-  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
+  var low = !!perf.low;
+
+  var dpr = Math.min(window.devicePixelRatio || 1, low ? 1.25 : 2);
   var w = Math.max(1, canvas.clientWidth || 640);
   var h = Math.max(1, canvas.clientHeight || 360);
 
@@ -964,7 +1137,7 @@ function drawGenerativeArt(canvas, seed, accentName) {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, w, h);
 
-  var arcs = 10 + Math.floor(r() * 10);
+  var arcs = (low ? 8 : 10) + Math.floor(r() * (low ? 6 : 10));
   for (var j = 0; j < arcs; j++) {
     var cx = r() * w;
     var cy = r() * h;
@@ -973,7 +1146,7 @@ function drawGenerativeArt(canvas, seed, accentName) {
     var end = start + (0.4 + r() * 1.6);
 
     ctx.strokeStyle = (j % 2 === 0)
-      ? hexToRgba(accent, 0.20 + r() * 0.14)
+      ? hexToRgba(accent, 0.18 + r() * 0.12)
       : "rgba(245,245,245," + (0.06 + r() * 0.09) + ")";
 
     ctx.lineWidth = 1 + r() * 2;
@@ -982,21 +1155,21 @@ function drawGenerativeArt(canvas, seed, accentName) {
     ctx.stroke();
   }
 
-  var nodes = 24 + Math.floor(r() * 22);
+  var nodes = (low ? 18 : 24) + Math.floor(r() * (low ? 14 : 22));
   for (var k = 0; k < nodes; k++) {
     var x = r() * w;
     var y = r() * h;
-    var rr = 1.5 + r() * 3.8;
+    var rr = 1.5 + r() * 3.4;
 
     ctx.fillStyle = (k % 5 === 0)
-      ? hexToRgba(accent, 0.55)
-      : "rgba(245,245,245," + (0.10 + r() * 0.20) + ")";
+      ? hexToRgba(accent, 0.50)
+      : "rgba(245,245,245," + (0.10 + r() * 0.18) + ")";
 
     ctx.beginPath();
     ctx.arc(x, y, rr, 0, Math.PI * 2);
     ctx.fill();
 
-    if (k % 6 === 0) {
+    if (!low && k % 6 === 0) {
       var x2 = clamp(x + (r() - 0.5) * w * 0.35, 0, w);
       var y2 = clamp(y + (r() - 0.5) * h * 0.35, 0, h);
       ctx.strokeStyle = "rgba(245,245,245," + (0.05 + r() * 0.08) + ")";

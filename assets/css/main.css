@@ -1086,3 +1086,60 @@ body.nav-open .nav-scrim{ display:block; }
   .sheet__content{ grid-template-columns: 1fr; }
   .sheet__panel{ left: 18px; right: 18px; width: auto; }
 }
+/* =========================================================
+   PERFORMANCE MODE (auto): makes site run on weaker systems
+   ========================================================= */
+
+/* When perf-low is active, we reduce GPU-expensive effects */
+html.perf-low{
+  --glass-blur: 10px;
+  --glass-sat: 1.05;
+  --glass-contrast: 1.02;
+}
+
+/* Kill backdrop-filter everywhere in perf-low (biggest win) */
+html.perf-low .top-strip,
+html.perf-low .top-nav,
+html.perf-low .stamp,
+html.perf-low .toolboard,
+html.perf-low .toolnode,
+html.perf-low .mini,
+html.perf-low .degree,
+html.perf-low .entry,
+html.perf-low .frame,
+html.perf-low .icon-tile::before,
+html.perf-low .sheet__panel,
+html.perf-low .sheet__overlay,
+html.perf-low .footer{
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Reduce large shadows in perf-low (also helps on weak GPUs) */
+html.perf-low .stamp,
+html.perf-low .toolnode,
+html.perf-low .degree,
+html.perf-low .entry,
+html.perf-low .frame,
+html.perf-low .sheet__panel{
+  box-shadow: 0 14px 36px rgba(0,0,0,.55) !important;
+}
+
+/* Stop the animated nav shimmer in perf-low */
+html.perf-low .top-nav::after{
+  animation: none !important;
+  opacity: .14 !important;
+}
+
+/* Reduce blend/filter on jellyfish in perf-low */
+html.perf-low .jellyfish{
+  mix-blend-mode: normal !important;
+  filter: none !important;
+  opacity: .45 !important;
+}
+
+/* Slightly reduce grain overlay cost */
+html.perf-low .grain-overlay{
+  opacity: .07 !important;
+  background-size: 260px 260px !important;
+}
