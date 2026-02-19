@@ -181,28 +181,12 @@
     <!-- TECH STACK -->
     <section id="techstack" class="section" data-section>
       <div class="container">
-        <header class="section__head section__head--row">
-          <div>
-            <h2 class="section__title">Tech Stack</h2>
-            <p class="section__sub">Hover a cluster to see relationships. Skills stay in the foreground.</p>
-          </div>
-
-          <button class="rel-toggle" id="wiresToggle" type="button" aria-pressed="false">
-            <svg class="rel-toggle__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M7 12h10" stroke="rgba(245,245,245,.72)" stroke-width="1.6" stroke-linecap="round"/>
-              <path d="M12 7l5 5" stroke="rgba(245,245,245,.55)" stroke-width="1.6" stroke-linecap="round"/>
-              <path d="M12 7l-5 5" stroke="rgba(245,245,245,.55)" stroke-width="1.6" stroke-linecap="round"/>
-              <circle cx="12" cy="7" r="2" stroke="rgba(245,245,245,.85)" stroke-width="1.6"/>
-              <circle cx="7" cy="12" r="2" stroke="rgba(42,245,255,.70)" stroke-width="1.6"/>
-              <circle cx="17" cy="12" r="2" stroke="rgba(255,79,216,.55)" stroke-width="1.6"/>
-            </svg>
-            <span class="rel-toggle__text mono">Relationships</span>
-          </button>
+        <header class="section__head">
+          <h2 class="section__title">Tech Stack</h2>
+          <p class="section__sub">Hover a cluster to focus. Skills stay in the foreground.</p>
         </header>
 
         <div class="toolboard" id="toolboardBox">
-          <svg class="toolboard__wires" id="toolboardWires" aria-hidden="true"></svg>
-
           <article class="toolnode cut" data-node="backend" data-accent="coral">
             <h3 class="toolnode__title"><span class="dot dot--coral"></span> Backend</h3>
             <div class="chips">
@@ -353,8 +337,6 @@
 
         <div class="drawer-shell">
           <div class="drawer" id="drawer" aria-label="Projects drawer">
-
-            <!-- 1 -->
             <article class="frame cut"
               data-title="Faster Diffusion"
               data-kind="Class Project"
@@ -383,7 +365,6 @@
               </div>
             </article>
 
-            <!-- 2 -->
             <article class="frame cut"
               data-title="Text Sentiment Analysis"
               data-kind="Personal Project"
@@ -412,7 +393,6 @@
               </div>
             </article>
 
-            <!-- 3 -->
             <article class="frame cut"
               data-title="Slack Python Q&amp;A Bot"
               data-kind="Personal Project"
@@ -441,7 +421,6 @@
               </div>
             </article>
 
-            <!-- 4 -->
             <article class="frame cut"
               data-title="Digital Assets Analytics Pipeline"
               data-kind="Data Engineering / Streaming"

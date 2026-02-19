@@ -1,25 +1,13 @@
 /* =========================================================
-   AAKASH — main.js
-   Fixes:
-   - Relationships toggle always works + forces redraw
-   - Jellyfish always moves (even under reduced-motion; just slower)
-   - Safe init wrappers (one error won’t kill everything)
+   AAKASH — main.js (simplified)
+   - REMOVED relationships system entirely
+   - Jellyfish follows cursor / touch (slow + floaty)
    ========================================================= */
 
 function qs(sel, el){ return (el || document).querySelector(sel); }
 function qsa(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
 function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 
-/* Constellation pairs */
-var TOOLBOARD_PAIRS = [
-  ["backend", "genai"],
-  ["backend", "data"],
-  ["data", "cloud"],
-  ["cloud", "genai"],
-  ["genai", "core"]
-];
-
-/* Scroll lock (modal) */
 function lockScroll(){
   var de = document.documentElement;
   var sbw = (window.innerWidth || 0) - (de.clientWidth || 0);
@@ -63,7 +51,6 @@ function applyPerformanceProfile(){
   return perf;
 }
 
-/* Sync fixed header height */
 function syncTopbarHeight(){
   var bar = document.getElementById("topStrip") || document.querySelector(".top-strip");
   if (!bar) return;
@@ -77,13 +64,10 @@ function safeInit(name, fn){
   catch (e) { console.warn("[init failed]", name, e); }
 }
 
-/* =========================================================
-   INIT
-   ========================================================= */
 document.addEventListener("DOMContentLoaded", function(){
   applyPerformanceProfile();
 
-  // Stop weird auto-scroll behavior
+  // stop weird auto-scroll behavior
   try {
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     if (!location.hash) window.scrollTo(0, 0);
@@ -101,11 +85,11 @@ document.addEventListener("DOMContentLoaded", function(){
   safeInit("nav spy", initNavSpyFixStuck);
 
   safeInit("aurora", initAuroraBorealisDepth);
-  safeInit("jellyfish", initJellyfishSlow);
 
-  safeInit("toolboard wires", initToolboardWires);
-  safeInit("toolboard lens/toggle", initToolboardLensAndToggle);
+  // Jellyfish follows cursor / touch
+  safeInit("jellyfish follow", initJellyfishFollowPointer);
 
+  safeInit("toolboard focus lens", initToolboardFocusLens);
   var drawerApi = null;
   safeInit("drawer", function(){ drawerApi = initDrawerInfinite(); });
   safeInit("sheet", function(){ initExhibitSheet(drawerApi); });
@@ -244,7 +228,7 @@ function initNavSpyFixStuck(){
     });
   });
 
-  // Polling fallback (prevents “stuck after click” on some machines)
+  // Poll fallback
   var poll = setInterval(update, 250);
   document.addEventListener("visibilitychange", function(){
     if (document.hidden){
@@ -260,7 +244,137 @@ function initNavSpyFixStuck(){
 }
 
 /* =========================================================
+   TOOLBOARD FOCUS LENS (no relationships)
+   ========================================================= */
+function initToolboardFocusLens(){
+  var box = document.getElementById("toolboardBox") || document.querySelector(".toolboard");
+  if (!box) return;
+
+  var fine = false;
+  try { fine = window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches; } catch(e){}
+  if (!fine) return;
+
+  var nodes = Array.from(box.querySelectorAll(".toolnode"));
+  if (!nodes.length) return;
+
+  function clear(){
+    box.classList.remove("is-focusing");
+    nodes.forEach(function(n){ n.classList.remove("is-focus"); });
+  }
+
+  nodes.forEach(function(n){
+    n.addEventListener("mouseenter", function(){
+      box.classList.add("is-focusing");
+      nodes.forEach(function(x){ x.classList.toggle("is-focus", x === n); });
+    });
+    n.addEventListener("focusin", function(){
+      box.classList.add("is-focusing");
+      nodes.forEach(function(x){ x.classList.toggle("is-focus", x === n); });
+    });
+  });
+
+  box.addEventListener("pointerleave", clear);
+  box.addEventListener("mouseleave", clear);
+}
+
+/* =========================================================
+   JELLYFISH — follow cursor/touch slowly
+   ========================================================= */
+function initJellyfishFollowPointer(){
+  var jf = qs("#jellyfish");
+  if (!jf) return;
+
+  // tell CSS fallback to stop
+  document.body.classList.add("jf-live");
+
+  var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
+  var reduced = !!perf.reduced;
+
+  // speeds: always moves, reduced motion just slower
+  var follow = reduced ? 0.020 : 0.035;   // lerp factor (smaller = slower)
+  var float = reduced ? 0.22 : 0.36;      // gentle bob speed
+
+  // size is known in CSS; keep consistent
+  var size = 86;
+  var pad = 10;
+
+  // start near bottom-right-ish
+  var pos = { x: window.innerWidth - size - 30, y: window.innerHeight - size - 120 };
+  var target = { x: pos.x, y: pos.y };
+
+  // last pointer time so we can drift a bit if idle
+  var lastMove = performance.now();
+
+  function clampTarget(){
+    var maxX = Math.max(pad, window.innerWidth - size - pad);
+    var maxY = Math.max(pad, window.innerHeight - size - pad);
+    target.x = clamp(target.x, pad, maxX);
+    target.y = clamp(target.y, pad, maxY);
+  }
+
+  function setTargetFromClient(x, y){
+    // center jellyfish on pointer
+    target.x = x - size * 0.50;
+    target.y = y - size * 0.52;
+    clampTarget();
+    lastMove = performance.now();
+  }
+
+  // Desktop pointer tracking
+  window.addEventListener("mousemove", function(e){
+    setTargetFromClient(e.clientX, e.clientY);
+  }, { passive:true });
+
+  // Touch tracking (moves toward finger while touching)
+  window.addEventListener("touchstart", function(e){
+    if (!e.touches || !e.touches[0]) return;
+    setTargetFromClient(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive:true });
+
+  window.addEventListener("touchmove", function(e){
+    if (!e.touches || !e.touches[0]) return;
+    setTargetFromClient(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive:true });
+
+  window.addEventListener("resize", function(){
+    clampTarget();
+    pos.x = clamp(pos.x, pad, Math.max(pad, window.innerWidth - size - pad));
+    pos.y = clamp(pos.y, pad, Math.max(pad, window.innerHeight - size - pad));
+  }, { passive:true });
+
+  var start = performance.now();
+
+  function tick(now){
+    var t = (now - start) / 1000;
+
+    // If idle (no mouse move), very gently drift around the last target
+    var idle = (now - lastMove) > 1200;
+    var driftX = idle ? Math.sin(t * float) * 8 : 0;
+    var driftY = idle ? Math.cos(t * float * 0.9) * 7 : 0;
+
+    var tx = target.x + driftX;
+    var ty = target.y + driftY;
+
+    // Smooth follow
+    pos.x += (tx - pos.x) * follow;
+    pos.y += (ty - pos.y) * follow;
+
+    // subtle "swim" rotation
+    var rot = Math.sin(t * (reduced ? 0.35 : 0.55)) * 2.0;
+    var scl = 1 + Math.sin(t * (reduced ? 0.28 : 0.40)) * 0.010;
+
+    jf.style.transform =
+      "translate3d(" + pos.x.toFixed(2) + "px," + pos.y.toFixed(2) + "px,0) rotate(" + rot.toFixed(2) + "deg) scale(" + scl.toFixed(4) + ")";
+
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+/* =========================================================
    AURORA — depth layers + dust (optimized)
+   (unchanged from your last working version)
    ========================================================= */
 function initAuroraBorealisDepth(){
   var canvas = qs("#bg-canvas");
@@ -402,7 +516,7 @@ function initAuroraBorealisDepth(){
       dust.push({
         x: Math.random()*w,
         y: Math.random()*h,
-        vy: (low ? 4 : 5) + Math.random() * (low ? 6 : 10),   // px/s internal
+        vy: (low ? 4 : 5) + Math.random() * (low ? 6 : 10),
         vx: (-1 + Math.random()*2) * (low ? 0.8 : 1.2),
         r: 0.4 + Math.random()*1.1,
         a: 0.015 + Math.random()*0.035,
@@ -521,7 +635,6 @@ function initAuroraBorealisDepth(){
     paintBase();
     drawStars(s);
 
-    // Layer 1 wide
     drawCurtainLayer(C_TEAL, h*0.02, h*0.80, 11, s*0.92, 1.0, {
       blur: low ? 10 : 16,
       lineWidth: low ? 14 : 18,
@@ -534,7 +647,6 @@ function initAuroraBorealisDepth(){
       freq: 0.010
     });
 
-    // Layer 2 mid
     drawCurtainLayer(C_VIO, h*0.08, h*0.68, 29, s*1.05, 0.85, {
       blur: low ? 8 : 12,
       lineWidth: low ? 10 : 12,
@@ -559,7 +671,6 @@ function initAuroraBorealisDepth(){
       freq: 0.012
     });
 
-    // Layer 3 faint banding (only high perf)
     if (!low){
       drawCurtainLayer(C_TEAL, h*0.05, h*0.82, 71, s*1.10, 0.55, {
         blur: 0,
@@ -592,7 +703,6 @@ function initAuroraBorealisDepth(){
     var dt = last ? (now - last) : minDt;
     last = now;
 
-    // auto degrade if too slow
     if (!low && dt > 85) slowScore++;
     else slowScore = Math.max(0, slowScore - 1);
 
@@ -611,297 +721,6 @@ function initAuroraBorealisDepth(){
 
   resize();
   requestAnimationFrame(frame);
-}
-
-/* =========================================================
-   JELLYFISH — ALWAYS moves (reduced motion => extra slow)
-   ========================================================= */
-function initJellyfishSlow(){
-  var jf = qs("#jellyfish");
-  var hero = qs("#home");
-  if (!jf || !hero) return;
-
-  var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
-  var reduced = !!perf.reduced;
-
-  var mqMobile = window.matchMedia ? window.matchMedia("(max-width: 1000px)") : { matches:false };
-
-  function area(){
-    if (mqMobile.matches) {
-      return {
-        w: Math.min(hero.clientWidth || window.innerWidth, window.innerWidth),
-        h: Math.min(hero.clientHeight || window.innerHeight, window.innerHeight),
-        pad: 12
-      };
-    }
-    return { w: window.innerWidth, h: window.innerHeight, pad: 12 };
-  }
-
-  var fps = perf.low ? 20 : 30;
-  var last = 0;
-  var start = performance.now();
-
-  function ease(t){ return t*t*(3-2*t); }
-
-  function tick(now){
-    var minDt = 1000 / fps;
-    if (last && (now - last) < minDt){
-      requestAnimationFrame(tick);
-      return;
-    }
-    last = now;
-
-    var secs = (now - start) / 1000;
-
-    // If user has reduced motion enabled, keep movement BUT extremely slow + smaller.
-    var speedMul = reduced ? 0.35 : 1.0;
-    var ampMul = reduced ? 0.55 : 1.0;
-
-    var a = area();
-    var size = 86;
-    var aw = Math.max(0, a.w - size - 2*a.pad);
-    var ah = Math.max(0, a.h - size - 2*a.pad);
-
-    var cx = a.pad + aw/2;
-    var cy = a.pad + ah/2;
-
-    // slow roam
-    var t = secs * 0.11 * speedMul;
-    var x = cx + (aw/2) * Math.sin(t) * ampMul;
-    var y = cy + (ah/2) * Math.sin(t * 0.72 + 1.18) * ampMul;
-
-    // slow trick (rare)
-    var cycle = 40 / speedMul;
-    var win = 7.8 / speedMul;
-    var within = secs % cycle;
-
-    var extraX = 0, extraY = 0, extraRot = 0, extraScale = 0;
-    if (within < win && !reduced){
-      var p = within / win;
-      var e = ease(p);
-      var loopR = Math.min(aw, ah) * 0.045;
-      extraX = loopR * Math.sin(e * Math.PI * 2);
-      extraY = loopR * Math.cos(e * Math.PI * 2);
-      extraRot = e * 140;
-      extraScale = Math.sin(e * Math.PI) * 0.05;
-    }
-
-    var rot = (Math.sin(secs * 0.28 * speedMul) * 1.0) + extraRot;
-    var scl = 1 + (Math.sin(secs * 0.22 * speedMul) * 0.012) + extraScale;
-
-    jf.style.transform =
-      "translate3d(" + (x + extraX) + "px," + (y + extraY) + "px,0) rotate(" + rot + "deg) scale(" + scl + ")";
-
-    requestAnimationFrame(tick);
-  }
-
-  requestAnimationFrame(tick);
-}
-
-/* =========================================================
-   TOOLBOARD WIRES (ROBUST + redraw)
-   ========================================================= */
-function initToolboardWires(){
-  var box = document.getElementById("toolboardBox") || document.querySelector(".toolboard");
-  if (!box) return;
-
-  // If already set up, just redraw
-  if (box.__wiresReady) {
-    if (typeof box.__drawWires === "function") box.__drawWires();
-    return;
-  }
-  box.__wiresReady = true;
-
-  var svg = document.getElementById("toolboardWires") || box.querySelector("svg.toolboard__wires");
-  if (!svg){
-    svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.classList.add("toolboard__wires");
-    svg.setAttribute("id", "toolboardWires");
-    svg.setAttribute("aria-hidden", "true");
-    box.insertBefore(svg, box.firstChild);
-  }
-
-  var nodes = Array.from(box.querySelectorAll(".toolnode"));
-  if (!nodes.length) return;
-
-  function findNode(name){
-    for (var i=0;i<nodes.length;i++){
-      if (nodes[i].getAttribute("data-node") === name) return nodes[i];
-    }
-    return null;
-  }
-
-  function centerOf(el){
-    var r = el.getBoundingClientRect();
-    var br = box.getBoundingClientRect();
-    return {
-      x: (r.left - br.left) + r.width/2,
-      y: (r.top - br.top) + r.height/2
-    };
-  }
-
-  function draw(){
-    var br = box.getBoundingClientRect();
-    if (br.width < 10 || br.height < 10) return;
-
-    svg.setAttribute("viewBox", "0 0 " + br.width + " " + br.height);
-    svg.setAttribute("width", String(br.width));
-    svg.setAttribute("height", String(br.height));
-    svg.innerHTML = "";
-
-    var defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-    var grad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
-    grad.setAttribute("id", "wireGrad");
-    grad.setAttribute("x1", "0"); grad.setAttribute("y1", "0");
-    grad.setAttribute("x2", "1"); grad.setAttribute("y2", "1");
-
-    function stop(off, col){
-      var s = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-      s.setAttribute("offset", off);
-      s.setAttribute("stop-color", col);
-      return s;
-    }
-    grad.appendChild(stop("0%", "rgba(42,245,255,0.28)"));
-    grad.appendChild(stop("50%", "rgba(109,40,217,0.22)"));
-    grad.appendChild(stop("100%", "rgba(255,79,216,0.18)"));
-    defs.appendChild(grad);
-    svg.appendChild(defs);
-
-    for (var i=0;i<TOOLBOARD_PAIRS.length;i++){
-      var a = TOOLBOARD_PAIRS[i][0], b = TOOLBOARD_PAIRS[i][1];
-      var na = findNode(a), nb = findNode(b);
-      if (!na || !nb) continue;
-
-      var A = centerOf(na);
-      var B = centerOf(nb);
-
-      var midX = (A.x + B.x)/2;
-      var midY = (A.y + B.y)/2;
-
-      var bend = 22;
-      var cx = midX + (Math.sin((A.x + B.x) * 0.01) * bend);
-      var cy = midY + (Math.cos((A.y + B.y) * 0.01) * bend);
-
-      var glow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      glow.setAttribute("class", "wire-glow");
-      glow.setAttribute("data-from", a);
-      glow.setAttribute("data-to", b);
-      glow.setAttribute("d", "M " + A.x + " " + A.y + " Q " + cx + " " + cy + " " + B.x + " " + B.y);
-      glow.setAttribute("fill", "none");
-      glow.setAttribute("stroke", "url(#wireGrad)");
-      glow.setAttribute("stroke-width", "6");
-      glow.setAttribute("stroke-linecap", "round");
-      svg.appendChild(glow);
-
-      var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("class", "wire");
-      path.setAttribute("data-from", a);
-      path.setAttribute("data-to", b);
-      path.setAttribute("d", "M " + A.x + " " + A.y + " Q " + cx + " " + cy + " " + B.x + " " + B.y);
-      path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "rgba(245,245,245,0.22)");
-      path.setAttribute("stroke-width", "1.35");
-      path.setAttribute("stroke-dasharray", "4 10");
-      path.setAttribute("stroke-linecap", "round");
-      svg.appendChild(path);
-    }
-  }
-
-  box.__drawWires = draw;
-
-  if (window.ResizeObserver){
-    box.__wiresRO = new ResizeObserver(function(){
-      requestAnimationFrame(draw);
-    });
-    box.__wiresRO.observe(box);
-  }
-
-  window.addEventListener("load", function(){ requestAnimationFrame(draw); });
-  window.addEventListener("resize", function(){ requestAnimationFrame(draw); }, { passive:true });
-
-  requestAnimationFrame(function(){
-    requestAnimationFrame(draw);
-  });
-}
-
-/* =========================================================
-   TOOLBOARD LENS + TOGGLE (FIXED)
-   ========================================================= */
-function initToolboardLensAndToggle(){
-  var box = document.getElementById("toolboardBox") || document.querySelector(".toolboard");
-  if (!box) return;
-
-  var toggle = document.getElementById("wiresToggle");
-  if (toggle && !toggle.__bound){
-    toggle.__bound = true;
-    toggle.addEventListener("click", function(e){
-      e.preventDefault();
-      e.stopPropagation();
-
-      var on = !box.classList.contains("show-wires");
-      box.classList.toggle("show-wires", on);
-      toggle.setAttribute("aria-pressed", on ? "true" : "false");
-
-      requestAnimationFrame(function(){
-        if (typeof box.__drawWires === "function") box.__drawWires();
-        else initToolboardWires();
-      });
-    });
-  }
-
-  var fine = false;
-  try { fine = window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches; } catch(e){}
-  if (!fine) return;
-
-  var nodes = Array.from(box.querySelectorAll(".toolnode"));
-  if (!nodes.length) return;
-
-  var adj = {};
-  TOOLBOARD_PAIRS.forEach(function(p){
-    var a = p[0], b = p[1];
-    if (!adj[a]) adj[a] = [];
-    if (!adj[b]) adj[b] = [];
-    adj[a].push(b);
-    adj[b].push(a);
-  });
-
-  function clearNodeClasses(){
-    nodes.forEach(function(n){
-      n.classList.remove("is-focus");
-      n.classList.remove("is-neighbor");
-    });
-  }
-
-  function focus(name){
-    box.classList.add("is-focusing");
-    box.setAttribute("data-focus", name);
-    clearNodeClasses();
-
-    nodes.forEach(function(n){
-      var nName = n.getAttribute("data-node");
-      if (nName === name) n.classList.add("is-focus");
-      else if (adj[name] && adj[name].indexOf(nName) !== -1) n.classList.add("is-neighbor");
-    });
-
-    requestAnimationFrame(function(){
-      if (typeof box.__drawWires === "function") box.__drawWires();
-    });
-  }
-
-  function clear(){
-    box.classList.remove("is-focusing");
-    box.removeAttribute("data-focus");
-    clearNodeClasses();
-  }
-
-  nodes.forEach(function(n){
-    var name = n.getAttribute("data-node");
-    n.addEventListener("mouseenter", function(){ focus(name); });
-    n.addEventListener("focusin", function(){ focus(name); });
-  });
-
-  box.addEventListener("pointerleave", clear);
-  box.addEventListener("mouseleave", clear);
 }
 
 /* =========================================================

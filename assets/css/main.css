@@ -24,8 +24,6 @@
   --shadow2: 0 14px 36px rgba(0,0,0,.50);
 
   --container: 1200px;
-
-  /* JS overwrites accurately */
   --topbar-h: 92px;
   --scroll-offset: calc(var(--topbar-h) + 16px);
 }
@@ -360,7 +358,9 @@ main{ padding-top: var(--topbar-h); }
   flex-wrap: wrap;
 }
 
-/* Jellyfish */
+/* Jellyfish
+   - CSS fallback animation (so it moves even if JS fails)
+   - JS will add body.jf-live to disable this and take control */
 .jellyfish{
   position: fixed;
   left: 0;
@@ -373,6 +373,13 @@ main{ padding-top: var(--topbar-h); }
   will-change: transform;
   transform: translate3d(12px, 12px, 0);
   filter: drop-shadow(0 18px 40px rgba(0,0,0,.5));
+  animation: jfFallback 22s ease-in-out infinite alternate;
+}
+body.jf-live .jellyfish{ animation: none; }
+
+@keyframes jfFallback{
+  0%   { transform: translate3d(14px, 14px, 0) rotate(-2deg) scale(1); }
+  100% { transform: translate3d(90px, 54px, 0) rotate(2deg) scale(1.02); }
 }
 
 /* IMPACT */
@@ -403,37 +410,8 @@ main{ padding-top: var(--topbar-h); }
 }
 
 /* =========================================================
-   TECH STACK
+   TECH STACK (no relationships / no wires)
    ========================================================= */
-.rel-toggle{
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(245,245,245,.14);
-  background: rgba(5,10,24,.40);
-  color: rgba(245,245,245,.88);
-  cursor: pointer;
-  user-select: none;
-  transition: transform .18s ease, border-color .18s ease, background .18s ease;
-}
-.rel-toggle:hover{
-  transform: translateY(-1px);
-  border-color: rgba(245,245,245,.22);
-  background: rgba(245,245,245,.03);
-}
-.rel-toggle__icon{ width: 18px; height: 18px; opacity: .95; }
-.rel-toggle__text{ font-size: 12px; letter-spacing: .22em; }
-.rel-toggle[aria-pressed="true"]{
-  border-color: rgba(42,245,255,.30);
-  background: radial-gradient(110% 160% at 30% 30%,
-    rgba(42,245,255,.12),
-    rgba(109,40,217,.06),
-    rgba(5,10,24,.45)
-  );
-}
-
 .toolboard{
   position: relative;
   padding: 22px;
@@ -450,54 +428,7 @@ main{ padding-top: var(--topbar-h); }
   overflow: hidden;
 }
 
-.toolboard__wires{
-  position:absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  mix-blend-mode: screen;
-}
-
-/* Default: hidden */
-.toolboard__wires .wire,
-.toolboard__wires .wire-glow{
-  opacity: 0;
-  transition: opacity .22s ease;
-}
-
-/* Focus lens dims all wires */
-.toolboard.is-focusing .toolboard__wires .wire{ opacity: .06; }
-.toolboard.is-focusing .toolboard__wires .wire-glow{ opacity: .03; }
-
-/* Connected highlight */
-.toolboard.is-focusing[data-focus="backend"] .toolboard__wires .wire[data-from="backend"],
-.toolboard.is-focusing[data-focus="backend"] .toolboard__wires .wire[data-to="backend"]{ opacity: .90; }
-.toolboard.is-focusing[data-focus="backend"] .toolboard__wires .wire-glow[data-from="backend"],
-.toolboard.is-focusing[data-focus="backend"] .toolboard__wires .wire-glow[data-to="backend"]{ opacity: .28; }
-
-.toolboard.is-focusing[data-focus="genai"] .toolboard__wires .wire[data-from="genai"],
-.toolboard.is-focusing[data-focus="genai"] .toolboard__wires .wire[data-to="genai"]{ opacity: .90; }
-.toolboard.is-focusing[data-focus="genai"] .toolboard__wires .wire-glow[data-from="genai"],
-.toolboard.is-focusing[data-focus="genai"] .toolboard__wires .wire-glow[data-to="genai"]{ opacity: .28; }
-
-.toolboard.is-focusing[data-focus="core"] .toolboard__wires .wire[data-from="core"],
-.toolboard.is-focusing[data-focus="core"] .toolboard__wires .wire[data-to="core"]{ opacity: .90; }
-.toolboard.is-focusing[data-focus="core"] .toolboard__wires .wire-glow[data-from="core"],
-.toolboard.is-focusing[data-focus="core"] .toolboard__wires .wire-glow[data-to="core"]{ opacity: .28; }
-
-.toolboard.is-focusing[data-focus="data"] .toolboard__wires .wire[data-from="data"],
-.toolboard.is-focusing[data-focus="data"] .toolboard__wires .wire[data-to="data"]{ opacity: .90; }
-.toolboard.is-focusing[data-focus="data"] .toolboard__wires .wire-glow[data-from="data"],
-.toolboard.is-focusing[data-focus="data"] .toolboard__wires .wire-glow[data-to="data"]{ opacity: .28; }
-
-.toolboard.is-focusing[data-focus="cloud"] .toolboard__wires .wire[data-from="cloud"],
-.toolboard.is-focusing[data-focus="cloud"] .toolboard__wires .wire[data-to="cloud"]{ opacity: .90; }
-.toolboard.is-focusing[data-focus="cloud"] .toolboard__wires .wire-glow[data-from="cloud"],
-.toolboard.is-focusing[data-focus="cloud"] .toolboard__wires .wire-glow[data-to="cloud"]{ opacity: .28; }
-
-/* Tool nodes (more opaque so wires don't wash over text) */
+/* Tool nodes */
 .toolnode{
   position: relative;
   z-index: 1;
@@ -505,20 +436,15 @@ main{ padding-top: var(--topbar-h); }
   background: rgba(5,10,24,.86);
   border: 1px solid rgba(245,245,245,.12);
   box-shadow: 0 16px 40px rgba(0,0,0,.38);
-
   transition: transform .24s ease, opacity .24s ease, filter .24s ease, background .24s ease, border-color .24s ease;
   transform-origin: 50% 50%;
 }
 
+/* Focus lens (hovered cluster pops, others dim) */
 .toolboard.is-focusing .toolnode{
   opacity: .28;
-  filter: saturate(.88) brightness(.95);
+  filter: saturate(.90) brightness(.96);
   transform: scale(.995);
-}
-.toolboard.is-focusing .toolnode.is-neighbor{
-  opacity: .58;
-  filter: saturate(1.05) brightness(1.0);
-  transform: scale(1.002);
 }
 .toolboard.is-focusing .toolnode.is-focus{
   opacity: 1;
@@ -542,12 +468,12 @@ main{ padding-top: var(--topbar-h); }
   font-size: 13px;
   color: rgba(245,245,245,.86);
 }
-
-/* Chips as "stars" on focus */
 .toolnode.is-focus .chip{
   background: rgba(245,245,245,.06);
   border-color: rgba(245,245,245,.26);
 }
+
+/* Subtle “star glow” per accent */
 .toolnode.is-focus[data-accent="blue"] .chip{
   box-shadow: 0 0 0 3px rgba(77,150,255,.10), 0 0 18px rgba(77,150,255,.16);
 }
@@ -947,7 +873,6 @@ main{ padding-top: var(--topbar-h); }
       "cloud";
   }
   .sheet__content{ grid-template-columns: 1fr; }
-  .rel-toggle{ display:none; }
 }
 
 @media (max-width: 760px){
@@ -989,18 +914,3 @@ html.perf-low .sheet__panel{
 }
 html.perf-low .grain-overlay{ opacity: .06 !important; }
 html.perf-low .jellyfish{ opacity: .42 !important; filter:none !important; }
-
-/* =========================================================
-   RELATIONSHIPS TOGGLE VISIBILITY FIX (IMPORTANT)
-   ========================================================= */
-.toolboard.show-wires .toolboard__wires .wire{
-  opacity: .85;
-  stroke: rgba(245,245,245,.28) !important;
-  stroke-width: 1.35 !important;
-  stroke-dasharray: 4 10 !important;
-}
-.toolboard.show-wires .toolboard__wires .wire-glow{
-  opacity: .32;
-}
-.toolboard.show-wires.is-focusing .toolboard__wires .wire{ opacity: .55; }
-.toolboard.show-wires.is-focusing .toolboard__wires .wire-glow{ opacity: .18; }
