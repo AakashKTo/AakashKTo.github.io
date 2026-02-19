@@ -187,20 +187,11 @@ function initMobileNavDropdown(){
   }, { passive:true });
 }
 
-/* ========= Top nav spy (stable) ========= */
 function initTopNavSpyStable() {
   var navItems = qsa(".top-nav__item[data-nav]");
   var sections = qsa("[data-section]");
   var header = qs(".top-strip");
   if (!navItems.length || !sections.length) return;
-
-  var tops = [];
-  function recalc() {
-    tops = sections.map(function(s){
-      var r = s.getBoundingClientRect();
-      return { id: s.id, top: r.top + window.scrollY };
-    }).sort(function(a,b){ return a.top - b.top; });
-  }
 
   function setActive(id){
     navItems.forEach(function(a){
@@ -212,28 +203,53 @@ function initTopNavSpyStable() {
   }
 
   var ticking = false;
-  function onScroll(){
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(function(){
-      ticking = false;
-      var headerH = header ? header.getBoundingClientRect().height : 0;
-      var marker = window.scrollY + headerH + 40;
 
-      var active = tops.length ? tops[0].id : sections[0].id;
-      for (var i=0; i<tops.length; i++){
-        if (tops[i].top <= marker) active = tops[i].id;
-        else break;
+  function computeActive(){
+    ticking = false;
+
+    var headerH = header ? header.getBoundingClientRect().height : 0;
+    // marker from top of viewport (accounts for sticky header)
+    var marker = headerH + 44;
+
+    // choose the section whose top is closest *below* the marker
+    var bestId = sections[0].id;
+    var bestTop = -Infinity;
+
+    for (var i = 0; i < sections.length; i++){
+      var s = sections[i];
+      var top = s.getBoundingClientRect().top;
+
+      if (top <= marker && top > bestTop){
+        bestTop = top;
+        bestId = s.id;
       }
-      setActive(active);
-    });
+    }
+
+    setActive(bestId);
   }
 
-  window.addEventListener("scroll", onScroll, { passive:true });
-  window.addEventListener("resize", function(){ recalc(); onScroll(); }, { passive:true });
+  function requestUpdate(){
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(computeActive);
+  }
 
-  recalc();
-  onScroll();
+  window.addEventListener("scroll", requestUpdate, { passive:true });
+  window.addEventListener("resize", requestUpdate, { passive:true });
+
+  // IMPORTANT: update after images load (projects thumbnails etc.)
+  window.addEventListener("load", requestUpdate);
+
+  // Also update when any image finishes loading later
+  qsa("img").forEach(function(img){
+    if (!img.complete){
+      img.addEventListener("load", requestUpdate, { once:true, passive:true });
+      img.addEventListener("error", requestUpdate, { once:true, passive:true });
+    }
+  });
+
+  // initial
+  requestUpdate();
 }
 
 /* ========= Scroll-driven glass refraction =========
