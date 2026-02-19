@@ -189,58 +189,73 @@ function initMobileNavDropdown(){
 
 function initTopNavSpyStable() {
   var navItems = qsa(".top-nav__item[data-nav]");
-  var sections = qsa("[data-section]");
+  // only real sections that should drive the nav
+  var sections = qsa("section[data-section][id]");
   var header = qs(".top-strip");
+
   if (!navItems.length || !sections.length) return;
 
   function setActive(id){
-    navItems.forEach(function(a){
-      var on = a.getAttribute("data-nav") === id;
+    for (var i=0; i<navItems.length; i++){
+      var a = navItems[i];
+      var on = (a.getAttribute("data-nav") === id);
       a.classList.toggle("is-active", on);
       if (on) a.setAttribute("aria-current", "page");
       else a.removeAttribute("aria-current");
-    });
+    }
+  }
+
+  function getHeaderH(){
+    return header ? header.getBoundingClientRect().height : 0;
+  }
+
+  // Pick the section that contains a marker line under the sticky header
+  function computeActiveId(){
+    var headerH = getHeaderH();
+    var marker = headerH + 24; // 24px below header
+
+    // Default to first section
+    var activeId = sections[0].id;
+
+    for (var i=0; i<sections.length; i++){
+      var r = sections[i].getBoundingClientRect();
+      // marker is "inside" this section
+      if (r.top <= marker && r.bottom > marker) {
+        activeId = sections[i].id;
+      }
+    }
+    return activeId;
   }
 
   var ticking = false;
-
-  function computeActive(){
-    ticking = false;
-
-    var headerH = header ? header.getBoundingClientRect().height : 0;
-    // marker from top of viewport (accounts for sticky header)
-    var marker = headerH + 44;
-
-    // choose the section whose top is closest *below* the marker
-    var bestId = sections[0].id;
-    var bestTop = -Infinity;
-
-    for (var i = 0; i < sections.length; i++){
-      var s = sections[i];
-      var top = s.getBoundingClientRect().top;
-
-      if (top <= marker && top > bestTop){
-        bestTop = top;
-        bestId = s.id;
-      }
-    }
-
-    setActive(bestId);
-  }
-
   function requestUpdate(){
     if (ticking) return;
     ticking = true;
-    requestAnimationFrame(computeActive);
+    requestAnimationFrame(function(){
+      ticking = false;
+      setActive(computeActiveId());
+    });
   }
 
-  window.addEventListener("scroll", requestUpdate, { passive:true });
-  window.addEventListener("resize", requestUpdate, { passive:true });
+  // IMPORTANT:
+  // Capture scroll events from ANY scrolling container (scroll doesn't bubble).
+  document.addEventListener("scroll", requestUpdate, true);
 
-  // IMPORTANT: update after images load (projects thumbnails etc.)
+  // Also update on resize/load (layout shifts)
+  window.addEventListener("resize", requestUpdate, { passive:true });
   window.addEventListener("load", requestUpdate);
 
-  // Also update when any image finishes loading later
+  // When clicking nav, set it immediately (feels snappy)
+  for (var i=0; i<navItems.length; i++){
+    (function(a){
+      a.addEventListener("click", function(){
+        var id = a.getAttribute("data-nav");
+        if (id) setActive(id);
+      });
+    })(navItems[i]);
+  }
+
+  // If images load later and shift layout, update again
   qsa("img").forEach(function(img){
     if (!img.complete){
       img.addEventListener("load", requestUpdate, { once:true, passive:true });
@@ -251,6 +266,7 @@ function initTopNavSpyStable() {
   // initial
   requestUpdate();
 }
+
 
 /* ========= Scroll-driven glass refraction =========
    Disabled in perf-low because backdrop-related effects can stall GPUs
