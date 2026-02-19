@@ -1,11 +1,25 @@
 /* =========================================================
-   AAKASH — main.js (performance + aurora + nav spy + drawer)
+   AAKASH — main.js
+   Aurora depth layers + dust
+   Glass refraction
+   Constellation reveal + focus lens + toggle
+   Drawer infinite + modal
    ========================================================= */
 
 function qs(sel, el){ return (el || document).querySelector(sel); }
 function qsa(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
 function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 
+/* Relationships (constellation) */
+var TOOLBOARD_PAIRS = [
+  ["backend", "genai"],
+  ["backend", "data"],
+  ["data", "cloud"],
+  ["cloud", "genai"],
+  ["genai", "core"]
+];
+
+/* Scroll lock (modal) */
 function lockScroll(){
   var de = document.documentElement;
   var sbw = (window.innerWidth || 0) - (de.clientWidth || 0);
@@ -19,6 +33,7 @@ function unlockScroll(){
   de.style.setProperty("--sbw", "0px");
 }
 
+/* Performance profile */
 function getPerfProfile(){
   var reduced = false;
   try { reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches); } catch(e){}
@@ -48,16 +63,12 @@ function applyPerformanceProfile(){
   document.documentElement.classList.toggle("perf-low", !!perf.low);
   return perf;
 }
+
+/* Sync fixed header height */
 function syncTopbarHeight(){
-  const bar = document.getElementById("topStrip") || document.querySelector(".top-strip");
+  var bar = document.getElementById("topStrip") || document.querySelector(".top-strip");
   if (!bar) return;
-  const h = Math.ceil(bar.getBoundingClientRect().height);
-  document.documentElement.style.setProperty("--topbar-h", h + "px");
-}
-function syncTopbarHeight(){
-  const bar = document.getElementById("topStrip") || document.querySelector(".top-strip");
-  if (!bar) return;
-  const h = Math.ceil(bar.getBoundingClientRect().height);
+  var h = Math.ceil(bar.getBoundingClientRect().height);
   document.documentElement.style.setProperty("--topbar-h", h + "px");
 }
 
@@ -66,11 +77,8 @@ function syncTopbarHeight(){
    ========================================================= */
 document.addEventListener("DOMContentLoaded", function(){
   applyPerformanceProfile();
-  syncTopbarHeight();
- window.addEventListener("resize", syncTopbarHeight, { passive:true });
- window.addEventListener("load", syncTopbarHeight);
 
-  // Prevent weird autoscroll on some machines
+  // stop weird auto-scroll behavior
   try {
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     if (!location.hash) window.scrollTo(0, 0);
@@ -80,14 +88,25 @@ document.addEventListener("DOMContentLoaded", function(){
   var y = qs("#year");
   if (y) y.textContent = String(new Date().getFullYear());
 
+  syncTopbarHeight();
+  window.addEventListener("resize", syncTopbarHeight, { passive:true });
+  window.addEventListener("load", syncTopbarHeight);
+
   initMobileNavDropdown();
   initSmoothScroll();
-  initNavSpyFixStuck();     // ✅ this fixes “stuck after first click”
-  initAuroraBorealis();
+  initNavSpyFixStuck();
+
+  initAuroraBorealisDepth();
   initJellyfishSlow();
+
   initToolboardWires();
+  initToolboardLensAndToggle();
+
   var drawerApi = initDrawerInfinite();
   initExhibitSheet(drawerApi);
+
+  // after drawer clones exist => attach glass refraction to everything (incl clones)
+  initGlassRefraction();
 });
 
 /* =========================================================
@@ -102,13 +121,13 @@ function initMobileNavDropdown(){
   function open(){
     document.body.classList.add("nav-open");
     toggle.setAttribute("aria-expanded", "true");
+    syncTopbarHeight();
   }
   function close(){
     document.body.classList.remove("nav-open");
     toggle.setAttribute("aria-expanded", "false");
+    syncTopbarHeight();
   }
-  syncTopbarHeight();
-
   function isOpen(){ return document.body.classList.contains("nav-open"); }
 
   toggle.addEventListener("click", function(){
@@ -131,7 +150,7 @@ function initMobileNavDropdown(){
 }
 
 /* =========================================================
-   SMOOTH SCROLL (buttons + nav)
+   SMOOTH SCROLL
    ========================================================= */
 function initSmoothScroll(){
   qsa("[data-scrollto]").forEach(function(btn){
@@ -156,8 +175,8 @@ function initSmoothScroll(){
 }
 
 /* =========================================================
-   NAV SPY — Fix “stuck after first click”
-   Works even if scroll events are weird: includes polling fallback.
+   NAV SPY (robust — fixes “stuck after click”)
+   Includes polling fallback.
    ========================================================= */
 function initNavSpyFixStuck(){
   var navItems = qsa(".top-nav__item[data-nav]");
@@ -206,18 +225,15 @@ function initNavSpyFixStuck(){
     });
   }
 
-  // Listen on both (covers different browsers / scroll containers)
   window.addEventListener("scroll", update, { passive:true });
   document.addEventListener("scroll", update, true);
   window.addEventListener("resize", update, { passive:true });
   window.addEventListener("load", update);
 
-  // When clicking nav, set instantly then update after scroll settles
   navItems.forEach(function(a){
     a.addEventListener("click", function(){
       var id = a.getAttribute("data-nav");
       if (id) setActive(id);
-      // smooth-scroll animation window
       var start = performance.now();
       (function pump(){
         update();
@@ -227,7 +243,6 @@ function initNavSpyFixStuck(){
     });
   });
 
-  // ✅ polling fallback (fixes “stuck” even if scroll events stop firing)
   var poll = setInterval(update, 250);
   document.addEventListener("visibilitychange", function(){
     if (document.hidden){
@@ -243,11 +258,12 @@ function initNavSpyFixStuck(){
 }
 
 /* =========================================================
-   AURORA BOREALIS — optimized (low-res + fps cap)
+   AURORA — Depth layers + fine banding + ultra-slow star dust
    ========================================================= */
-function initAuroraBorealis(){
+function initAuroraBorealisDepth(){
   var canvas = qs("#bg-canvas");
   if (!canvas) return;
+
   var ctx = canvas.getContext("2d", { alpha:true });
   if (!ctx) return;
 
@@ -260,18 +276,26 @@ function initAuroraBorealis(){
   var C_VIO  = (rs.getPropertyValue("--violet").trim() || "#6D28D9");
   var C_MAG  = (rs.getPropertyValue("--magenta").trim() || "#FF4FD8");
 
+  var hasFilter = ("filter" in ctx);
+
   var vw=0, vh=0, w=0, h=0, dpr=1, scale=1;
   var fps = low ? 18 : 30;
   var last = 0;
   var start = performance.now();
   var running = true;
 
+  var slowScore = 0;
+
   var pointer = { x:0.5, y:0.5, tx:0.5, ty:0.5 };
+
+  var stars = [];
+  var dust = [];
 
   function applyQuality(){
     perf = window.__STUDIO_PERF__ || perf;
     low = !!perf.low;
     reduced = !!perf.reduced;
+
     fps = low ? 18 : 30;
     scale = low ? 0.55 : 0.75;
     dpr = low ? 1 : Math.min(window.devicePixelRatio || 1, 1.35);
@@ -289,9 +313,11 @@ function initAuroraBorealis(){
     canvas.height = Math.floor(h * dpr);
     canvas.style.width = vw + "px";
     canvas.style.height = vh + "px";
+
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     buildStars();
+    buildDust();
   }
 
   function onMove(e){
@@ -314,15 +340,14 @@ function initAuroraBorealis(){
   });
 
   function hexToRgba(hex, a) {
-    var h = String(hex).replace("#", "");
-    if (h.length !== 6) return "rgba(245,245,245," + a + ")";
-    var r = parseInt(h.slice(0,2), 16);
-    var g = parseInt(h.slice(2,4), 16);
-    var b = parseInt(h.slice(4,6), 16);
+    var hh = String(hex).replace("#", "");
+    if (hh.length !== 6) return "rgba(245,245,245," + a + ")";
+    var r = parseInt(hh.slice(0,2), 16);
+    var g = parseInt(hh.slice(2,4), 16);
+    var b = parseInt(hh.slice(4,6), 16);
     return "rgba(" + r + "," + g + "," + b + "," + a + ")";
   }
 
-  // simple smooth noise
   function rand1(i, seed){
     var x = (i|0) + (seed|0) * 131;
     x = (x << 13) ^ x;
@@ -331,6 +356,7 @@ function initAuroraBorealis(){
   }
   function lerp(a,b,t){ return a + (b-a)*t; }
   function smooth(t){ return t*t*(3-2*t); }
+
   function noise1(x, seed){
     var i0 = Math.floor(x);
     var i1 = i0 + 1;
@@ -338,29 +364,50 @@ function initAuroraBorealis(){
     var u = smooth(f);
     return lerp(rand1(i0, seed), rand1(i1, seed), u);
   }
+
   function fbm1(x, seed){
     var sum = 0, amp = 0.55, freq = 1;
     for (var o=0; o<4; o++){
       sum += amp * noise1(x*freq, seed + o*17);
-      amp *= 0.5; freq *= 2;
+      amp *= 0.5;
+      freq *= 2;
     }
     return sum;
   }
 
-  var stars = [];
   function buildStars(){
     stars = [];
     var area = w*h;
     var base = low ? 120000 : 90000;
     var count = Math.round(area / base);
-    count = clamp(count, low ? 30 : 45, low ? 85 : 110);
+    count = clamp(count, low ? 35 : 50, low ? 90 : 130);
 
     for (var i=0; i<count; i++){
       stars.push({
         x: Math.random()*w,
-        y: Math.random()*(h*0.58),
-        r: 0.5 + Math.random()*1.2,
-        a: 0.05 + Math.random()*0.14,
+        y: Math.random()*(h*0.62),
+        r: 0.5 + Math.random()*1.25,
+        a: 0.04 + Math.random()*0.14,
+        tw: Math.random()*6.28
+      });
+    }
+  }
+
+  function buildDust(){
+    dust = [];
+    var area = w*h;
+    var base = low ? 80000 : 60000;
+    var count = Math.round(area / base);
+    count = clamp(count, low ? 18 : 28, low ? 60 : 90);
+
+    for (var i=0; i<count; i++){
+      dust.push({
+        x: Math.random()*w,
+        y: Math.random()*h,
+        vy: (low ? 4 : 5) + Math.random() * (low ? 6 : 10),  // px/s in internal space
+        vx: (-1 + Math.random()*2) * (low ? 0.8 : 1.2),      // px/s tiny drift
+        r: 0.4 + Math.random()*1.1,
+        a: 0.015 + Math.random()*0.035,
         tw: Math.random()*6.28
       });
     }
@@ -380,7 +427,7 @@ function initAuroraBorealis(){
     ctx.globalCompositeOperation = "screen";
     for (var i=0; i<stars.length; i++){
       var st = stars[i];
-      var tw = 0.65 + 0.35 * Math.sin(s*0.55 + st.tw);
+      var tw = 0.65 + 0.35 * Math.sin(s*0.45 + st.tw);
       ctx.fillStyle = "rgba(245,245,245," + (st.a * tw) + ")";
       ctx.beginPath();
       ctx.arc(st.x, st.y, st.r, 0, Math.PI*2);
@@ -389,40 +436,68 @@ function initAuroraBorealis(){
     ctx.restore();
   }
 
-  function drawCurtain(color, baseY, baseH, seed, s, intensity){
-    var px = (pointer.x - 0.5) * (low ? 10 : 16);
-    var py = (pointer.y - 0.5) * (low ? 6 : 9);
+  function drawDust(dt, s){
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    for (var i=0; i<dust.length; i++){
+      var d = dust[i];
+      d.y += d.vy * dt;
+      d.x += d.vx * dt;
+      if (d.y > h + 8) d.y = -8;
+      if (d.x < -8) d.x = w + 8;
+      if (d.x > w + 8) d.x = -8;
 
-    var freq = 0.012;
-    var speed = 0.050;   // slow
-    var speed2 = 0.038;
+      var tw = 0.65 + 0.35 * Math.sin(s*0.35 + d.tw);
+      ctx.fillStyle = "rgba(245,245,245," + (d.a * tw) + ")";
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
 
-    var step = low ? 20 : 14;
-
+  function curtainGradient(color, baseY, baseH, intensity){
     var g = ctx.createLinearGradient(0,0,0,h);
     g.addColorStop(0.00, hexToRgba(color, 0.00));
-    g.addColorStop(clamp(baseY/h - 0.03, 0, 1), hexToRgba(color, 0.00));
-    g.addColorStop(clamp((baseY + baseH*0.18)/h, 0, 1), hexToRgba(color, 0.26*intensity));
-    g.addColorStop(clamp((baseY + baseH*0.60)/h, 0, 1), hexToRgba(color, 0.12*intensity));
+    g.addColorStop(clamp(baseY/h - 0.04, 0, 1), hexToRgba(color, 0.00));
+    g.addColorStop(clamp((baseY + baseH*0.18)/h, 0, 1), hexToRgba(color, 0.28*intensity));
+    g.addColorStop(clamp((baseY + baseH*0.62)/h, 0, 1), hexToRgba(color, 0.12*intensity));
     g.addColorStop(clamp((baseY + baseH)/h, 0, 1), hexToRgba(color, 0.00));
+    return g;
+  }
+
+  function drawCurtainLayer(color, baseY, baseH, seed, s, intensity, opt){
+    var px = (pointer.x - 0.5) * (opt.parX || 12);
+    var py = (pointer.y - 0.5) * (opt.parY || 8);
+
+    var freq = opt.freq || 0.012;
+    var speed = opt.speed || 0.05;
+    var speed2 = opt.speed2 || 0.038;
+    var step = opt.step || 16;
+
+    var g = curtainGradient(color, baseY, baseH, intensity);
 
     ctx.save();
     ctx.globalCompositeOperation = "screen";
     ctx.strokeStyle = g;
     ctx.lineCap = "round";
-    ctx.globalAlpha = (low ? 0.26 : 0.32) * intensity;
-    ctx.lineWidth = low ? 10 : 12;
+    ctx.globalAlpha = (opt.alpha || 0.30) * intensity;
+    ctx.lineWidth = opt.lineWidth || 12;
 
-    // cheap single-stroke curtain
+    if (hasFilter && opt.blur){
+      ctx.filter = "blur(" + opt.blur + "px)";
+    }
+
     ctx.beginPath();
-    for (var x=-22; x<=w+22; x+=step){
+    for (var x=-26; x<=w+26; x+=step){
       var n = fbm1(x*freq + s*speed, seed);
       var n2 = fbm1(x*freq*0.7 + s*speed2, seed+99);
+
       var top = baseY + (n - 0.5) * (h*0.07) + py;
       var bottom = top + baseH + (n2 - 0.5) * (h*0.10);
 
-      top += Math.sin(s*0.18 + x*0.004) * 4 + px*0.12;
-      bottom += Math.cos(s*0.16 + x*0.003) * 6 + px*0.10;
+      top += Math.sin(s*0.16 + x*0.004) * (opt.wiggleTop || 4) + px*0.10;
+      bottom += Math.cos(s*0.14 + x*0.003) * (opt.wiggleBot || 6) + px*0.08;
 
       ctx.moveTo(x, top);
       ctx.lineTo(x, bottom);
@@ -434,22 +509,77 @@ function initAuroraBorealis(){
   function vignette(){
     var vg = ctx.createRadialGradient(w*0.52, h*0.44, 0, w*0.52, h*0.44, Math.max(w,h)*0.82);
     vg.addColorStop(0, "rgba(5,10,24,0)");
-    vg.addColorStop(1, "rgba(5,10,24,0.84)");
+    vg.addColorStop(1, "rgba(5,10,24,0.86)");
     ctx.fillStyle = vg;
     ctx.fillRect(0,0,w,h);
   }
 
-  function render(now){
+  function render(now, dt){
     var s = (now - start) / 1000;
+
     pointer.x += (pointer.tx - pointer.x) * 0.05;
     pointer.y += (pointer.ty - pointer.y) * 0.05;
 
     paintBase();
     drawStars(s);
 
-    drawCurtain(C_TEAL, h*0.07, h*0.72, 11, s, 0.92);
-    drawCurtain(C_VIO,  h*0.10, h*0.66, 29, s*0.92, 0.76);
-    drawCurtain(C_MAG,  h*0.14, h*0.58, 43, s*0.86, 0.56);
+    // Layer 1: slow wide curtains (depth base)
+    drawCurtainLayer(C_TEAL, h*0.02, h*0.80, 11, s*0.92, 1.0, {
+      blur: low ? 10 : 16,
+      lineWidth: low ? 14 : 18,
+      step: low ? 22 : 18,
+      alpha: low ? 0.22 : 0.26,
+      parX: low ? 10 : 14,
+      parY: low ? 7 : 9,
+      speed: 0.035,
+      speed2: 0.028,
+      freq: 0.010
+    });
+
+    // Layer 2: slightly faster, lower opacity (mid depth)
+    drawCurtainLayer(C_VIO, h*0.08, h*0.68, 29, s*1.05, 0.85, {
+      blur: low ? 8 : 12,
+      lineWidth: low ? 10 : 12,
+      step: low ? 20 : 14,
+      alpha: low ? 0.18 : 0.22,
+      parX: low ? 12 : 18,
+      parY: low ? 8 : 11,
+      speed: 0.048,
+      speed2: 0.040,
+      freq: 0.012
+    });
+
+    drawCurtainLayer(C_MAG, h*0.14, h*0.58, 43, s*0.98, 0.70, {
+      blur: low ? 8 : 11,
+      lineWidth: low ? 9 : 11,
+      step: low ? 20 : 14,
+      alpha: low ? 0.14 : 0.18,
+      parX: low ? 13 : 20,
+      parY: low ? 9 : 12,
+      speed: 0.045,
+      speed2: 0.036,
+      freq: 0.012
+    });
+
+    // Layer 3: faint fine banding (high perf only)
+    if (!low){
+      drawCurtainLayer(C_TEAL, h*0.05, h*0.82, 71, s*1.10, 0.55, {
+        blur: 0,
+        lineWidth: 2,
+        step: 8,
+        alpha: 0.055,
+        parX: 26,
+        parY: 14,
+        speed: 0.060,
+        speed2: 0.045,
+        freq: 0.020,
+        wiggleTop: 2,
+        wiggleBot: 3
+      });
+    }
+
+    // ultra-slow dust (depth cue)
+    drawDust(dt, s);
 
     vignette();
   }
@@ -458,7 +588,7 @@ function initAuroraBorealis(){
     if (!running) return;
 
     if (reduced){
-      render(now);
+      render(now, 0);
       return;
     }
 
@@ -467,19 +597,39 @@ function initAuroraBorealis(){
       requestAnimationFrame(frame);
       return;
     }
+
+    var dt = last ? (now - last) : minDt;
     last = now;
 
-    render(now);
+    // auto-degrade if too slow
+    if (!low && dt > 85) slowScore++;
+    else slowScore = Math.max(0, slowScore - 1);
+
+    if (!low && slowScore > 25){
+      perf.low = true;
+      window.__STUDIO_PERF__ = perf;
+      document.documentElement.classList.add("perf-low");
+      low = true;
+      slowScore = 0;
+      resize();
+    }
+
+    render(now, dt / 1000);
     requestAnimationFrame(frame);
   }
 
   resize();
-  if (reduced) frame(performance.now());
-  else requestAnimationFrame(frame);
+
+  if (reduced){
+    frame(performance.now());
+  } else {
+    requestAnimationFrame(frame);
+  }
 }
 
 /* =========================================================
    JELLYFISH — slow roam + slow trick
+   desktop: whole page; mobile: hero area only
    ========================================================= */
 function initJellyfishSlow(){
   var jf = qs("#jellyfish");
@@ -487,6 +637,8 @@ function initJellyfishSlow(){
   if (!jf || !hero) return;
 
   var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
+  if (perf.reduced) return;
+
   var mqMobile = window.matchMedia ? window.matchMedia("(max-width: 1000px)") : { matches:false };
 
   function area(){
@@ -524,11 +676,12 @@ function initJellyfishSlow(){
     var cx = a.pad + aw/2;
     var cy = a.pad + ah/2;
 
+    // slow roam
     var t = secs * 0.11;
     var x = cx + (aw/2) * Math.sin(t);
     var y = cy + (ah/2) * Math.sin(t * 0.72 + 1.18);
 
-    // slow trick
+    // slow trick (rare)
     var cycle = 40;
     var win = 7.8;
     var within = secs % cycle;
@@ -557,7 +710,7 @@ function initJellyfishSlow(){
 }
 
 /* =========================================================
-   TOOLBOARD WIRES (behind nodes)
+   TOOLBOARD WIRES (SVG paths with classes + data-from/to)
    ========================================================= */
 function initToolboardWires(){
   var box = qs("#toolboardBox");
@@ -566,14 +719,6 @@ function initToolboardWires(){
 
   var nodes = qsa(".toolnode", box);
   if (!nodes.length) return;
-
-  var pairs = [
-    ["backend", "genai"],
-    ["backend", "data"],
-    ["data", "cloud"],
-    ["cloud", "genai"],
-    ["genai", "core"]
-  ];
 
   function findNode(name){
     for (var i=0;i<nodes.length;i++){
@@ -601,21 +746,21 @@ function initToolboardWires(){
     grad.setAttribute("id", "wireGrad");
     grad.setAttribute("x1", "0"); grad.setAttribute("y1", "0");
     grad.setAttribute("x2", "1"); grad.setAttribute("y2", "1");
-    var s1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    s1.setAttribute("offset", "0%");
-    s1.setAttribute("stop-color", "rgba(42,245,255,0.20)");
-    var s2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    s2.setAttribute("offset", "50%");
-    s2.setAttribute("stop-color", "rgba(109,40,217,0.18)");
-    var s3 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
-    s3.setAttribute("offset", "100%");
-    s3.setAttribute("stop-color", "rgba(255,79,216,0.14)");
-    grad.appendChild(s1); grad.appendChild(s2); grad.appendChild(s3);
+
+    function stop(off, col){
+      var s = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+      s.setAttribute("offset", off);
+      s.setAttribute("stop-color", col);
+      return s;
+    }
+    grad.appendChild(stop("0%", "rgba(42,245,255,0.22)"));
+    grad.appendChild(stop("50%", "rgba(109,40,217,0.18)"));
+    grad.appendChild(stop("100%", "rgba(255,79,216,0.14)"));
     defs.appendChild(grad);
     svg.appendChild(defs);
 
-    for (var i=0;i<pairs.length;i++){
-      var a = pairs[i][0], b = pairs[i][1];
+    for (var i=0;i<TOOLBOARD_PAIRS.length;i++){
+      var a = TOOLBOARD_PAIRS[i][0], b = TOOLBOARD_PAIRS[i][1];
       var na = findNode(a), nb = findNode(b);
       if (!na || !nb) continue;
 
@@ -628,22 +773,28 @@ function initToolboardWires(){
       var cx = midX + (Math.sin((A.x + B.x) * 0.01) * bend);
       var cy = midY + (Math.cos((A.y + B.y) * 0.01) * bend);
 
+      // glow
       var glow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      glow.setAttribute("class", "wire-glow");
+      glow.setAttribute("data-from", a);
+      glow.setAttribute("data-to", b);
       glow.setAttribute("d", "M " + A.x + " " + A.y + " Q " + cx + " " + cy + " " + B.x + " " + B.y);
       glow.setAttribute("fill", "none");
       glow.setAttribute("stroke", "url(#wireGrad)");
       glow.setAttribute("stroke-width", "6");
-      glow.setAttribute("opacity", "0.18");
       glow.setAttribute("stroke-linecap", "round");
       svg.appendChild(glow);
 
+      // dashed wire
       var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("class", "wire");
+      path.setAttribute("data-from", a);
+      path.setAttribute("data-to", b);
       path.setAttribute("d", "M " + A.x + " " + A.y + " Q " + cx + " " + cy + " " + B.x + " " + B.y);
       path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "rgba(245,245,245,0.12)");
+      path.setAttribute("stroke", "rgba(245,245,245,0.14)");
       path.setAttribute("stroke-width", "1.2");
       path.setAttribute("stroke-dasharray", "3 12");
-      path.setAttribute("opacity", "0.85");
       path.setAttribute("stroke-linecap", "round");
       svg.appendChild(path);
     }
@@ -652,6 +803,130 @@ function initToolboardWires(){
   window.addEventListener("resize", draw, { passive:true });
   window.addEventListener("load", draw);
   draw();
+}
+
+/* =========================================================
+   TOOLBOARD Focus Lens + Toggle
+   ========================================================= */
+function initToolboardLensAndToggle(){
+  var box = qs("#toolboardBox");
+  if (!box) return;
+
+  var nodes = qsa(".toolnode", box);
+  if (!nodes.length) return;
+
+  var toggle = qs("#wiresToggle");
+  if (toggle){
+    toggle.addEventListener("click", function(){
+      var on = !box.classList.contains("show-wires");
+      box.classList.toggle("show-wires", on);
+      toggle.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  var fine = false;
+  try { fine = window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches; } catch(e){}
+  if (!fine) return;
+
+  var adj = {};
+  TOOLBOARD_PAIRS.forEach(function(p){
+    var a = p[0], b = p[1];
+    if (!adj[a]) adj[a] = [];
+    if (!adj[b]) adj[b] = [];
+    adj[a].push(b);
+    adj[b].push(a);
+  });
+
+  function clearNodeClasses(){
+    nodes.forEach(function(n){
+      n.classList.remove("is-focus");
+      n.classList.remove("is-neighbor");
+    });
+  }
+
+  function focus(name){
+    box.classList.add("is-focusing");
+    box.setAttribute("data-focus", name);
+    clearNodeClasses();
+
+    nodes.forEach(function(n){
+      var nName = n.getAttribute("data-node");
+      if (nName === name) n.classList.add("is-focus");
+      else if (adj[name] && adj[name].indexOf(nName) !== -1) n.classList.add("is-neighbor");
+    });
+  }
+
+  function clear(){
+    box.classList.remove("is-focusing");
+    box.removeAttribute("data-focus");
+    clearNodeClasses();
+  }
+
+  nodes.forEach(function(n){
+    var name = n.getAttribute("data-node");
+    n.addEventListener("mouseenter", function(){ focus(name); });
+    n.addEventListener("focusin", function(){ focus(name); });
+  });
+
+  box.addEventListener("mouseleave", clear);
+
+  box.addEventListener("focusout", function(){
+    setTimeout(function(){
+      if (!box.contains(document.activeElement)) clear();
+    }, 0);
+  });
+}
+
+/* =========================================================
+   GLASS REFRACTION pointer offsets
+   ========================================================= */
+function initGlassRefraction(){
+  var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
+  if (perf.low || perf.reduced) return;
+
+  var fine = false;
+  try { fine = window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches; } catch(e){}
+  if (!fine) return;
+
+  var els = qsa(".stamp.cut, .toolnode.cut, .degree.cut, .entry.cut, .frame.cut, .sheet__panel.cut");
+  if (!els.length) return;
+
+  els.forEach(function(el){
+    var dur = 12 + Math.random() * 6;
+    el.style.setProperty("--sweep-duration", dur.toFixed(2) + "s");
+    el.style.setProperty("--sweep-delay", (-Math.random() * dur).toFixed(2) + "s");
+
+    var rect = null;
+    var raf = 0;
+    var rx = 0, ry = 0;
+
+    function apply(){
+      raf = 0;
+      el.style.setProperty("--rx", rx.toFixed(3));
+      el.style.setProperty("--ry", ry.toFixed(3));
+    }
+
+    el.addEventListener("pointerenter", function(){
+      rect = el.getBoundingClientRect();
+    });
+
+    el.addEventListener("pointermove", function(e){
+      if (!rect) rect = el.getBoundingClientRect();
+      var x = (e.clientX - rect.left) / Math.max(1, rect.width);
+      var y = (e.clientY - rect.top) / Math.max(1, rect.height);
+      rx = (x - 0.5) * 2;
+      ry = (y - 0.5) * 2;
+
+      if (!raf) raf = requestAnimationFrame(apply);
+    }, { passive:true });
+
+    el.addEventListener("pointerleave", function(){
+      rect = null;
+      rx = 0; ry = 0;
+      el.style.setProperty("--rx", "0");
+      el.style.setProperty("--ry", "0");
+    });
+  });
 }
 
 /* =========================================================
@@ -670,7 +945,6 @@ function initDrawerInfinite(){
     f.removeAttribute("data-clone");
   });
 
-  // clone set before and after
   var fragBefore = document.createDocumentFragment();
   var fragAfter = document.createDocumentFragment();
   var clonesAfter = [];
@@ -729,13 +1003,12 @@ function initDrawerInfinite(){
     while (drawer.scrollLeft >= max) drawer.scrollLeft -= g.setWidth;
   }
 
-  // start centered at first original
   centerTo(originals[0], "auto");
   normalize();
 
-  // pin logic
   var pinned = false;
   var pinnedIndex = 0;
+
   function setPinnedUI(el){
     frames.forEach(function(f){ f.classList.remove("is-pinned"); });
     if (el) el.classList.add("is-pinned");
@@ -757,15 +1030,7 @@ function initDrawerInfinite(){
     startAuto();
   }
 
-  // attach click/dblclick
   frames.forEach(function(frame){
-    var openBtn = qs("[data-open]", frame);
-    if (openBtn){
-      openBtn.addEventListener("click", function(e){
-        e.stopPropagation();
-      });
-    }
-
     frame.addEventListener("click", function(e){
       if (e.target && e.target.closest && e.target.closest("button,a")) return;
       if (clickTimer) return;
@@ -785,7 +1050,6 @@ function initDrawerInfinite(){
     });
   });
 
-  // arrow controls
   qsa("[data-drawer]").forEach(function(btn){
     btn.addEventListener("click", function(){
       var cur = getCenteredFrame();
@@ -802,7 +1066,6 @@ function initDrawerInfinite(){
     });
   });
 
-  // normalize after scroll ends
   var scrollEnd = null;
   drawer.addEventListener("scroll", function(){
     if (scrollEnd) clearTimeout(scrollEnd);
@@ -815,7 +1078,6 @@ function initDrawerInfinite(){
     normalize();
   }, { passive:true });
 
-  // auto advance
   var timer = null;
   function startAuto(){
     if (timer || pinned) return;
@@ -835,8 +1097,7 @@ function initDrawerInfinite(){
   }
 
   startAuto();
-
-  return { pause: stopAuto, resume: startAuto, isPinned: function(){ return pinned; } };
+  return { pause: stopAuto, resume: startAuto };
 }
 
 /* =========================================================
@@ -896,7 +1157,6 @@ function initExhibitSheet(drawerApi){
     if (drawerApi && drawerApi.resume) drawerApi.resume();
   }
 
-  // open buttons
   qsa(".frame").forEach(function(frame){
     var btn = qs("[data-open]", frame);
     if (btn){

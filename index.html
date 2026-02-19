@@ -47,7 +47,7 @@
       </a>
       <a class="top-nav__item" href="#contact" data-nav="contact">
         <span class="top-nav__dot" aria-hidden="true"></span>
-        <span class="top-nav__text">Contact Me</span>
+        <span class="top-nav__text">Contact</span>
       </a>
 
       <!-- Mobile-only -->
@@ -80,7 +80,7 @@
   <main>
     <!-- HERO -->
     <section id="home" class="section hero" data-section>
-      <!-- Jellyfish (roaming) -->
+      <!-- Jellyfish -->
       <div id="jellyfish" class="jellyfish" aria-hidden="true">
         <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -181,9 +181,23 @@
     <!-- TECH STACK -->
     <section id="techstack" class="section" data-section>
       <div class="container">
-        <header class="section__head">
-          <h2 class="section__title">Tech Stack</h2>
-          <p class="section__sub">A map of tools and practices.</p>
+        <header class="section__head section__head--row">
+          <div>
+            <h2 class="section__title">Tech Stack</h2>
+            <p class="section__sub">Hover a cluster to see relationships. Skills stay in the foreground.</p>
+          </div>
+
+          <button class="rel-toggle" id="wiresToggle" type="button" aria-pressed="false">
+            <svg class="rel-toggle__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 12h10" stroke="rgba(245,245,245,.72)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M12 7l5 5" stroke="rgba(245,245,245,.55)" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M12 7l-5 5" stroke="rgba(245,245,245,.55)" stroke-width="1.6" stroke-linecap="round"/>
+              <circle cx="12" cy="7" r="2" stroke="rgba(245,245,245,.85)" stroke-width="1.6"/>
+              <circle cx="7" cy="12" r="2" stroke="rgba(42,245,255,.70)" stroke-width="1.6"/>
+              <circle cx="17" cy="12" r="2" stroke="rgba(255,79,216,.55)" stroke-width="1.6"/>
+            </svg>
+            <span class="rel-toggle__text mono">Relationships</span>
+          </button>
         </header>
 
         <div class="toolboard" id="toolboardBox">
@@ -339,6 +353,7 @@
 
         <div class="drawer-shell">
           <div class="drawer" id="drawer" aria-label="Projects drawer">
+
             <!-- 1 -->
             <article class="frame cut"
               data-title="Faster Diffusion"
@@ -465,8 +480,8 @@
     <section id="contact" class="section" data-section>
       <div class="container">
         <header class="section__head">
-          <h2 class="section__title">Contact Me</h2>
-          <p class="section__sub">If you’re building something weird + useful, let’s talk.</p>
+          <h2 class="section__title">Contact</h2>
+          <p class="section__sub">Icons only — hover to see what each one is.</p>
         </header>
 
         <div class="contact-icons" aria-label="Contact links">
