@@ -1,16 +1,16 @@
 /* =========================================================
    AAKASH — main.js
-   Aurora depth layers + dust
-   Glass refraction
-   Constellation reveal + focus lens + toggle
-   Drawer infinite + modal
+   Fixes:
+   - Relationships toggle always works + forces redraw
+   - Jellyfish always moves (even under reduced-motion; just slower)
+   - Safe init wrappers (one error won’t kill everything)
    ========================================================= */
 
 function qs(sel, el){ return (el || document).querySelector(sel); }
 function qsa(sel, el){ return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
 function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
 
-/* Relationships (constellation) */
+/* Constellation pairs */
 var TOOLBOARD_PAIRS = [
   ["backend", "genai"],
   ["backend", "data"],
@@ -43,7 +43,6 @@ function getPerfProfile(){
   try { saveData = !!(navigator.connection && navigator.connection.saveData); } catch(e){}
 
   var low = false;
-  if (reduced) low = true;
   if (saveData) low = true;
   if (dm && dm <= 4) low = true;
   if (hc && hc <= 4) low = true;
@@ -72,19 +71,24 @@ function syncTopbarHeight(){
   document.documentElement.style.setProperty("--topbar-h", h + "px");
 }
 
+/* Safe init wrapper */
+function safeInit(name, fn){
+  try { fn(); }
+  catch (e) { console.warn("[init failed]", name, e); }
+}
+
 /* =========================================================
    INIT
    ========================================================= */
 document.addEventListener("DOMContentLoaded", function(){
   applyPerformanceProfile();
 
-  // stop weird auto-scroll behavior
+  // Stop weird auto-scroll behavior
   try {
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     if (!location.hash) window.scrollTo(0, 0);
   } catch(e){}
 
-  // year
   var y = qs("#year");
   if (y) y.textContent = String(new Date().getFullYear());
 
@@ -92,21 +96,19 @@ document.addEventListener("DOMContentLoaded", function(){
   window.addEventListener("resize", syncTopbarHeight, { passive:true });
   window.addEventListener("load", syncTopbarHeight);
 
-  initMobileNavDropdown();
-  initSmoothScroll();
-  initNavSpyFixStuck();
+  safeInit("mobile nav", initMobileNavDropdown);
+  safeInit("smooth scroll", initSmoothScroll);
+  safeInit("nav spy", initNavSpyFixStuck);
 
-  initAuroraBorealisDepth();
-  initJellyfishSlow();
+  safeInit("aurora", initAuroraBorealisDepth);
+  safeInit("jellyfish", initJellyfishSlow);
 
-  initToolboardWires();
-  initToolboardLensAndToggle();
+  safeInit("toolboard wires", initToolboardWires);
+  safeInit("toolboard lens/toggle", initToolboardLensAndToggle);
 
-  var drawerApi = initDrawerInfinite();
-  initExhibitSheet(drawerApi);
-
-  // after drawer clones exist => attach glass refraction to everything (incl clones)
-  initGlassRefraction();
+  var drawerApi = null;
+  safeInit("drawer", function(){ drawerApi = initDrawerInfinite(); });
+  safeInit("sheet", function(){ initExhibitSheet(drawerApi); });
 });
 
 /* =========================================================
@@ -175,8 +177,7 @@ function initSmoothScroll(){
 }
 
 /* =========================================================
-   NAV SPY (robust — fixes “stuck after click”)
-   Includes polling fallback.
+   NAV SPY (fix stuck)
    ========================================================= */
 function initNavSpyFixStuck(){
   var navItems = qsa(".top-nav__item[data-nav]");
@@ -226,7 +227,6 @@ function initNavSpyFixStuck(){
   }
 
   window.addEventListener("scroll", update, { passive:true });
-  document.addEventListener("scroll", update, true);
   window.addEventListener("resize", update, { passive:true });
   window.addEventListener("load", update);
 
@@ -234,6 +234,7 @@ function initNavSpyFixStuck(){
     a.addEventListener("click", function(){
       var id = a.getAttribute("data-nav");
       if (id) setActive(id);
+
       var start = performance.now();
       (function pump(){
         update();
@@ -243,6 +244,7 @@ function initNavSpyFixStuck(){
     });
   });
 
+  // Polling fallback (prevents “stuck after click” on some machines)
   var poll = setInterval(update, 250);
   document.addEventListener("visibilitychange", function(){
     if (document.hidden){
@@ -258,7 +260,7 @@ function initNavSpyFixStuck(){
 }
 
 /* =========================================================
-   AURORA — Depth layers + fine banding + ultra-slow star dust
+   AURORA — depth layers + dust (optimized)
    ========================================================= */
 function initAuroraBorealisDepth(){
   var canvas = qs("#bg-canvas");
@@ -269,7 +271,6 @@ function initAuroraBorealisDepth(){
 
   var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
   var low = !!perf.low;
-  var reduced = !!perf.reduced;
 
   var rs = getComputedStyle(document.documentElement);
   var C_TEAL = (rs.getPropertyValue("--teal").trim() || "#2AF5FF");
@@ -287,15 +288,12 @@ function initAuroraBorealisDepth(){
   var slowScore = 0;
 
   var pointer = { x:0.5, y:0.5, tx:0.5, ty:0.5 };
-
   var stars = [];
   var dust = [];
 
   function applyQuality(){
     perf = window.__STUDIO_PERF__ || perf;
     low = !!perf.low;
-    reduced = !!perf.reduced;
-
     fps = low ? 18 : 30;
     scale = low ? 0.55 : 0.75;
     dpr = low ? 1 : Math.min(window.devicePixelRatio || 1, 1.35);
@@ -333,7 +331,7 @@ function initAuroraBorealisDepth(){
 
   document.addEventListener("visibilitychange", function(){
     running = !document.hidden;
-    if (running && !reduced){
+    if (running){
       last = 0;
       requestAnimationFrame(frame);
     }
@@ -404,8 +402,8 @@ function initAuroraBorealisDepth(){
       dust.push({
         x: Math.random()*w,
         y: Math.random()*h,
-        vy: (low ? 4 : 5) + Math.random() * (low ? 6 : 10),  // px/s in internal space
-        vx: (-1 + Math.random()*2) * (low ? 0.8 : 1.2),      // px/s tiny drift
+        vy: (low ? 4 : 5) + Math.random() * (low ? 6 : 10),   // px/s internal
+        vx: (-1 + Math.random()*2) * (low ? 0.8 : 1.2),
         r: 0.4 + Math.random()*1.1,
         a: 0.015 + Math.random()*0.035,
         tw: Math.random()*6.28
@@ -523,7 +521,7 @@ function initAuroraBorealisDepth(){
     paintBase();
     drawStars(s);
 
-    // Layer 1: slow wide curtains (depth base)
+    // Layer 1 wide
     drawCurtainLayer(C_TEAL, h*0.02, h*0.80, 11, s*0.92, 1.0, {
       blur: low ? 10 : 16,
       lineWidth: low ? 14 : 18,
@@ -536,7 +534,7 @@ function initAuroraBorealisDepth(){
       freq: 0.010
     });
 
-    // Layer 2: slightly faster, lower opacity (mid depth)
+    // Layer 2 mid
     drawCurtainLayer(C_VIO, h*0.08, h*0.68, 29, s*1.05, 0.85, {
       blur: low ? 8 : 12,
       lineWidth: low ? 10 : 12,
@@ -561,7 +559,7 @@ function initAuroraBorealisDepth(){
       freq: 0.012
     });
 
-    // Layer 3: faint fine banding (high perf only)
+    // Layer 3 faint banding (only high perf)
     if (!low){
       drawCurtainLayer(C_TEAL, h*0.05, h*0.82, 71, s*1.10, 0.55, {
         blur: 0,
@@ -578,19 +576,12 @@ function initAuroraBorealisDepth(){
       });
     }
 
-    // ultra-slow dust (depth cue)
     drawDust(dt, s);
-
     vignette();
   }
 
   function frame(now){
     if (!running) return;
-
-    if (reduced){
-      render(now, 0);
-      return;
-    }
 
     var minDt = 1000 / fps;
     if (last && (now - last) < minDt){
@@ -601,7 +592,7 @@ function initAuroraBorealisDepth(){
     var dt = last ? (now - last) : minDt;
     last = now;
 
-    // auto-degrade if too slow
+    // auto degrade if too slow
     if (!low && dt > 85) slowScore++;
     else slowScore = Math.max(0, slowScore - 1);
 
@@ -619,17 +610,11 @@ function initAuroraBorealisDepth(){
   }
 
   resize();
-
-  if (reduced){
-    frame(performance.now());
-  } else {
-    requestAnimationFrame(frame);
-  }
+  requestAnimationFrame(frame);
 }
 
 /* =========================================================
-   JELLYFISH — slow roam + slow trick
-   desktop: whole page; mobile: hero area only
+   JELLYFISH — ALWAYS moves (reduced motion => extra slow)
    ========================================================= */
 function initJellyfishSlow(){
   var jf = qs("#jellyfish");
@@ -637,7 +622,7 @@ function initJellyfishSlow(){
   if (!jf || !hero) return;
 
   var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
-  if (perf.reduced) return;
+  var reduced = !!perf.reduced;
 
   var mqMobile = window.matchMedia ? window.matchMedia("(max-width: 1000px)") : { matches:false };
 
@@ -667,8 +652,12 @@ function initJellyfishSlow(){
     last = now;
 
     var secs = (now - start) / 1000;
-    var a = area();
 
+    // If user has reduced motion enabled, keep movement BUT extremely slow + smaller.
+    var speedMul = reduced ? 0.35 : 1.0;
+    var ampMul = reduced ? 0.55 : 1.0;
+
+    var a = area();
     var size = 86;
     var aw = Math.max(0, a.w - size - 2*a.pad);
     var ah = Math.max(0, a.h - size - 2*a.pad);
@@ -677,17 +666,17 @@ function initJellyfishSlow(){
     var cy = a.pad + ah/2;
 
     // slow roam
-    var t = secs * 0.11;
-    var x = cx + (aw/2) * Math.sin(t);
-    var y = cy + (ah/2) * Math.sin(t * 0.72 + 1.18);
+    var t = secs * 0.11 * speedMul;
+    var x = cx + (aw/2) * Math.sin(t) * ampMul;
+    var y = cy + (ah/2) * Math.sin(t * 0.72 + 1.18) * ampMul;
 
     // slow trick (rare)
-    var cycle = 40;
-    var win = 7.8;
+    var cycle = 40 / speedMul;
+    var win = 7.8 / speedMul;
     var within = secs % cycle;
 
     var extraX = 0, extraY = 0, extraRot = 0, extraScale = 0;
-    if (within < win){
+    if (within < win && !reduced){
       var p = within / win;
       var e = ease(p);
       var loopR = Math.min(aw, ah) * 0.045;
@@ -697,8 +686,8 @@ function initJellyfishSlow(){
       extraScale = Math.sin(e * Math.PI) * 0.05;
     }
 
-    var rot = (Math.sin(secs * 0.28) * 1.0) + extraRot;
-    var scl = 1 + (Math.sin(secs * 0.22) * 0.012) + extraScale;
+    var rot = (Math.sin(secs * 0.28 * speedMul) * 1.0) + extraRot;
+    var scl = 1 + (Math.sin(secs * 0.22 * speedMul) * 0.012) + extraScale;
 
     jf.style.transform =
       "translate3d(" + (x + extraX) + "px," + (y + extraY) + "px,0) rotate(" + rot + "deg) scale(" + scl + ")";
@@ -710,14 +699,29 @@ function initJellyfishSlow(){
 }
 
 /* =========================================================
-   TOOLBOARD WIRES (SVG paths with classes + data-from/to)
+   TOOLBOARD WIRES (ROBUST + redraw)
    ========================================================= */
 function initToolboardWires(){
-  var box = qs("#toolboardBox");
-  var svg = qs("#toolboardWires");
-  if (!box || !svg) return;
+  var box = document.getElementById("toolboardBox") || document.querySelector(".toolboard");
+  if (!box) return;
 
-  var nodes = qsa(".toolnode", box);
+  // If already set up, just redraw
+  if (box.__wiresReady) {
+    if (typeof box.__drawWires === "function") box.__drawWires();
+    return;
+  }
+  box.__wiresReady = true;
+
+  var svg = document.getElementById("toolboardWires") || box.querySelector("svg.toolboard__wires");
+  if (!svg){
+    svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.classList.add("toolboard__wires");
+    svg.setAttribute("id", "toolboardWires");
+    svg.setAttribute("aria-hidden", "true");
+    box.insertBefore(svg, box.firstChild);
+  }
+
+  var nodes = Array.from(box.querySelectorAll(".toolnode"));
   if (!nodes.length) return;
 
   function findNode(name){
@@ -730,17 +734,21 @@ function initToolboardWires(){
   function centerOf(el){
     var r = el.getBoundingClientRect();
     var br = box.getBoundingClientRect();
-    return { x: (r.left - br.left) + r.width/2, y: (r.top - br.top) + r.height/2 };
+    return {
+      x: (r.left - br.left) + r.width/2,
+      y: (r.top - br.top) + r.height/2
+    };
   }
 
   function draw(){
     var br = box.getBoundingClientRect();
+    if (br.width < 10 || br.height < 10) return;
+
     svg.setAttribute("viewBox", "0 0 " + br.width + " " + br.height);
     svg.setAttribute("width", String(br.width));
     svg.setAttribute("height", String(br.height));
     svg.innerHTML = "";
 
-    // defs gradient
     var defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
     var grad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
     grad.setAttribute("id", "wireGrad");
@@ -753,9 +761,9 @@ function initToolboardWires(){
       s.setAttribute("stop-color", col);
       return s;
     }
-    grad.appendChild(stop("0%", "rgba(42,245,255,0.22)"));
-    grad.appendChild(stop("50%", "rgba(109,40,217,0.18)"));
-    grad.appendChild(stop("100%", "rgba(255,79,216,0.14)"));
+    grad.appendChild(stop("0%", "rgba(42,245,255,0.28)"));
+    grad.appendChild(stop("50%", "rgba(109,40,217,0.22)"));
+    grad.appendChild(stop("100%", "rgba(255,79,216,0.18)"));
     defs.appendChild(grad);
     svg.appendChild(defs);
 
@@ -769,11 +777,11 @@ function initToolboardWires(){
 
       var midX = (A.x + B.x)/2;
       var midY = (A.y + B.y)/2;
-      var bend = 18;
+
+      var bend = 22;
       var cx = midX + (Math.sin((A.x + B.x) * 0.01) * bend);
       var cy = midY + (Math.cos((A.y + B.y) * 0.01) * bend);
 
-      // glow
       var glow = document.createElementNS("http://www.w3.org/2000/svg", "path");
       glow.setAttribute("class", "wire-glow");
       glow.setAttribute("data-from", a);
@@ -785,48 +793,68 @@ function initToolboardWires(){
       glow.setAttribute("stroke-linecap", "round");
       svg.appendChild(glow);
 
-      // dashed wire
       var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("class", "wire");
       path.setAttribute("data-from", a);
       path.setAttribute("data-to", b);
       path.setAttribute("d", "M " + A.x + " " + A.y + " Q " + cx + " " + cy + " " + B.x + " " + B.y);
       path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "rgba(245,245,245,0.14)");
-      path.setAttribute("stroke-width", "1.2");
-      path.setAttribute("stroke-dasharray", "3 12");
+      path.setAttribute("stroke", "rgba(245,245,245,0.22)");
+      path.setAttribute("stroke-width", "1.35");
+      path.setAttribute("stroke-dasharray", "4 10");
       path.setAttribute("stroke-linecap", "round");
       svg.appendChild(path);
     }
   }
 
-  window.addEventListener("resize", draw, { passive:true });
-  window.addEventListener("load", draw);
-  draw();
+  box.__drawWires = draw;
+
+  if (window.ResizeObserver){
+    box.__wiresRO = new ResizeObserver(function(){
+      requestAnimationFrame(draw);
+    });
+    box.__wiresRO.observe(box);
+  }
+
+  window.addEventListener("load", function(){ requestAnimationFrame(draw); });
+  window.addEventListener("resize", function(){ requestAnimationFrame(draw); }, { passive:true });
+
+  requestAnimationFrame(function(){
+    requestAnimationFrame(draw);
+  });
 }
 
 /* =========================================================
-   TOOLBOARD Focus Lens + Toggle
+   TOOLBOARD LENS + TOGGLE (FIXED)
    ========================================================= */
 function initToolboardLensAndToggle(){
-  var box = qs("#toolboardBox");
+  var box = document.getElementById("toolboardBox") || document.querySelector(".toolboard");
   if (!box) return;
 
-  var nodes = qsa(".toolnode", box);
-  if (!nodes.length) return;
+  var toggle = document.getElementById("wiresToggle");
+  if (toggle && !toggle.__bound){
+    toggle.__bound = true;
+    toggle.addEventListener("click", function(e){
+      e.preventDefault();
+      e.stopPropagation();
 
-  var toggle = qs("#wiresToggle");
-  if (toggle){
-    toggle.addEventListener("click", function(){
       var on = !box.classList.contains("show-wires");
       box.classList.toggle("show-wires", on);
       toggle.setAttribute("aria-pressed", on ? "true" : "false");
+
+      requestAnimationFrame(function(){
+        if (typeof box.__drawWires === "function") box.__drawWires();
+        else initToolboardWires();
+      });
     });
   }
 
   var fine = false;
   try { fine = window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches; } catch(e){}
   if (!fine) return;
+
+  var nodes = Array.from(box.querySelectorAll(".toolnode"));
+  if (!nodes.length) return;
 
   var adj = {};
   TOOLBOARD_PAIRS.forEach(function(p){
@@ -854,6 +882,10 @@ function initToolboardLensAndToggle(){
       if (nName === name) n.classList.add("is-focus");
       else if (adj[name] && adj[name].indexOf(nName) !== -1) n.classList.add("is-neighbor");
     });
+
+    requestAnimationFrame(function(){
+      if (typeof box.__drawWires === "function") box.__drawWires();
+    });
   }
 
   function clear(){
@@ -868,69 +900,12 @@ function initToolboardLensAndToggle(){
     n.addEventListener("focusin", function(){ focus(name); });
   });
 
+  box.addEventListener("pointerleave", clear);
   box.addEventListener("mouseleave", clear);
-
-  box.addEventListener("focusout", function(){
-    setTimeout(function(){
-      if (!box.contains(document.activeElement)) clear();
-    }, 0);
-  });
 }
 
 /* =========================================================
-   GLASS REFRACTION pointer offsets
-   ========================================================= */
-function initGlassRefraction(){
-  var perf = window.__STUDIO_PERF__ || { low:false, reduced:false };
-  if (perf.low || perf.reduced) return;
-
-  var fine = false;
-  try { fine = window.matchMedia && window.matchMedia("(hover:hover) and (pointer:fine)").matches; } catch(e){}
-  if (!fine) return;
-
-  var els = qsa(".stamp.cut, .toolnode.cut, .degree.cut, .entry.cut, .frame.cut, .sheet__panel.cut");
-  if (!els.length) return;
-
-  els.forEach(function(el){
-    var dur = 12 + Math.random() * 6;
-    el.style.setProperty("--sweep-duration", dur.toFixed(2) + "s");
-    el.style.setProperty("--sweep-delay", (-Math.random() * dur).toFixed(2) + "s");
-
-    var rect = null;
-    var raf = 0;
-    var rx = 0, ry = 0;
-
-    function apply(){
-      raf = 0;
-      el.style.setProperty("--rx", rx.toFixed(3));
-      el.style.setProperty("--ry", ry.toFixed(3));
-    }
-
-    el.addEventListener("pointerenter", function(){
-      rect = el.getBoundingClientRect();
-    });
-
-    el.addEventListener("pointermove", function(e){
-      if (!rect) rect = el.getBoundingClientRect();
-      var x = (e.clientX - rect.left) / Math.max(1, rect.width);
-      var y = (e.clientY - rect.top) / Math.max(1, rect.height);
-      rx = (x - 0.5) * 2;
-      ry = (y - 0.5) * 2;
-
-      if (!raf) raf = requestAnimationFrame(apply);
-    }, { passive:true });
-
-    el.addEventListener("pointerleave", function(){
-      rect = null;
-      rx = 0; ry = 0;
-      el.style.setProperty("--rx", "0");
-      el.style.setProperty("--ry", "0");
-    });
-  });
-}
-
-/* =========================================================
-   PROJECT DRAWER — infinite loop + 5s auto + click pin + dblclick repo
+   PROJECT DRAWER — infinite + 5s + pin + dblclick repo
    ========================================================= */
 function initDrawerInfinite(){
   var drawer = qs("#drawer");
@@ -1101,7 +1076,7 @@ function initDrawerInfinite(){
 }
 
 /* =========================================================
-   EXHIBIT SHEET (modal)
+   EXHIBIT SHEET
    ========================================================= */
 function initExhibitSheet(drawerApi){
   var sheet = qs("#sheet");

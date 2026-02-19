@@ -1,12 +1,6 @@
-/* =========================================================
-   AAKASH — Generative Art Studio (Aurora)
-   ========================================================= */
-
 :root{
   --bg: #050A18;
   --ink: #F5F5F5;
-  --muted: rgba(245,245,245,.72);
-  --faint: rgba(245,245,245,.16);
 
   --coral: #FF6B6B;
   --blue:  #4D96FF;
@@ -31,7 +25,7 @@
 
   --container: 1200px;
 
-  /* fixed header sizing (JS overwrites --topbar-h precisely) */
+  /* JS overwrites accurately */
   --topbar-h: 92px;
   --scroll-offset: calc(var(--topbar-h) + 16px);
 }
@@ -39,13 +33,12 @@
 *{ box-sizing: border-box; }
 html, body{ height: 100%; }
 html{ scroll-behavior: smooth; }
-
 body{
   margin: 0;
   color: var(--ink);
   background: var(--bg);
   overflow-x: hidden;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }
 
 /* Scroll lock for sheet */
@@ -75,19 +68,18 @@ html.no-scroll{
   mix-blend-mode: overlay;
 }
 
-/* Utility */
 .container{
   width: min(var(--container), calc(100% - 48px));
   margin: 0 auto;
 }
 
 .mono{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
-
 .muted{ opacity: .75; }
+
 .accent{ font-weight: 700; }
 .accent--coral{ color: var(--coral); }
 .accent--blue{ color: var(--blue); }
@@ -100,6 +92,7 @@ html.no-scroll{
   background: var(--glass);
   box-shadow: var(--shadow2);
 }
+
 @supports (clip-path: polygon(0 0)){
   .cut{
     clip-path: polygon(
@@ -132,13 +125,11 @@ html.no-scroll{
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 50;
-
   padding: 14px 18px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 14px;
-
   border-bottom: 1px solid rgba(245,245,245,.10);
   background: rgba(5,10,24,.42);
 }
@@ -157,9 +148,7 @@ html.no-scroll{
   opacity: .7;
 }
 
-main{
-  padding-top: var(--topbar-h);
-}
+main{ padding-top: var(--topbar-h); }
 
 .brand{
   position: relative;
@@ -180,8 +169,6 @@ main{
   background: var(--green);
   box-shadow: 0 0 0 4px rgba(107,203,119,.10);
 }
-
-.brand__name{ letter-spacing: .02em; }
 
 .top-nav{
   position: relative;
@@ -209,19 +196,16 @@ main{
   transition: transform .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
   user-select: none;
 }
-
 .top-nav__dot{
   width: 9px; height: 9px;
   border-radius: 999px;
   background: rgba(245,245,245,.18);
 }
-
 .top-nav__item:hover{
   color: rgba(245,245,245,.92);
   border-color: rgba(245,245,245,.10);
   background: rgba(245,245,245,.04);
 }
-
 .top-nav__item.is-active{
   color: var(--ink);
   background: radial-gradient(80% 160% at 30% 30%,
@@ -235,11 +219,7 @@ main{
   background: var(--blue);
   box-shadow: 0 0 0 5px rgba(77,150,255,.14);
 }
-
-.top-nav__text{
-  font-size: 12px;
-  letter-spacing: .22em;
-}
+.top-nav__text{ font-size: 12px; letter-spacing: .22em; }
 
 .top-nav__item--external{ display:none; } /* mobile dropdown only */
 
@@ -282,7 +262,7 @@ main{
 .btn--tiny{ padding: 10px 14px; font-size: 13px; }
 .btn--resume{ padding: 12px 18px; }
 
-/* Mobile nav */
+/* Mobile nav toggle */
 .nav-toggle{
   display: none;
   border: 1px solid rgba(245,245,245,.16);
@@ -338,13 +318,11 @@ main{
   justify-content: space-between;
   gap: 18px;
 }
-
 .section__title{
   margin: 0;
   font-size: clamp(34px, 5vw, 54px);
   letter-spacing: -.03em;
 }
-
 .section__sub{
   margin: 10px 0 0 0;
   color: rgba(245,245,245,.70);
@@ -392,6 +370,8 @@ main{
   opacity: .55;
   pointer-events: none;
   z-index: 3;
+  will-change: transform;
+  transform: translate3d(12px, 12px, 0);
   filter: drop-shadow(0 18px 40px rgba(0,0,0,.5));
 }
 
@@ -477,20 +457,17 @@ main{
   height: 100%;
   z-index: 0;
   pointer-events: none;
+  mix-blend-mode: screen;
 }
 
-/* Wires hidden by default */
+/* Default: hidden */
 .toolboard__wires .wire,
 .toolboard__wires .wire-glow{
   opacity: 0;
   transition: opacity .22s ease;
 }
 
-/* Toggle ON => show all wires lightly */
-.toolboard.show-wires .toolboard__wires .wire{ opacity: .55; }
-.toolboard.show-wires .toolboard__wires .wire-glow{ opacity: .14; }
-
-/* Focus lens => dim all wires, but show connected ones strongly */
+/* Focus lens dims all wires */
 .toolboard.is-focusing .toolboard__wires .wire{ opacity: .06; }
 .toolboard.is-focusing .toolboard__wires .wire-glow{ opacity: .03; }
 
@@ -498,33 +475,34 @@ main{
 .toolboard.is-focusing[data-focus="backend"] .toolboard__wires .wire[data-from="backend"],
 .toolboard.is-focusing[data-focus="backend"] .toolboard__wires .wire[data-to="backend"]{ opacity: .90; }
 .toolboard.is-focusing[data-focus="backend"] .toolboard__wires .wire-glow[data-from="backend"],
-.toolboard.is-focusing[data-focus="backend"] .toolboard__wires .wire-glow[data-to="backend"]{ opacity: .22; }
+.toolboard.is-focusing[data-focus="backend"] .toolboard__wires .wire-glow[data-to="backend"]{ opacity: .28; }
 
 .toolboard.is-focusing[data-focus="genai"] .toolboard__wires .wire[data-from="genai"],
 .toolboard.is-focusing[data-focus="genai"] .toolboard__wires .wire[data-to="genai"]{ opacity: .90; }
 .toolboard.is-focusing[data-focus="genai"] .toolboard__wires .wire-glow[data-from="genai"],
-.toolboard.is-focusing[data-focus="genai"] .toolboard__wires .wire-glow[data-to="genai"]{ opacity: .22; }
+.toolboard.is-focusing[data-focus="genai"] .toolboard__wires .wire-glow[data-to="genai"]{ opacity: .28; }
 
 .toolboard.is-focusing[data-focus="core"] .toolboard__wires .wire[data-from="core"],
 .toolboard.is-focusing[data-focus="core"] .toolboard__wires .wire[data-to="core"]{ opacity: .90; }
 .toolboard.is-focusing[data-focus="core"] .toolboard__wires .wire-glow[data-from="core"],
-.toolboard.is-focusing[data-focus="core"] .toolboard__wires .wire-glow[data-to="core"]{ opacity: .22; }
+.toolboard.is-focusing[data-focus="core"] .toolboard__wires .wire-glow[data-to="core"]{ opacity: .28; }
 
 .toolboard.is-focusing[data-focus="data"] .toolboard__wires .wire[data-from="data"],
 .toolboard.is-focusing[data-focus="data"] .toolboard__wires .wire[data-to="data"]{ opacity: .90; }
 .toolboard.is-focusing[data-focus="data"] .toolboard__wires .wire-glow[data-from="data"],
-.toolboard.is-focusing[data-focus="data"] .toolboard__wires .wire-glow[data-to="data"]{ opacity: .22; }
+.toolboard.is-focusing[data-focus="data"] .toolboard__wires .wire-glow[data-to="data"]{ opacity: .28; }
 
 .toolboard.is-focusing[data-focus="cloud"] .toolboard__wires .wire[data-from="cloud"],
 .toolboard.is-focusing[data-focus="cloud"] .toolboard__wires .wire[data-to="cloud"]{ opacity: .90; }
 .toolboard.is-focusing[data-focus="cloud"] .toolboard__wires .wire-glow[data-from="cloud"],
-.toolboard.is-focusing[data-focus="cloud"] .toolboard__wires .wire-glow[data-to="cloud"]{ opacity: .22; }
+.toolboard.is-focusing[data-focus="cloud"] .toolboard__wires .wire-glow[data-to="cloud"]{ opacity: .28; }
 
+/* Tool nodes (more opaque so wires don't wash over text) */
 .toolnode{
   position: relative;
   z-index: 1;
   padding: 18px;
-  background: rgba(5,10,24,.78);
+  background: rgba(5,10,24,.86);
   border: 1px solid rgba(245,245,245,.12);
   box-shadow: 0 16px 40px rgba(0,0,0,.38);
 
@@ -547,7 +525,7 @@ main{
   filter: saturate(1.25) brightness(1.05);
   transform: translateY(-3px) scale(1.02);
   border-color: rgba(245,245,245,.22);
-  background: rgba(5,10,24,.86) !important;
+  background: rgba(5,10,24,.90) !important;
 }
 
 /* Chips */
@@ -617,7 +595,9 @@ main{
 .toolnode[data-node="data"]{ grid-area: data; }
 .toolnode[data-node="cloud"]{ grid-area: cloud; }
 
-/* EDUCATION */
+/* =========================================================
+   EDUCATION
+   ========================================================= */
 .studies{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -650,7 +630,9 @@ main{
 }
 .degree__when{ margin-top: 10px; font-size: 12px; }
 
-/* EXPERIENCE */
+/* =========================================================
+   EXPERIENCE
+   ========================================================= */
 .logbook{ display:flex; flex-direction: column; gap: 14px; }
 .entry{ background: rgba(5,10,24,.72); }
 .entry__summary{
@@ -675,7 +657,9 @@ main{
 }
 .entry__bullets li{ margin: 10px 0; }
 
-/* PROJECT DRAWER */
+/* =========================================================
+   PROJECT DRAWER (no visible scrollbar)
+   ========================================================= */
 .drawer-controls{ display:flex; gap: 10px; }
 .icon-btn{
   width: 44px; height: 44px;
@@ -707,7 +691,6 @@ main{
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
 
-  /* hide scrollbar */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -915,138 +898,7 @@ main{
 .sheet__hint{ margin-top: 14px; font-size: 11px; }
 
 /* =========================================================
-   GLASS REFRACTION DEPTH (desktop + high perf only)
-   ========================================================= */
-@keyframes glassSweep{
-  0%   { background-position: -220% 0, center; }
-  18%  { background-position:  220% 0, center; }
-  100% { background-position:  220% 0, center; }
-}
-
-@media (hover: hover) and (pointer: fine){
-  html:not(.perf-low) .stamp.cut,
-  html:not(.perf-low) .toolnode.cut,
-  html:not(.perf-low) .degree.cut,
-  html:not(.perf-low) .entry.cut,
-  html:not(.perf-low) .frame.cut,
-  html:not(.perf-low) .sheet__panel.cut{
-    --rx: 0;
-    --ry: 0;
-    --sweep-duration: 16s;
-    --sweep-delay: 0s;
-    position: relative;
-    overflow: hidden;
-    transform: translateZ(0);
-    transition: transform .22s ease, border-color .22s ease, background .22s ease;
-  }
-
-  html:not(.perf-low) .stamp.cut > *,
-  html:not(.perf-low) .toolnode.cut > *,
-  html:not(.perf-low) .degree.cut > *,
-  html:not(.perf-low) .entry.cut > *,
-  html:not(.perf-low) .frame.cut > *,
-  html:not(.perf-low) .sheet__panel.cut > *{
-    position: relative;
-    z-index: 1;
-  }
-
-  /* refractive overlay + specular sweep (very subtle, always running) */
-  html:not(.perf-low) .stamp.cut::before,
-  html:not(.perf-low) .toolnode.cut::before,
-  html:not(.perf-low) .degree.cut::before,
-  html:not(.perf-low) .entry.cut::before,
-  html:not(.perf-low) .frame.cut::before,
-  html:not(.perf-low) .sheet__panel.cut::before{
-    content:"";
-    position:absolute;
-    inset:-28%;
-    pointer-events:none;
-    mix-blend-mode: screen;
-    opacity: 0.05; /* idle = barely visible */
-    filter: blur(18px);
-    transform: translate3d(calc(var(--rx) * 10px), calc(var(--ry) * 10px), 0);
-
-    background:
-      linear-gradient(115deg,
-        transparent 0%,
-        rgba(245,245,245,.11) 18%,
-        rgba(245,245,245,.05) 22%,
-        transparent 36%
-      ),
-      radial-gradient(1200px 720px at
-        calc(50% + (var(--rx) * 120px))
-        calc(50% + (var(--ry) * 120px)),
-        rgba(42,245,255,.10),
-        rgba(109,40,217,.08),
-        rgba(255,79,216,.06),
-        transparent 60%
-      );
-
-    background-size: 240% 240%, 100% 100%;
-    background-position: -220% 0, center;
-
-    transition: opacity .22s ease, filter .22s ease, transform .22s ease;
-    animation: glassSweep var(--sweep-duration) ease-in-out infinite;
-    animation-delay: var(--sweep-delay);
-    animation-play-state: running;
-  }
-
-  /* chromatic edge split */
-  html:not(.perf-low) .stamp.cut::after,
-  html:not(.perf-low) .toolnode.cut::after,
-  html:not(.perf-low) .degree.cut::after,
-  html:not(.perf-low) .entry.cut::after,
-  html:not(.perf-low) .frame.cut::after,
-  html:not(.perf-low) .sheet__panel.cut::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    pointer-events:none;
-    opacity: 0.10; /* idle */
-    mix-blend-mode: screen;
-    transition: opacity .22s ease;
-    box-shadow:
-      0 0 0 1px rgba(245,245,245,.14) inset,
-      1px 0 0 rgba(255,107,107,.10) inset,
-      -1px 0 0 rgba(42,245,255,.08) inset,
-      0 0 24px rgba(77,150,255,.06);
-  }
-
-  html:not(.perf-low) .stamp.cut:hover,
-  html:not(.perf-low) .toolnode.cut:hover,
-  html:not(.perf-low) .degree.cut:hover,
-  html:not(.perf-low) .entry.cut:hover,
-  html:not(.perf-low) .frame.cut:hover,
-  html:not(.perf-low) .sheet__panel.cut:hover{
-    transform: translateY(-2px);
-    border-color: rgba(245,245,245,.20);
-    background: rgba(5,10,24,.58);
-    backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(calc(var(--glass-sat) + .14));
-    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(calc(var(--glass-sat) + .14));
-  }
-
-  html:not(.perf-low) .stamp.cut:hover::before,
-  html:not(.perf-low) .toolnode.cut:hover::before,
-  html:not(.perf-low) .degree.cut:hover::before,
-  html:not(.perf-low) .entry.cut:hover::before,
-  html:not(.perf-low) .frame.cut:hover::before,
-  html:not(.perf-low) .sheet__panel.cut:hover::before{
-    opacity: 0.16;
-    filter: blur(14px);
-  }
-
-  html:not(.perf-low) .stamp.cut:hover::after,
-  html:not(.perf-low) .toolnode.cut:hover::after,
-  html:not(.perf-low) .degree.cut:hover::after,
-  html:not(.perf-low) .entry.cut:hover::after,
-  html:not(.perf-low) .frame.cut:hover::after,
-  html:not(.perf-low) .sheet__panel.cut:hover::after{
-    opacity: 0.22;
-  }
-}
-
-/* =========================================================
-   MOBILE
+   MOBILE NAV DROPDOWN
    ========================================================= */
 @media (max-width: 1000px){
   .top-strip{ grid-template-columns: 1fr auto; }
@@ -1100,10 +952,8 @@ main{
 
 @media (max-width: 760px){
   .cut{ clip-path: none !important; border-radius: 22px !important; }
-
   .section{ padding: 70px 0; }
   .hero{ min-height: calc(100vh - var(--topbar-h)); }
-
   .impact-ledger{ grid-template-columns: 1fr; }
 
   .entry__summary{
@@ -1123,7 +973,7 @@ main{
 }
 
 /* =========================================================
-   PERFORMANCE MODE (auto)
+   PERFORMANCE MODE
    ========================================================= */
 html.perf-low{
   --glass-blur: 10px;
@@ -1139,3 +989,18 @@ html.perf-low .sheet__panel{
 }
 html.perf-low .grain-overlay{ opacity: .06 !important; }
 html.perf-low .jellyfish{ opacity: .42 !important; filter:none !important; }
+
+/* =========================================================
+   RELATIONSHIPS TOGGLE VISIBILITY FIX (IMPORTANT)
+   ========================================================= */
+.toolboard.show-wires .toolboard__wires .wire{
+  opacity: .85;
+  stroke: rgba(245,245,245,.28) !important;
+  stroke-width: 1.35 !important;
+  stroke-dasharray: 4 10 !important;
+}
+.toolboard.show-wires .toolboard__wires .wire-glow{
+  opacity: .32;
+}
+.toolboard.show-wires.is-focusing .toolboard__wires .wire{ opacity: .55; }
+.toolboard.show-wires.is-focusing .toolboard__wires .wire-glow{ opacity: .18; }
