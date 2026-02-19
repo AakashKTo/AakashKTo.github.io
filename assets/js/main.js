@@ -48,12 +48,27 @@ function applyPerformanceProfile(){
   document.documentElement.classList.toggle("perf-low", !!perf.low);
   return perf;
 }
+function syncTopbarHeight(){
+  const bar = document.getElementById("topStrip") || document.querySelector(".top-strip");
+  if (!bar) return;
+  const h = Math.ceil(bar.getBoundingClientRect().height);
+  document.documentElement.style.setProperty("--topbar-h", h + "px");
+}
+function syncTopbarHeight(){
+  const bar = document.getElementById("topStrip") || document.querySelector(".top-strip");
+  if (!bar) return;
+  const h = Math.ceil(bar.getBoundingClientRect().height);
+  document.documentElement.style.setProperty("--topbar-h", h + "px");
+}
 
 /* =========================================================
    INIT
    ========================================================= */
 document.addEventListener("DOMContentLoaded", function(){
   applyPerformanceProfile();
+  syncTopbarHeight();
+ window.addEventListener("resize", syncTopbarHeight, { passive:true });
+ window.addEventListener("load", syncTopbarHeight);
 
   // Prevent weird autoscroll on some machines
   try {
@@ -92,6 +107,8 @@ function initMobileNavDropdown(){
     document.body.classList.remove("nav-open");
     toggle.setAttribute("aria-expanded", "false");
   }
+  syncTopbarHeight();
+
   function isOpen(){ return document.body.classList.contains("nav-open"); }
 
   toggle.addEventListener("click", function(){

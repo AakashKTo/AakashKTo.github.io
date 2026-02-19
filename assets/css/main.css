@@ -908,3 +908,67 @@ html.perf-low .sheet__panel{
 html.perf-low .toolboard__wires{ opacity: .08 !important; }
 html.perf-low .grain-overlay{ opacity: .06 !important; }
 html.perf-low .jellyfish{ opacity: .42 !important; filter:none !important; }
+/* =========================================================
+   FORCE TOP BAR TO STAY VISIBLE (FIXED HEADER)
+   ========================================================= */
+
+/* fallback height (JS will overwrite this accurately) */
+:root{
+  --topbar-h: 92px;
+  --scroll-offset: calc(var(--topbar-h) + 16px);
+}
+
+/* Make toolbar truly fixed */
+.top-strip{
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Push the page content down so it doesn't hide behind the bar */
+main{
+  padding-top: var(--topbar-h);
+}
+
+/* Ensure anchors + scrollIntoView land below the fixed bar */
+.section{
+  scroll-margin-top: var(--scroll-offset);
+}
+
+/* Keep hero height correct with fixed header */
+.hero{
+  min-height: calc(100vh - var(--topbar-h)) !important;
+}
+/* =========================================================
+   FORCE TOP BAR TO STAY VISIBLE (FIXED HEADER)
+   ========================================================= */
+
+/* fallback height (JS will overwrite this accurately) */
+:root{
+  --topbar-h: 92px;
+  --scroll-offset: calc(var(--topbar-h) + 16px);
+}
+
+/* Make toolbar truly fixed */
+.top-strip{
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+/* Push the page content down so it doesn't hide behind the bar */
+main{
+  padding-top: var(--topbar-h);
+}
+
+/* Ensure anchors + scrollIntoView land below the fixed bar */
+.section{
+  scroll-margin-top: var(--scroll-offset);
+}
+
+/* Keep hero height correct with fixed header */
+.hero{
+  min-height: calc(100vh - var(--topbar-h)) !important;
+}
