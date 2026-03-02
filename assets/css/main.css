@@ -11,8 +11,8 @@
   --violet:  #6D28D9;
   --magenta: #FF4FD8;
 
-  --glass: rgba(5,10,24,.52);
-  --glass2: rgba(5,10,24,.70);
+  --glass: linear-gradient(145deg, rgba(30, 36, 52, 0.45) 0%, rgba(5, 10, 24, 0.35) 100%);
+  --glass2: linear-gradient(145deg, rgba(40, 48, 68, 0.55) 0%, rgba(10, 15, 30, 0.45) 100%);
 
   --glass-blur: 16px;
   --glass-sat: 1.15;
@@ -85,10 +85,123 @@ html.no-scroll{
 
 /* Cut corners */
 .cut{
+  --rx: 0deg;
+  --ry: 0deg;
+  --mx: 0px;
+  --my: 0px;
   border-radius: var(--radius);
-  border: 1px solid rgba(245,245,245,.12);
+  border: 1px solid rgba(245,245,245,.06);
+  border-top-color: rgba(245,245,245,.14);
   background: var(--glass);
-  box-shadow: var(--shadow2);
+  box-shadow: var(--shadow2), inset 0 1px 1px rgba(255,255,255,0.08);
+  transform: perspective(1200px) rotateX(var(--rx)) rotateY(var(--ry)) scale(1) translate(var(--mx), var(--my));
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, background 0.4s ease, border-color 0.4s ease, filter 0.4s ease, opacity 0.4s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Universal Card Hover & Lift */
+.cut:not(details[open]):hover {
+  transform: perspective(1200px) rotateX(var(--rx)) rotateY(var(--ry)) scale(1.015) translate(var(--mx), calc(var(--my) - 5px));
+  background: var(--glass2);
+  box-shadow: 0 24px 48px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.18);
+  border-top-color: rgba(245,245,245,.28);
+  transition-duration: 0.1s, 0.4s, 0.4s, 0.4s, 0.4s, 0.4s;
+  z-index: 5;
+}
+
+/* Universal Lens effect: Fast CSS toggle via JS (no heavy blur) */
+body.has-hovered-card .cut:not(:hover) {
+  opacity: 0.45;
+  filter: grayscale(35%);
+  transform: scale(0.985);
+}
+
+/* =========================================================
+   SCROLL REVEALS
+   ========================================================= */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal-up.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up {
+    transform: none !important;
+    transition: opacity 0.6s ease;
+  }
+}
+
+/* =========================================================
+   STARTUP OVERLAY + PAGE LOAD
+   ========================================================= */
+body.is-loading {
+  opacity: 0;
+}
+body.is-loading,
+body.is-loaded {
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+body.is-loaded {
+  opacity: 1;
+}
+
+.startup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.startup-overlay.is-exiting {
+  opacity: 0;
+  transform: scale(1.15);
+  pointer-events: none;
+}
+
+#startupCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.startup__brand {
+  position: relative;
+  z-index: 2;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  font-size: clamp(40px, 8vw, 80px);
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: var(--ink);
+  text-shadow: 0 0 40px rgba(77, 150, 255, 0.5), 0 0 80px rgba(42, 245, 255, 0.3);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.startup__brand.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.startup__brand.is-glowing {
+  color: #fff;
+  text-shadow: 0 0 60px rgba(77, 150, 255, 0.8), 0 0 100px rgba(42, 245, 255, 0.8), 0 0 150px rgba(255, 79, 216, 0.5);
+  transform: scale(1.05);
+  transition: text-shadow 0.6s ease, color 0.6s ease, transform 0.6s ease;
 }
 
 @supports (clip-path: polygon(0 0)){
@@ -231,6 +344,8 @@ main{ padding-top: var(--topbar-h); }
 
 /* Buttons */
 .btn{
+  --mx: 0px;
+  --my: 0px;
   appearance: none;
   border: 1px solid rgba(245,245,245,.16);
   background: rgba(5,10,24,.45);
@@ -244,10 +359,12 @@ main{ padding-top: var(--topbar-h); }
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+  transform: translate(var(--mx), var(--my));
+  transition: transform 0.3s cubic-bezier(0.1, 0.5, 0.3, 1), border-color .18s ease, background .18s ease;
+  will-change: transform;
 }
-.btn:hover{ transform: translateY(-1px); border-color: rgba(245,245,245,.26); }
-.btn:active{ transform: translateY(0px); }
+.btn:hover{ transform: translate(var(--mx), calc(var(--my) - 1px)); border-color: rgba(245,245,245,.26); }
+.btn:active{ transform: translate(var(--mx), var(--my)); }
 
 .btn--primary{
   border-color: rgba(77,150,255,.45);
@@ -358,28 +475,76 @@ main{ padding-top: var(--topbar-h); }
   flex-wrap: wrap;
 }
 
-/* Jellyfish
-   - CSS fallback animation (so it moves even if JS fails)
-   - JS will add body.jf-live to disable this and take control */
-.jellyfish{
+/* =========================================================
+   SPOTLIGHT CURSOR (Feature Selection)
+   ========================================================= */
+.spotlight {
   position: fixed;
-  left: 0;
-  top: 0;
-  width: 86px;
-  height: 86px;
-  opacity: .55;
+  inset: 0;
   pointer-events: none;
-  z-index: 3;
-  will-change: transform;
-  transform: translate3d(12px, 12px, 0);
-  filter: drop-shadow(0 18px 40px rgba(0,0,0,.5));
-  animation: jfFallback 22s ease-in-out infinite alternate;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(77, 150, 255, 0.08),
+    transparent 40%
+  );
 }
-body.jf-live .jellyfish{ animation: none; }
 
-@keyframes jfFallback{
-  0%   { transform: translate3d(14px, 14px, 0) rotate(-2deg) scale(1); }
-  100% { transform: translate3d(90px, 54px, 0) rotate(2deg) scale(1.02); }
+body.has-mouse .spotlight {
+  opacity: 1;
+}
+
+/* Base Cards get special treatment for the spotlight */
+.cut {
+  position: relative;
+  overflow: hidden;
+}
+
+.cut::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.04),
+    transparent 40%
+  );
+  z-index: 0;
+}
+
+.cut:hover::before {
+  opacity: 1;
+}
+
+.cut::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(
+    400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.4),
+    transparent 40%
+  );
+  z-index: 0;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 1px;
+}
+
+.cut:hover::after {
+  opacity: 1;
 }
 
 /* IMPACT */
@@ -433,26 +598,22 @@ body.jf-live .jellyfish{ animation: none; }
   position: relative;
   z-index: 1;
   padding: 18px;
-  background: rgba(5,10,24,.86);
-  border: 1px solid rgba(245,245,245,.12);
-  box-shadow: 0 16px 40px rgba(0,0,0,.38);
   transition: transform .24s ease, opacity .24s ease, filter .24s ease, background .24s ease, border-color .24s ease;
   transform-origin: 50% 50%;
 }
 
-/* Focus lens (hovered cluster pops, others dim) */
-.toolboard.is-focusing .toolnode{
-  opacity: .28;
-  filter: saturate(.90) brightness(.96);
-  transform: scale(.995);
+/* Neural Network Lines */
+@keyframes neural-flow {
+  0% { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
 }
-.toolboard.is-focusing .toolnode.is-focus{
-  opacity: 1;
-  filter: saturate(1.25) brightness(1.05);
-  transform: translateY(-3px) scale(1.02);
-  border-color: rgba(245,245,245,.22);
-  background: rgba(5,10,24,.90) !important;
+
+.neural-line {
+  stroke-dasharray: 6 6;
+  animation: neural-flow 0.8s linear infinite;
+  opacity: 0.8;
 }
+
 
 /* Chips */
 .chips{
@@ -463,14 +624,23 @@ body.jf-live .jellyfish{ animation: none; }
 .chip{
   padding: 9px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(245,245,245,.14);
-  background: rgba(245,245,245,.03);
+  border: 1px solid rgba(245,245,245,.08);
+  border-top-color: rgba(245,245,245,.18);
+  background: linear-gradient(135deg, rgba(245,245,245,.06) 0%, rgba(245,245,245,.02) 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.06);
   font-size: 13px;
   color: rgba(245,245,245,.86);
+  transition: all 0.2s ease;
 }
-.toolnode.is-focus .chip{
-  background: rgba(245,245,245,.06);
+.chip:hover,
+.cut:hover .chip {
+  background: linear-gradient(135deg, rgba(245,245,245,.12) 0%, rgba(245,245,245,.04) 100%);
+  color: #fff;
   border-color: rgba(245,245,245,.26);
+}
+.chip:hover {
+  transform: translateY(-1.5px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.15);
 }
 
 /* Subtle “star glow” per accent */
@@ -531,7 +701,6 @@ body.jf-live .jellyfish{ animation: none; }
 }
 .degree{
   padding: 18px;
-  background: rgba(5,10,24,.70);
 }
 .degree__kicker{ font-size: 12px; opacity: .7; }
 .degree__title{
@@ -560,7 +729,6 @@ body.jf-live .jellyfish{ animation: none; }
    EXPERIENCE
    ========================================================= */
 .logbook{ display:flex; flex-direction: column; gap: 14px; }
-.entry{ background: rgba(5,10,24,.72); }
 .entry__summary{
   list-style: none;
   cursor: pointer;
@@ -588,15 +756,19 @@ body.jf-live .jellyfish{ animation: none; }
    ========================================================= */
 .drawer-controls{ display:flex; gap: 10px; }
 .icon-btn{
+  --mx: 0px;
+  --my: 0px;
   width: 44px; height: 44px;
   border-radius: 999px;
   border: 1px solid rgba(245,245,245,.14);
   background: rgba(5,10,24,.40);
   color: var(--ink);
   cursor: pointer;
-  transition: transform .18s ease, border-color .18s ease;
+  transform: translate(var(--mx), var(--my));
+  transition: transform 0.3s cubic-bezier(0.1, 0.5, 0.3, 1), border-color .18s ease;
+  will-change: transform;
 }
-.icon-btn:hover{ transform: translateY(-1px); border-color: rgba(245,245,245,.24); }
+.icon-btn:hover{ transform: translate(var(--mx), calc(var(--my) - 1px)); border-color: rgba(245,245,245,.24); }
 
 .drawer-shell{
   position: relative;
@@ -625,8 +797,6 @@ body.jf-live .jellyfish{ animation: none; }
 .frame{
   flex: 0 0 auto;
   width: min(680px, 86vw);
-  background: rgba(5,10,24,.75);
-  border: 1px solid rgba(245,245,245,.12);
   scroll-snap-align: center;
   position: relative;
 }

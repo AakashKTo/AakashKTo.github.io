@@ -9,6 +9,12 @@
 </head>
 
 <body>
+  <!-- Startup Reveal -->
+  <div class="startup-overlay" id="startupOverlay" aria-hidden="true">
+    <canvas id="startupCanvas"></canvas>
+    <div class="startup__brand">AAKASH</div>
+  </div>
+
   <!-- Living Aurora Background -->
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
   <div class="grain-overlay" aria-hidden="true"></div>
@@ -80,50 +86,17 @@
   <main>
     <!-- HERO -->
     <section id="home" class="section hero" data-section>
-      <!-- Jellyfish -->
-      <div id="jellyfish" class="jellyfish" aria-hidden="true">
-        <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="cap" cx="50%" cy="45%" r="60%">
-              <stop offset="0%" stop-color="rgba(245,245,245,0.72)"/>
-              <stop offset="55%" stop-color="rgba(77,150,255,0.30)"/>
-              <stop offset="100%" stop-color="rgba(255,107,107,0.16)"/>
-            </radialGradient>
-            <linearGradient id="tent" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="rgba(77,150,255,0.55)"/>
-              <stop offset="50%" stop-color="rgba(107,203,119,0.40)"/>
-              <stop offset="100%" stop-color="rgba(255,107,107,0.40)"/>
-            </linearGradient>
-          </defs>
 
-          <path d="M30 110C30 65 66 30 110 30C154 30 190 65 190 110C190 118 184 124 176 124H44C36 124 30 118 30 110Z"
-                fill="url(#cap)" stroke="rgba(245,245,245,0.18)" stroke-width="2"/>
-
-          <path d="M55 105C60 70 83 50 110 50C137 50 160 70 165 105"
-                stroke="rgba(245,245,245,0.10)" stroke-width="2" />
-
-          <path d="M52 124C60 140 78 148 110 148C142 148 160 140 168 124"
-                stroke="rgba(245,245,245,0.14)" stroke-width="2" />
-
-          <g class="jf-tentacles" stroke="url(#tent)" stroke-width="2.6" stroke-linecap="round" opacity="0.92">
-            <path d="M70 148C62 170 68 188 56 204" />
-            <path d="M88 148C78 170 86 190 76 205" />
-            <path d="M106 148C98 172 110 190 100 206" />
-            <path d="M124 148C116 172 130 190 122 206" />
-            <path d="M142 148C134 170 150 190 146 205" />
-          </g>
-        </svg>
-      </div>
 
       <div class="container hero__inner">
-        <h1 class="hero__name">Aakash <span class="accent accent--blue">Tomar</span></h1>
+        <h1 class="hero__name reveal-up" style="transition-delay: 0ms;">Aakash <span class="accent accent--blue">Tomar</span></h1>
 
-        <p class="hero__tagline">
+        <p class="hero__tagline reveal-up" style="transition-delay: 100ms;">
           Building reliable <span class="accent accent--coral">data systems</span> and
           <span class="accent accent--blue">GenAI pipelines</span> — performance, observability, clean automation.
         </p>
 
-        <div class="hero__cta">
+        <div class="hero__cta reveal-up" style="transition-delay: 200ms;">
           <button class="btn btn--primary" type="button" data-scrollto="#impact">Enter studio ↳</button>
           <button class="btn btn--ghost" type="button" data-scrollto="#projects">Projects</button>
         </div>
@@ -133,13 +106,13 @@
     <!-- IMPACT -->
     <section id="impact" class="section" data-section>
       <div class="container">
-        <header class="section__head">
+        <header class="section__head reveal-up">
           <h2 class="section__title">Impact</h2>
           <p class="section__sub">Measured outcomes.</p>
         </header>
 
         <div class="impact-ledger">
-          <article class="stamp cut" data-accent="coral">
+          <article class="stamp cut reveal-up" data-accent="coral" style="transition-delay: 0ms;">
             <div class="stamp__top">
               <span class="stamp__label mono">DB LOAD</span>
               <span class="stamp__sig mono">OPT</span>
@@ -148,7 +121,7 @@
             <p class="stamp__desc">Reduced database load via query + schema optimization.</p>
           </article>
 
-          <article class="stamp cut" data-accent="blue">
+          <article class="stamp cut reveal-up" data-accent="blue" style="transition-delay: 100ms;">
             <div class="stamp__top">
               <span class="stamp__label mono">REALTIME</span>
               <span class="stamp__sig mono">WS</span>
@@ -157,16 +130,16 @@
             <p class="stamp__desc">WebSockets features increased engagement &amp; usage.</p>
           </article>
 
-          <article class="stamp cut" data-accent="green">
+          <article class="stamp cut reveal-up" data-accent="green" style="transition-delay: 100ms;">
             <div class="stamp__top">
               <span class="stamp__label mono">DELIVERY</span>
               <span class="stamp__sig mono">MQ</span>
             </div>
-            <div class="stamp__value">≈100%</div>
+            <div class="stamp__value">100%</div>
             <p class="stamp__desc">CRON + RabbitMQ pipelines with near‑perfect delivery.</p>
           </article>
 
-          <article class="stamp cut" data-accent="coral">
+          <article class="stamp cut reveal-up" data-accent="coral" style="transition-delay: 200ms;">
             <div class="stamp__top">
               <span class="stamp__label mono">LEADERSHIP</span>
               <span class="stamp__sig mono">TEAM</span>
@@ -181,27 +154,27 @@
     <!-- TECH STACK -->
     <section id="techstack" class="section" data-section>
       <div class="container">
-        <header class="section__head">
+        <header class="section__head reveal-up">
           <h2 class="section__title">Tech Stack</h2>
           <p class="section__sub">Hover a cluster to focus. Skills stay in the foreground.</p>
         </header>
 
         <div class="toolboard" id="toolboardBox">
-          <article class="toolnode cut" data-node="backend" data-accent="coral">
+          <article class="toolnode cut reveal-up" data-node="backend" data-accent="coral" style="transition-delay: 0ms;">
             <h3 class="toolnode__title"><span class="dot dot--coral"></span> Backend</h3>
             <div class="chips">
-              <span class="chip">Python</span><span class="chip">SQL</span><span class="chip">Django</span>
-              <span class="chip">REST APIs</span><span class="chip">WebSockets</span>
+              <span class="chip">Python</span><span class="chip">SQL</span><span class="chip">Django</span><span class="chip">Flask</span>
+              <span class="chip">REST-APIs</span><span class="chip">WebSockets</span>
               <span class="chip">Redis</span><span class="chip">RabbitMQ</span>
             </div>
           </article>
 
-          <article class="toolnode cut" data-node="genai" data-accent="blue">
+          <article class="toolnode cut reveal-up" data-node="genai" data-accent="blue" style="transition-delay: 100ms;">
             <h3 class="toolnode__title"><span class="dot dot--blue"></span> GenAI / ML</h3>
             <div class="chips">
               <span class="chip">PyTorch</span><span class="chip">TensorFlow</span><span class="chip">Keras</span>
-              <span class="chip">Transformers</span><span class="chip">ALBERT</span>
-              <span class="chip">OpenCV</span><span class="chip">MediaPipe</span>
+              <span class="chip">Transformers</span><span class="chip">Hugging Face</span>
+              <span class="chip">LLMs</span><span class="chip">OpenCV</span><span class="chip">MediaPipe</span>
             </div>
           </article>
 
@@ -227,19 +200,19 @@
             </div>
           </article>
 
-          <article class="toolnode cut" data-node="data" data-accent="green">
+          <article class="toolnode cut reveal-up" data-node="data" data-accent="green" style="transition-delay: 200ms;">
             <h3 class="toolnode__title"><span class="dot dot--green"></span> Data / Analytics</h3>
             <div class="chips">
               <span class="chip">Pandas</span><span class="chip">Power BI</span><span class="chip">Tableau</span>
-              <span class="chip">Excel</span><span class="chip">ETL</span><span class="chip">EDA</span>
+              <span class="chip">Excel</span><span class="chip">PySpark</span><span class="chip">ETL</span>
             </div>
           </article>
 
-          <article class="toolnode cut" data-node="cloud" data-accent="green">
+          <article class="toolnode cut reveal-up" data-node="cloud" data-accent="green" style="transition-delay: 300ms;">
             <h3 class="toolnode__title"><span class="dot dot--green"></span> Cloud / Tools</h3>
             <div class="chips">
-              <span class="chip">AWS</span><span class="chip">Databricks</span><span class="chip">Docker</span>
-              <span class="chip">Git</span><span class="chip">CRON</span>
+              <span class="chip">AWS</span><span class="chip">Kafka</span><span class="chip">Docker</span><span class="chip">Git</span>
+              <span class="chip">TimescaleDB</span><span class="chip">dbt</span><span class="chip">Avro</span>
             </div>
           </article>
         </div>
@@ -298,11 +271,11 @@
 
             <div class="entry__body">
               <ul class="entry__bullets">
-                <li>Engineered Python/Django backend services + SQL schemas for a blockchain trading platform.</li>
-                <li>Optimized queries + database design, reducing load by <b>30%</b> and improving API responsiveness.</li>
-                <li>Built realtime group chat via WebSockets; increased usage by <b>25%</b>.</li>
-                <li>Automated smart‑contract deployments + RabbitMQ pipelines via CRON; near‑<b>100%</b> delivery.</li>
-                <li>Mentored 2 junior devs; improved delivery velocity by <b>20%</b>; earned 3 quarterly awards.</li>
+                <li>Engineered secure Python/Django backend services + SQL schemas for a blockchain trading platform to facilitate seamless and secure feature integration.</li>
+                <li>Streamlined system performance by reducing database load by <b>30%</b> and improving API responsiveness via Redis + SQL optimizations.</li>
+                <li>Developed real-time group chat via WebSockets; increased user engagement metrics by <b>25%</b>.</li>
+                <li>Systematized Polygon smart-contract deployments and RabbitMQ queuing via CRON; <b>100%</b> delivery reliability.</li>
+                <li>Directed a team and mentored 2 junior devs to accelerate project delivery by <b>20%</b>. Earned 3 quarterly awards.</li>
               </ul>
 
               <div class="chips">
@@ -354,7 +327,7 @@
                   <h3 class="frame__title">Faster Diffusion</h3>
                   <span class="badge mono">CLASS</span>
                 </div>
-                <p class="frame__text">Optimized diffusion models for real-time image generation.</p>
+                <p class="frame__text">Minimized generation time to validate low-latency diffusion model feasibility for production environments.</p>
                 <div class="chips">
                   <span class="chip">Diffusion</span><span class="chip">PyTorch</span><span class="chip">Optimization</span>
                 </div>
@@ -365,7 +338,7 @@
               </div>
             </article>
 
-            <article class="frame cut"
+            <article class="frame cut reveal-up" style="transition-delay: 100ms;"
               data-title="Text Sentiment Analysis"
               data-kind="Personal Project"
               data-desc="3-class sentiment classifier for noisy Twitter datasets. Fine-tuned ALBERT with strong preprocessing and noise mitigation."
@@ -382,9 +355,9 @@
                   <h3 class="frame__title">Text Sentiment Analysis</h3>
                   <span class="badge mono">PERSONAL</span>
                 </div>
-                <p class="frame__text">Robust sentiment classifier for noisy, unstructured text.</p>
+                <p class="frame__text">Robust 3-class sentiment classifier for noisy Twitter data.</p>
                 <div class="chips">
-                  <span class="chip">NLP</span><span class="chip">Transformers</span><span class="chip">ALBERT</span>
+                  <span class="chip">NLP</span><span class="chip">Transformers</span><span class="chip">Hugging Face</span>
                 </div>
                 <div class="frame__actions">
                   <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
@@ -393,7 +366,7 @@
               </div>
             </article>
 
-            <article class="frame cut"
+            <article class="frame cut reveal-up" style="transition-delay: 200ms;"
               data-title="Slack Python Q&amp;A Bot"
               data-kind="Personal Project"
               data-desc="Conversational Slack agent to automate technical support. Event-driven workflow with retrieval + NLP."
@@ -421,7 +394,7 @@
               </div>
             </article>
 
-            <article class="frame cut"
+            <article class="frame cut reveal-up" style="transition-delay: 300ms;"
               data-title="Digital Assets Analytics Pipeline"
               data-kind="Data Engineering / Streaming"
               data-desc="Real-time pipeline: Kraken WebSocket → Kafka (Avro + schema registry) → PySpark Structured Streaming (OHLCV) → TimescaleDB/Postgres → dbt → Power BI (DirectQuery + auto refresh)."
@@ -438,10 +411,10 @@
                   <h3 class="frame__title">Digital Assets Analytics Pipeline</h3>
                   <span class="badge mono">STREAMING</span>
                 </div>
-                <p class="frame__text">Kraken → Kafka → PySpark → TimescaleDB → dbt → Power BI.</p>
+                <p class="frame__text">Real-time market data pipeline: Kraken → Kafka → PySpark → TimescaleDB → dbt → Power BI.</p>
                 <div class="chips">
                   <span class="chip">Kafka</span><span class="chip">PySpark</span><span class="chip">TimescaleDB</span>
-                  <span class="chip">dbt</span><span class="chip">Power BI</span>
+                  <span class="chip">dbt</span><span class="chip">Power BI</span><span class="chip">Avro</span>
                 </div>
                 <div class="frame__actions">
                   <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
