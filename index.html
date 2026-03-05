@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#050A18" />
   <title>Aakash Tomar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/main.css" />
 </head>
 
@@ -107,7 +111,7 @@
     <section id="impact" class="section" data-section>
       <div class="container">
         <header class="section__head reveal-up">
-          <h2 class="section__title">Impact</h2>
+          <h2 class="section__title"><span class="material-symbols-outlined section-icon section-icon--yellow">trending_up</span> Impact</h2>
           <p class="section__sub">Measured outcomes.</p>
         </header>
 
@@ -155,7 +159,7 @@
     <section id="techstack" class="section" data-section>
       <div class="container">
         <header class="section__head reveal-up">
-          <h2 class="section__title">Tech Stack</h2>
+          <h2 class="section__title"><span class="material-symbols-outlined section-icon section-icon--green">code</span> Tech Stack</h2>
           <p class="section__sub">Hover a cluster to focus. Skills stay in the foreground.</p>
         </header>
 
@@ -223,7 +227,7 @@
     <section id="education" class="section" data-section>
       <div class="container">
         <header class="section__head">
-          <h2 class="section__title">Education</h2>
+          <h2 class="section__title"><span class="material-symbols-outlined section-icon section-icon--blue">school</span> Education</h2>
           <p class="section__sub">Two degrees — one direction.</p>
         </header>
 
@@ -255,175 +259,68 @@
     <section id="experience" class="section" data-section>
       <div class="container">
         <header class="section__head">
-          <h2 class="section__title">Experience</h2>
+          <h2 class="section__title"><span class="material-symbols-outlined section-icon section-icon--yellow">work</span> Professional Experience</h2>
           <p class="section__sub">Reliable backend + realtime systems + automation.</p>
         </header>
 
-        <div class="logbook">
-          <details class="entry cut" data-accent="coral" open>
-            <summary class="entry__summary">
-              <div class="entry__left">
-                <div class="entry__role">Senior Associate Consultant</div>
-                <div class="entry__company mono muted">Oodles Technologies</div>
-              </div>
-              <div class="entry__right mono">India • May 2022 — Aug 2024</div>
-            </summary>
-
-            <div class="entry__body">
-              <ul class="entry__bullets">
-                <li>Engineered secure Python/Django backend services + SQL schemas for a blockchain trading platform to facilitate seamless and secure feature integration.</li>
-                <li>Streamlined system performance by reducing database load by <b>30%</b> and improving API responsiveness via Redis + SQL optimizations.</li>
-                <li>Developed real-time group chat via WebSockets; increased user engagement metrics by <b>25%</b>.</li>
-                <li>Systematized Polygon smart-contract deployments and RabbitMQ queuing via CRON; <b>100%</b> delivery reliability.</li>
-                <li>Directed a team and mentored 2 junior devs to accelerate project delivery by <b>20%</b>. Earned 3 quarterly awards.</li>
-              </ul>
-
-              <div class="chips">
-                <span class="chip">Python</span>
-                <span class="chip">Django</span>
-                <span class="chip">SQL</span>
-                <span class="chip">WebSockets</span>
-                <span class="chip">RabbitMQ</span>
-                <span class="chip">Redis</span>
-                <span class="chip">AWS</span>
-              </div>
+        <div class="exp-card cut" data-accent="coral">
+          <div class="exp-card__header">
+            <div class="exp-card__left">
+              <h3 class="exp-card__role">Senior Associate Consultant</h3>
+              <div class="exp-card__company">Oodles Technologies</div>
             </div>
-          </details>
+            <span class="exp-card__date pill mono">May 2022 — Aug 2024</span>
+          </div>
+
+          <ul class="exp-card__bullets">
+            <li>Engineered secure Python/Django backend services + SQL schemas for a blockchain trading platform to facilitate seamless and secure feature integration.</li>
+            <li>Streamlined system performance by reducing database load by <b>30%</b> and improving API responsiveness via Redis + SQL optimizations.</li>
+            <li>Developed real-time group chat via WebSockets; increased user engagement metrics by <b>25%</b>.</li>
+            <li>Systematized Polygon smart-contract deployments and RabbitMQ queuing via CRON; <b>100%</b> delivery reliability.</li>
+            <li>Directed a team and mentored 2 junior devs to accelerate project delivery by <b>20%</b>. Earned 3 quarterly awards.</li>
+          </ul>
+
+          <div class="chips">
+            <span class="chip">Python</span>
+            <span class="chip">Django</span>
+            <span class="chip">SQL</span>
+            <span class="chip">WebSockets</span>
+            <span class="chip">RabbitMQ</span>
+            <span class="chip">Redis</span>
+            <span class="chip">AWS</span>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- PROJECTS -->
+    <!-- FEATURED PROJECT -->
     <section id="projects" class="section" data-section>
       <div class="container">
-        <header class="section__head section__head--row">
-          <div>
-            <h2 class="section__title">Projects</h2>
-            <p class="section__sub">Infinite drawer • 5s • click pins • double‑click opens repo.</p>
-          </div>
-
-          <div class="drawer-controls" aria-label="Drawer controls">
-            <button class="icon-btn" type="button" data-drawer="prev" aria-label="Previous">←</button>
-            <button class="icon-btn" type="button" data-drawer="next" aria-label="Next">→</button>
-          </div>
+        <header class="section__head reveal-up">
+          <h2 class="section__title"><span class="material-symbols-outlined section-icon section-icon--purple">rocket_launch</span> Featured Project</h2>
         </header>
 
-        <div class="drawer-shell">
-          <div class="drawer" id="drawer" aria-label="Projects drawer">
-            <article class="frame cut"
-              data-title="Faster Diffusion"
-              data-kind="Class Project"
-              data-desc="Optimized diffusion models for real-time, scalable image generation. Focused on inference bottlenecks and deployment efficiency."
-              data-tags="Diffusion,PyTorch,Optimization"
-              data-repo="https://github.com/AakashKTo"
-              data-image="assets/img/1.webp"
-              data-accent="blue">
-              <div class="frame__matte cut">
-                <img class="thumb" src="assets/img/1.webp" alt="Faster Diffusion preview" loading="lazy" decoding="async" />
-                <div class="frame__corner mono">FD</div>
-              </div>
-              <div class="frame__info">
-                <div class="frame__top">
-                  <h3 class="frame__title">Faster Diffusion</h3>
-                  <span class="badge mono">CLASS</span>
-                </div>
-                <p class="frame__text">Minimized generation time to validate low-latency diffusion model feasibility for production environments.</p>
-                <div class="chips">
-                  <span class="chip">Diffusion</span><span class="chip">PyTorch</span><span class="chip">Optimization</span>
-                </div>
-                <div class="frame__actions">
-                  <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
-                  <span class="hint mono muted">Double‑click card → repo</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="frame cut reveal-up" style="transition-delay: 100ms;"
-              data-title="Text Sentiment Analysis"
-              data-kind="Personal Project"
-              data-desc="3-class sentiment classifier for noisy Twitter datasets. Fine-tuned ALBERT with strong preprocessing and noise mitigation."
-              data-tags="NLP,Transformers,ALBERT"
-              data-repo="https://github.com/AakashKTo"
-              data-image="assets/img/2.webp"
-              data-accent="coral">
-              <div class="frame__matte cut">
-                <img class="thumb" src="assets/img/2.webp" alt="Text Sentiment Analysis preview" loading="lazy" decoding="async" />
-                <div class="frame__corner mono">SA</div>
-              </div>
-              <div class="frame__info">
-                <div class="frame__top">
-                  <h3 class="frame__title">Text Sentiment Analysis</h3>
-                  <span class="badge mono">PERSONAL</span>
-                </div>
-                <p class="frame__text">Robust 3-class sentiment classifier for noisy Twitter data.</p>
-                <div class="chips">
-                  <span class="chip">NLP</span><span class="chip">Transformers</span><span class="chip">Hugging Face</span>
-                </div>
-                <div class="frame__actions">
-                  <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
-                  <span class="hint mono muted">Double‑click card → repo</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="frame cut reveal-up" style="transition-delay: 200ms;"
-              data-title="Slack Python Q&amp;A Bot"
-              data-kind="Personal Project"
-              data-desc="Conversational Slack agent to automate technical support. Event-driven workflow with retrieval + NLP."
-              data-tags="Slack Bolt,NLP,Automation"
-              data-repo="https://github.com/AakashKTo"
-              data-image="assets/img/3.webp"
-              data-accent="green">
-              <div class="frame__matte cut">
-                <img class="thumb" src="assets/img/3.webp" alt="Slack Python Q&A Bot preview" loading="lazy" decoding="async" />
-                <div class="frame__corner mono">QB</div>
-              </div>
-              <div class="frame__info">
-                <div class="frame__top">
-                  <h3 class="frame__title">Slack Python Q&amp;A Bot</h3>
-                  <span class="badge mono">PERSONAL</span>
-                </div>
-                <p class="frame__text">Event-driven Slack assistant for faster support + knowledge access.</p>
-                <div class="chips">
-                  <span class="chip">Slack</span><span class="chip">NLP</span><span class="chip">Automation</span>
-                </div>
-                <div class="frame__actions">
-                  <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
-                  <span class="hint mono muted">Double‑click card → repo</span>
-                </div>
-              </div>
-            </article>
-
-            <article class="frame cut reveal-up" style="transition-delay: 300ms;"
-              data-title="Digital Assets Analytics Pipeline"
-              data-kind="Data Engineering / Streaming"
-              data-desc="Real-time pipeline: Kraken WebSocket → Kafka (Avro + schema registry) → PySpark Structured Streaming (OHLCV) → TimescaleDB/Postgres → dbt → Power BI (DirectQuery + auto refresh)."
-              data-tags="Kafka,Avro,PySpark,Structured Streaming,TimescaleDB,dbt,Power BI"
-              data-repo="https://github.com/AII-projects/DigitalAssetsAnalyticsPipeline"
-              data-image="assets/img/4.webp"
-              data-accent="green">
-              <div class="frame__matte cut">
-                <img class="thumb" src="assets/img/4.webp" alt="Digital Assets Analytics Pipeline preview" loading="lazy" decoding="async" />
-                <div class="frame__corner mono">DA</div>
-              </div>
-              <div class="frame__info">
-                <div class="frame__top">
-                  <h3 class="frame__title">Digital Assets Analytics Pipeline</h3>
-                  <span class="badge mono">STREAMING</span>
-                </div>
-                <p class="frame__text">Real-time market data pipeline: Kraken → Kafka → PySpark → TimescaleDB → dbt → Power BI.</p>
-                <div class="chips">
-                  <span class="chip">Kafka</span><span class="chip">PySpark</span><span class="chip">TimescaleDB</span>
-                  <span class="chip">dbt</span><span class="chip">Power BI</span><span class="chip">Avro</span>
-                </div>
-                <div class="frame__actions">
-                  <button class="btn btn--tiny btn--primary" type="button" data-open>Open exhibit</button>
-                  <span class="hint mono muted">Double‑click card → repo</span>
-                </div>
-              </div>
-            </article>
-
+        <div class="featured-project cut reveal-up" data-accent="green">
+          <div class="featured-project__image">
+            <img src="assets/img/4.webp" alt="Digital Assets Analytics Pipeline preview" loading="lazy" decoding="async" />
           </div>
+          <div class="featured-project__info">
+            <h3 class="featured-project__title">Digital Assets Analytics Pipeline</h3>
+            <p class="featured-project__desc">Real-time pipeline: Kraken WebSocket → Kafka (Avro + schema registry) → PySpark Structured Streaming (OHLCV) → TimescaleDB/Postgres → dbt → Power BI (DirectQuery + auto refresh).</p>
+            <div class="chips">
+              <span class="chip">Kafka</span><span class="chip">PySpark</span><span class="chip">TimescaleDB</span>
+              <span class="chip">dbt</span><span class="chip">Power BI</span><span class="chip">Avro</span>
+            </div>
+            <a class="featured-project__link" href="https://github.com/AII-projects/DigitalAssetsAnalyticsPipeline" target="_blank" rel="noopener">
+              View Source <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">open_in_new</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="featured-project__cta reveal-up">
+          <a class="btn btn--ghost" href="projects.html">
+            View All Projects <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle">arrow_forward</span>
+          </a>
         </div>
       </div>
     </section>
@@ -432,7 +329,7 @@
     <section id="contact" class="section" data-section>
       <div class="container">
         <header class="section__head">
-          <h2 class="section__title">Contact</h2>
+          <h2 class="section__title"><span class="material-symbols-outlined section-icon section-icon--blue">mail</span> Contact</h2>
           <p class="section__sub">Icons only — hover to see what each one is.</p>
         </header>
 
@@ -486,36 +383,7 @@
     </div>
   </footer>
 
-  <!-- Exhibit Sheet -->
-  <div class="sheet" id="sheet" aria-hidden="true">
-    <div class="sheet__overlay" data-sheet="close" aria-hidden="true"></div>
 
-    <div class="sheet__panel cut" role="dialog" aria-modal="true" aria-label="Project exhibit">
-      <button class="sheet__close icon-btn" type="button" data-sheet="close" aria-label="Close">×</button>
-
-      <div class="sheet__content">
-        <div class="sheet__art cut">
-          <img id="sheetImage" alt="" />
-          <div class="sheet__badge mono" id="sheetKind">PROJECT</div>
-        </div>
-
-        <div class="sheet__text">
-          <p class="kicker mono">EXHIBIT</p>
-          <h3 class="sheet__title" id="sheetTitle">Project Title</h3>
-          <p class="sheet__desc" id="sheetDesc">Project description…</p>
-
-          <div class="sheet__tags chips" id="sheetTags"></div>
-
-          <div class="sheet__actions">
-            <a class="btn btn--primary" id="sheetRepo" href="#" target="_blank" rel="noopener">Open repo</a>
-            <button class="btn btn--ghost" type="button" data-sheet="close">Close</button>
-          </div>
-
-          <p class="mono muted sheet__hint">ESC closes • click pins • double‑click opens repo</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <script src="assets/js/main.js" defer></script>
 </body>

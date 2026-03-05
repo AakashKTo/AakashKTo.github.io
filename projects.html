@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#050A18" />
+  <title>Projects — Aakash Tomar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css" />
+</head>
+
+<body>
+  <!-- Startup Reveal -->
+  <div class="startup-overlay" id="startupOverlay" aria-hidden="true">
+    <canvas id="startupCanvas"></canvas>
+    <div class="startup__brand">AAKASH</div>
+  </div>
+
+  <!-- Living Aurora Background -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- Top Bar -->
+  <header class="top-strip" id="topStrip">
+    <a class="brand" href="index.html" aria-label="Go to home">
+      <span class="brand__dot" aria-hidden="true"></span>
+      <span class="brand__name">Aakash</span>
+    </a>
+
+    <nav class="top-nav" id="topNav" aria-label="Primary navigation">
+      <a class="top-nav__item" href="index.html">
+        <span class="material-symbols-outlined nav-icon" style="font-size: 18px; margin-right: 6px; vertical-align: middle;">arrow_back</span>
+        <span class="top-nav__text" style="vertical-align: middle;">Return to Home</span>
+      </a>
+    </nav>
+
+    <div class="top-strip__actions">
+      <a class="btn btn--ghost btn--resume" href="resume/resume.pdf" target="_blank" rel="noopener">
+        Resume PDF
+      </a>
+
+      <button
+        class="nav-toggle"
+        id="navToggle"
+        type="button"
+        aria-label="Open menu"
+        aria-expanded="false"
+        aria-controls="topNav"
+      >
+        <span class="nav-toggle__bars" aria-hidden="true"></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
+
+  <main>
+    <section class="section" data-section>
+      <div class="container">
+        <header class="section__head text-center" style="margin-bottom:3rem;">
+          <h2 class="section__title">
+            Featured <span class="accent accent--blue">Projects</span>
+          </h2>
+          <p class="section__sub">A collection of data systems, GenAI pipelines, and tools I've built focusing on performance, observability, and scale.</p>
+        </header>
+
+        <div class="projects-grid">
+
+          <!-- Project 1: Faster Diffusion -->
+          <article class="proj-card cut reveal-up" data-accent="blue">
+            <div class="proj-card__image">
+              <img src="assets/img/1.webp" alt="Faster Diffusion" loading="lazy" decoding="async" />
+            </div>
+            <div class="proj-card__body">
+              <div class="proj-card__head">
+                <h3 class="proj-card__title">Faster Diffusion</h3>
+                <span class="proj-card__badge proj-card__badge--blue">Class Project</span>
+              </div>
+              <p class="proj-card__desc">Optimized diffusion models for real-time, scalable image generation. Focused on inference bottlenecks and deployment efficiency.</p>
+              <div class="proj-card__skills">
+                <h4 class="proj-card__skills-label">SKILLS &amp; TOOLS</h4>
+                <div class="proj-card__pills">
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--blue)"></span>Diffusion</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--coral)"></span>PyTorch</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--green)"></span>Optimization</span>
+                </div>
+              </div>
+            </div>
+            <div class="proj-card__footer">
+              <a class="proj-card__cta" href="https://github.com/AakashKTo/GenAIProject" target="_blank" rel="noopener">View Source</a>
+              <a class="proj-card__gh" href="https://github.com/AakashKTo/GenAIProject" target="_blank" rel="noopener" aria-label="GitHub">
+                <svg class="proj-card__gh-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- Project 2: Text Sentiment Analysis -->
+          <article class="proj-card cut reveal-up" data-accent="coral" style="transition-delay:100ms">
+            <div class="proj-card__image">
+              <img src="assets/img/2.webp" alt="Text Sentiment Analysis" loading="lazy" decoding="async" />
+            </div>
+            <div class="proj-card__body">
+              <div class="proj-card__head">
+                <h3 class="proj-card__title">Text Sentiment Analysis</h3>
+                <span class="proj-card__badge proj-card__badge--green">Completed</span>
+              </div>
+              <p class="proj-card__desc">3-class sentiment classifier for noisy Twitter datasets. Fine-tuned ALBERT with strong preprocessing and noise mitigation.</p>
+              <div class="proj-card__skills">
+                <h4 class="proj-card__skills-label">SKILLS &amp; TOOLS</h4>
+                <div class="proj-card__pills">
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--coral)"></span>NLP</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--blue)"></span>Transformers</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--green)"></span>Hugging Face</span>
+                </div>
+              </div>
+            </div>
+            <div class="proj-card__footer">
+              <a class="proj-card__cta" href="https://github.com/AakashKTo/TextSentimentAnalysis" target="_blank" rel="noopener">View Source</a>
+              <a class="proj-card__gh" href="https://github.com/AakashKTo/TextSentimentAnalysis" target="_blank" rel="noopener" aria-label="GitHub">
+                <svg class="proj-card__gh-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- Project 3: Slack Python Q&A Bot -->
+          <article class="proj-card cut reveal-up" data-accent="green" style="transition-delay:200ms">
+            <div class="proj-card__image">
+              <img src="assets/img/3.webp" alt="Slack Python Q&A Bot" loading="lazy" decoding="async" />
+            </div>
+            <div class="proj-card__body">
+              <div class="proj-card__head">
+                <h3 class="proj-card__title">Slack Python Q&amp;A Bot</h3>
+                <span class="proj-card__badge proj-card__badge--green">Completed</span>
+              </div>
+              <p class="proj-card__desc">Conversational Slack agent to automate technical support. Event-driven workflow with retrieval + NLP.</p>
+              <div class="proj-card__skills">
+                <h4 class="proj-card__skills-label">SKILLS &amp; TOOLS</h4>
+                <div class="proj-card__pills">
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--blue)"></span>Slack</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--coral)"></span>NLP</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--green)"></span>Automation</span>
+                </div>
+              </div>
+            </div>
+            <div class="proj-card__footer">
+              <a class="proj-card__cta" href="https://github.com/AII-projects/slackbot" target="_blank" rel="noopener">View Source</a>
+              <a class="proj-card__gh" href="https://github.com/AII-projects/slackbot" target="_blank" rel="noopener" aria-label="GitHub">
+                <svg class="proj-card__gh-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- Project 4: Digital Assets Analytics Pipeline -->
+          <article class="proj-card cut reveal-up" data-accent="green" style="transition-delay:300ms">
+            <div class="proj-card__image">
+              <img src="assets/img/4.webp" alt="Digital Assets Analytics Pipeline" loading="lazy" decoding="async" />
+            </div>
+            <div class="proj-card__body">
+              <div class="proj-card__head">
+                <h3 class="proj-card__title">Digital Assets Analytics Pipeline</h3>
+                <span class="proj-card__badge proj-card__badge--blue">Streaming</span>
+              </div>
+              <p class="proj-card__desc">Real-time pipeline: Kraken WebSocket → Kafka (Avro + schema registry) → PySpark Structured Streaming (OHLCV) → TimescaleDB/Postgres → dbt → Power BI.</p>
+              <div class="proj-card__skills">
+                <h4 class="proj-card__skills-label">SKILLS &amp; TOOLS</h4>
+                <div class="proj-card__pills">
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--coral)"></span>Kafka</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--blue)"></span>PySpark</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--green)"></span>TimescaleDB</span>
+                </div>
+              </div>
+            </div>
+            <div class="proj-card__footer">
+              <a class="proj-card__cta" href="https://github.com/AII-projects/DigitalAssetsAnalyticsPipeline" target="_blank" rel="noopener">View Source</a>
+              <a class="proj-card__gh" href="https://github.com/AII-projects/DigitalAssetsAnalyticsPipeline" target="_blank" rel="noopener" aria-label="GitHub">
+                <svg class="proj-card__gh-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- Project 5: U.S. Stock Prediction & Trading Pipeline -->
+          <article class="proj-card cut reveal-up" data-accent="blue" style="transition-delay:400ms">
+            <div class="proj-card__image">
+              <img src="assets/img/5.webp" alt="U.S. Stock Prediction & Trading Pipeline" loading="lazy" decoding="async" />
+            </div>
+            <div class="proj-card__body">
+              <div class="proj-card__head">
+                <h3 class="proj-card__title">U.S. Stock Prediction & Trading Pipeline</h3>
+                <span class="proj-card__badge proj-card__badge--coral">In Progress</span>
+              </div>
+              <p class="proj-card__desc">End‑to‑end local research pipeline for stock prediction: reproducible ETL with leakage‑safe feature store, Temporal Fusion Transformer (TFT) forecasting across mixed covariates, and a vectorized backtesting harness for systematic trading.</p>
+              <div class="proj-card__skills">
+                <h4 class="proj-card__skills-label">SKILLS &amp; TOOLS</h4>
+                <div class="proj-card__pills">
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--blue)"></span>PyTorch / TFT</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--coral)"></span>pandas / NumPy</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--green)"></span>DuckDB</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--blue)"></span>SEC EDGAR</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--coral)"></span>yfinance</span>
+                  <span class="proj-pill"><span class="proj-pill__dot" style="background:var(--green)"></span>scikit‑learn</span>
+                </div>
+              </div>
+            </div>
+            <div class="proj-card__footer">
+              <a class="proj-card__cta" href="https://github.com/AakashKTo" target="_blank" rel="noopener">View Source</a>
+              <a class="proj-card__gh" href="https://github.com/AakashKTo" target="_blank" rel="noopener" aria-label="GitHub">
+                <svg class="proj-card__gh-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              </a>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div class="mono muted">© <span id="year"></span> Aakash Tomar</div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js" defer></script>
+</body>
+</html>
