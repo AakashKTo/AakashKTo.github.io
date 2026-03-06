@@ -87,9 +87,9 @@
     }
 
     #pdDesc {
-      font-size: 1.15rem;
-      line-height: 1.8;
-      color: rgba(245, 245, 245, 0.85);
+      font-size: 1.2rem;
+      line-height: 1.9;
+      color: rgba(245, 245, 245, 0.9);
     }
     
     .pd-skills-header {
@@ -115,10 +115,6 @@
     }
 
     .pd-skills-card {
-      background: rgba(10, 15, 30, 0.5);
-      border: 1px solid rgba(245, 245, 245, 0.08);
-      border-radius: 16px;
-      padding: 2rem;
       display: flex;
       flex-direction: column;
       gap: 2rem;
@@ -156,18 +152,23 @@
       justify-content: center;
       gap: 10px;
       padding: 14px 28px;
-      background: var(--blue);
-      color: #fff;
+      background: rgba(42, 245, 255, 0.05);
+      color: var(--blue);
       font-weight: 600;
       font-size: 1.05rem;
+      border: 1px solid rgba(42, 245, 255, 0.2);
       border-radius: 12px;
       text-decoration: none;
-      transition: background 0.2s, transform 0.2s;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 0 rgba(42, 245, 255, 0);
     }
     
     .pd-cta-btn:hover {
-      background: #3B7BE0;
+      background: rgba(42, 245, 255, 0.15);
+      border-color: rgba(42, 245, 255, 0.5);
+      color: #fff;
       transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(42, 245, 255, 0.25);
     }
   </style>
 </head>

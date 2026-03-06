@@ -351,10 +351,26 @@ function initPageLoadTransition() {
     return;
   }
 
-  // Hide site content behind overlay
   var mainContent = qs('main');
   var topStrip = qs('.top-strip');
   var footer = qs('.footer');
+
+  // Skip animation for subsequent page loads in the same session
+  if (sessionStorage.getItem('hasSeenStartup') === 'true') {
+    overlay.style.transition = 'opacity 0.4s ease';
+    overlay.style.opacity = '0';
+    if (mainContent) { mainContent.style.transition = 'opacity 0.4s ease'; mainContent.style.opacity = '1'; }
+    if (topStrip) { topStrip.style.transition = 'opacity 0.4s ease'; topStrip.style.opacity = '1'; }
+    if (footer) { footer.style.transition = 'opacity 0.4s ease'; footer.style.opacity = '1'; }
+    document.body.classList.add('is-loaded');
+    
+    setTimeout(function() {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }, 400);
+    return;
+  }
+
+  // Hide site content behind overlay for initial load
   if (mainContent) mainContent.style.opacity = '0';
   if (topStrip) topStrip.style.opacity = '0';
   if (footer) footer.style.opacity = '0';
@@ -462,6 +478,8 @@ function initPageLoadTransition() {
       if (topStrip) { topStrip.style.transition = 'opacity 0.8s ease'; topStrip.style.opacity = '1'; }
       if (footer) { footer.style.transition = 'opacity 0.8s ease'; footer.style.opacity = '1'; }
       document.body.classList.add('is-loaded');
+      
+      sessionStorage.setItem('hasSeenStartup', 'true');
 
       setTimeout(function() {
         isAnimating = false;
@@ -1159,6 +1177,12 @@ function initProjectDetail() {
   if (!data) {
     document.getElementById("pdTitle").textContent = "Project Not Found";
     document.getElementById("pdDesc").textContent = "The requested project could not be loaded.";
+    const pdImage = document.getElementById("pdImage");
+    if (pdImage) pdImage.style.display = "none";
+    const pdBadge = document.getElementById("pdBadge");
+    if (pdBadge) pdBadge.style.display = "none";
+    const techStack = document.querySelector(".pd-tech-stack");
+    if (techStack) techStack.style.display = "none";
     section.style.display = "block";
     return;
   }
