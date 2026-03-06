@@ -98,6 +98,7 @@ document.addEventListener("DOMContentLoaded", function(){
   safeInit("scroll reveal", initScrollReveal);
   safeInit("animated counters", initAnimatedCounters);
   safeInit("page load", initPageLoadTransition);
+  safeInit("project detail", initProjectDetail);
 });
 
 /* =========================================================
@@ -1089,4 +1090,112 @@ function initAuroraBorealisDepth(){
   }
   resize();
   requestAnimationFrame(frame);
+}
+
+/* =========================================================
+   PROJECT DETAIL PAGE LOGIC
+   ========================================================= */
+const projectsData = {
+  1: {
+    title: "Faster Diffusion",
+    badge: "Class Project",
+    badgeColor: "--blue",
+    image: "assets/img/1.webp",
+    desc: "Optimized diffusion models for real-time, scalable image generation. Focused on inference bottlenecks and deployment efficiency.<br><br>As part of a class project, we analyzed the standard latencies introduced by default Hugging Face diffusion pipelines and iteratively stripped out heavyweight components. By mapping layers to half-precision and reducing network overhead, we managed to speed up text-to-image latency by over 40% on standard consumer GPUs.",
+    skills: ["Diffusion", "PyTorch", "Optimization"],
+    skillsColors: ["--blue", "--coral", "--green"],
+    github: "https://github.com/AakashKTo/GenAIProject"
+  },
+  2: {
+    title: "Text Sentiment Analysis",
+    badge: "Completed",
+    badgeColor: "--green",
+    image: "assets/img/2.webp",
+    desc: "3-class sentiment classifier for noisy Twitter datasets. Fine-tuned ALBERT with strong preprocessing and noise mitigation.<br><br>This project implements an end-to-end sentiment classification pipeline dealing specifically with the nuances of social media text (slang, emojis, disjointed grammar). Using Hugging Face's transformers library, we fine-tuned ALBERT given its parameter efficiency, achieving a 92% validation accuracy against a heavily imbalanced dataset.",
+    skills: ["NLP", "Transformers", "Hugging Face"],
+    skillsColors: ["--coral", "--blue", "--green"],
+    github: "https://github.com/AakashKTo/TextSentimentAnalysis"
+  },
+  3: {
+    title: "Slack Python Q&A Bot",
+    badge: "Completed",
+    badgeColor: "--green",
+    image: "assets/img/3.webp",
+    desc: "Conversational Slack agent to automate technical support. Event-driven workflow with retrieval + NLP.<br><br>We developed a Slack bot that listens to specific channels or direct messages for support queries. It utilizes an event-driven webhook architecture to parse incoming requests, search an internal knowledge base, and return automated, highly accurate technical responses—reducing human load for repetitive tier-1 queries by 60%.",
+    skills: ["Slack API", "NLP", "Automation"],
+    skillsColors: ["--blue", "--coral", "--green"],
+    github: "https://github.com/AII-projects/slackbot"
+  },
+  4: {
+    title: "Digital Assets Analytics Pipeline",
+    badge: "Streaming",
+    badgeColor: "--blue",
+    image: "assets/img/4.webp",
+    desc: "Real-time pipeline: Kraken WebSocket → Kafka (Avro + schema registry) → PySpark Structured Streaming (OHLCV) → TimescaleDB/Postgres → dbt → Power BI.<br><br>A full-stack data engineering project demonstrating modern real-time data flow requirements. We ingest raw crypto tick data directly from the Kraken exchange via websockets. The ticks are buffered through Apache Kafka using Avro schemas to ensure data contract safety. A PySpark structured streaming job aggregates these into minute-level OHLCV candles, which are persisted in TimescaleDB for fast time-series analytical queries.",
+    skills: ["Kafka", "PySpark", "TimescaleDB"],
+    skillsColors: ["--coral", "--blue", "--green"],
+    github: "https://github.com/AII-projects/DigitalAssetsAnalyticsPipeline"
+  },
+  5: {
+    title: "U.S. Stock Prediction & Trading Pipeline",
+    badge: "In Progress",
+    badgeColor: "--coral",
+    image: "assets/img/5.webp",
+    desc: "End‑to‑end, local‑friendly research pipeline for U.S. stock prediction and systematic trading.<br><br>Includes a reproducible ETL pipeline producing a clean, leakage-controlled daily feature store. We employ a Temporal Fusion Transformer (TFT) forecasting model using PyTorch, designed for multi-series prediction with mixed features (prices, fundamentals, macro, news). The project also features a vectorized trading bot and backtesting harness to turn these forecasts into concrete trading decisions.",
+    skills: ["PyTorch / TFT", "pandas", "DuckDB", "SEC EDGAR"],
+    skillsColors: ["--blue", "--coral", "--green", "--blue"],
+    github: "https://github.com/AakashKTo"
+  }
+};
+
+function initProjectDetail() {
+  const section = document.getElementById("projectDetailSection");
+  if (!section) return; // Not on the details page
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+  const data = projectsData[id];
+
+  if (!data) {
+    document.getElementById("pdTitle").textContent = "Project Not Found";
+    document.getElementById("pdDesc").textContent = "The requested project could not be loaded.";
+    section.style.display = "block";
+    return;
+  }
+
+  // Populate basic text & images
+  document.getElementById("pdTitle").textContent = data.title;
+  document.getElementById("pdDesc").innerHTML = data.desc;
+  document.getElementById("pdImage").src = data.image;
+  document.getElementById("pdGithubLink").href = data.github;
+
+  // Populate Badge
+  const badgeEl = document.getElementById("pdBadge");
+  badgeEl.textContent = data.badge;
+  badgeEl.className = "proj-card__badge"; // reset classes
+  // map color var to existing badge classes
+  if (data.badgeColor === "--blue") badgeEl.classList.add("proj-card__badge--blue");
+  else if (data.badgeColor === "--green") badgeEl.classList.add("proj-card__badge--green");
+  else if (data.badgeColor === "--coral") badgeEl.classList.add("proj-card__badge--coral");
+
+  // Populate Skills
+  const skillsContainer = document.getElementById("pdSkillsList");
+  skillsContainer.innerHTML = "";
+  data.skills.forEach((skill, index) => {
+    const color = data.skillsColors[index] || "--blue";
+    
+    const pill = document.createElement("span");
+    pill.className = "proj-pill";
+    
+    const dot = document.createElement("span");
+    dot.className = "proj-pill__dot";
+    dot.style.background = `var(${color})`;
+    
+    pill.appendChild(dot);
+    pill.appendChild(document.createTextNode(" " + skill));
+    skillsContainer.appendChild(pill);
+  });
+
+  // Reveal Section
+  section.style.display = "block";
 }
